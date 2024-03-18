@@ -1,20 +1,20 @@
 package org.codehaus.jackson.map.annotate;
 
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.codehaus.jackson.annotate.JacksonAnnotation;
-
 /**
  * Annotation used for indicating view(s) that the property
  * that is defined by method or field annotated is part of.
- *<p>
+ * <p>
  * An example annotation would be:
- *<pre>
+ * <pre>
  *  \@JsonView(BasicView.class)
- *</pre>
+ * </pre>
  * which would specify that property annotated would be included
  * when processing (serializing, deserializing) View identified
  * by <code>BasicView.class</code> (or its sub-class).
@@ -33,5 +33,5 @@ public @interface JsonView {
      * by classes, and use expected class inheritance relationship: child
      * views contain all elements parent views have, for example.
      */
-    public Class<?>[] value() default { };
+    public Class<?>[] value() default {};
 }

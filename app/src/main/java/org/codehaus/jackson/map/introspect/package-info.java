@@ -2,7 +2,7 @@
  * Functionality needed for Bean introspection, required for detecting
  * accessors and mutators for Beans, as well as locating and handling
  * method annotations.
- *<p>
+ * <p>
  * Beyond collecting annotations, additional "method annotation inheritance"
  * is also supported: whereas regular JDK classes do not add annotations
  * from overridden methods in any situation. But code in this package does.

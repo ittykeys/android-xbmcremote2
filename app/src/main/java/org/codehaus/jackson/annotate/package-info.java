@@ -5,7 +5,7 @@
  * annotations that have dependencies to Mapper classes are included
  * in Mapper module (under <code>org.codehaus.jackson.map.annotate</code>).
  * Also contains parameter types (mostly enums) needed by annotations.
- *<p>
+ * <p>
  * In future (version 2.0?), this package will probably be split off
  * as a separate jar/module, to allow use of annotations without
  * including core module. This would be useful for third party value

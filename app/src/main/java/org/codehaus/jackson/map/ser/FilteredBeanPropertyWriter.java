@@ -10,10 +10,8 @@ import org.codehaus.jackson.map.SerializerProvider;
  *
  * @since 1.4
  */
-public abstract class FilteredBeanPropertyWriter
-{
-    public static BeanPropertyWriter constructViewBased(BeanPropertyWriter base, Class<?>[] viewsToIncludeIn)
-    {
+public abstract class FilteredBeanPropertyWriter {
+    public static BeanPropertyWriter constructViewBased(BeanPropertyWriter base, Class<?>[] viewsToIncludeIn) {
         if (viewsToIncludeIn.length == 1) {
             return new SingleView(base, viewsToIncludeIn[0]);
         }
@@ -21,16 +19,19 @@ public abstract class FilteredBeanPropertyWriter
     }
 
     /*
-    ****************************************************
-    * Concrete sub-classes
-    ****************************************************
-    */
+     ****************************************************
+     * Concrete sub-classes
+     ****************************************************
+     */
+
+    protected static boolean _assignableFrom(Class<?> activeView) {
+        return false;
+    }
 
     private final static class SingleView
-        extends BeanPropertyWriter
-    {
+            extends BeanPropertyWriter {
         protected final Class<?> _view;
-        
+
         protected SingleView(BeanPropertyWriter base, Class<?> view) {
             super(base);
             _view = view;
@@ -38,8 +39,7 @@ public abstract class FilteredBeanPropertyWriter
 
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-            throws Exception
-        {
+                throws Exception {
             Class<?> activeView = prov.getSerializationView();
             if (activeView == null || _view.isAssignableFrom(activeView)) {
                 super.serializeAsField(bean, jgen, prov);
@@ -48,10 +48,9 @@ public abstract class FilteredBeanPropertyWriter
     }
 
     private final static class MultiView
-        extends BeanPropertyWriter
-    {
+            extends BeanPropertyWriter {
         protected final Class<?>[] _views;
-        
+
         protected MultiView(BeanPropertyWriter base, Class<?>[] views) {
             super(base);
             _views = views;
@@ -59,8 +58,7 @@ public abstract class FilteredBeanPropertyWriter
 
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-            throws Exception
-        {
+                throws Exception {
             final Class<?> activeView = prov.getSerializationView();
             if (activeView != null) {
                 int i = 0, len = _views.length;
@@ -74,10 +72,5 @@ public abstract class FilteredBeanPropertyWriter
             }
             super.serializeAsField(bean, jgen, prov);
         }
-    }
-
-    protected static boolean _assignableFrom(Class<?> activeView)
-    {
-        return false;
     }
 }

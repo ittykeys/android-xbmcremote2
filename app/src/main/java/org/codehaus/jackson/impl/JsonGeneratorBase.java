@@ -1,10 +1,16 @@
 package org.codehaus.jackson.impl;
 
-import java.io.*;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.ObjectCodec;
+
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import org.codehaus.jackson.*;
 
 /**
  * This base class implements part of API that a JSON generator exposes
@@ -12,8 +18,7 @@ import org.codehaus.jackson.*;
  * can use and adds some abstract methods sub-classes must implement.
  */
 public abstract class JsonGeneratorBase
-    extends JsonGenerator
-{
+        extends JsonGenerator {
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -61,8 +66,7 @@ public abstract class JsonGeneratorBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonGeneratorBase(int features, ObjectCodec codec)
-    {
+    protected JsonGeneratorBase(int features, ObjectCodec codec) {
         super();
         _features = features;
         _writeContext = JsonWriteContext.createRootContext();
@@ -101,8 +105,7 @@ public abstract class JsonGeneratorBase
         return (_features & f.getMask()) != 0;
     }
 
-    public final JsonGenerator useDefaultPrettyPrinter()
-    {
+    public final JsonGenerator useDefaultPrettyPrinter() {
         return setPrettyPrinter(new DefaultPrettyPrinter());
     }
 
@@ -111,7 +114,9 @@ public abstract class JsonGeneratorBase
         return this;
     }
 
-    public final ObjectCodec getCodec() { return _objectCodec; }
+    public final ObjectCodec getCodec() {
+        return _objectCodec;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -122,7 +127,9 @@ public abstract class JsonGeneratorBase
     /**
      * Note: co-variant return type.
      */
-    public final JsonWriteContext getOutputContext() { return _writeContext; }
+    public final JsonWriteContext getOutputContext() {
+        return _writeContext;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -131,8 +138,7 @@ public abstract class JsonGeneratorBase
      */
 
     public final void writeStartArray()
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         // Array is a value, need to verify it's allowed
         _verifyValueWrite("start an array");
         _writeContext = _writeContext.createChildArrayContext();
@@ -144,13 +150,12 @@ public abstract class JsonGeneratorBase
     }
 
     protected abstract void _writeStartArray()
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public final void writeEndArray()
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         if (!_writeContext.inArray()) {
-            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
+            _reportError("Current context not an ARRAY but " + _writeContext.getTypeDesc());
         }
         if (_cfgPrettyPrinter != null) {
             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
@@ -161,11 +166,10 @@ public abstract class JsonGeneratorBase
     }
 
     protected abstract void _writeEndArray()
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public final void writeStartObject()
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         _verifyValueWrite("start an object");
         _writeContext = _writeContext.createChildObjectContext();
         if (_cfgPrettyPrinter != null) {
@@ -176,13 +180,12 @@ public abstract class JsonGeneratorBase
     }
 
     protected abstract void _writeStartObject()
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public final void writeEndObject()
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         if (!_writeContext.inObject()) {
-            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
+            _reportError("Current context not an object but " + _writeContext.getTypeDesc());
         }
         _writeContext = _writeContext.getParent();
         if (_cfgPrettyPrinter != null) {
@@ -193,11 +196,10 @@ public abstract class JsonGeneratorBase
     }
 
     protected abstract void _writeEndObject()
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public final void writeFieldName(String name)
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         // Object is a value, need to verify it's allowed
         int status = _writeContext.writeFieldName(name);
         if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
@@ -207,7 +209,7 @@ public abstract class JsonGeneratorBase
     }
 
     protected abstract void _writeFieldName(String name, boolean commaBefore)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     /*
     ////////////////////////////////////////////////////
@@ -232,25 +234,25 @@ public abstract class JsonGeneratorBase
      */
 
     public abstract void writeNumber(int i)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeNumber(long l)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeNumber(double d)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeNumber(float f)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeNumber(BigDecimal dec)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeBoolean(boolean state)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     public abstract void writeNull()
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     /*
     ////////////////////////////////////////////////////
@@ -259,8 +261,7 @@ public abstract class JsonGeneratorBase
      */
 
     public void writeObject(Object value)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         if (value == null) {
             // important: call method that does check value write:
             writeNull();
@@ -279,8 +280,7 @@ public abstract class JsonGeneratorBase
     }
 
     public void writeTree(JsonNode rootNode)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // As with 'writeObject()', we are not check if write would work
         if (rootNode == null) {
             writeNull();
@@ -300,12 +300,13 @@ public abstract class JsonGeneratorBase
 
     public abstract void flush() throws IOException;
 
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         _closed = true;
     }
 
-    public boolean isClosed() { return _closed; }
+    public boolean isClosed() {
+        return _closed;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -314,71 +315,69 @@ public abstract class JsonGeneratorBase
      */
 
     public final void copyCurrentEvent(JsonParser jp)
-        throws IOException, JsonProcessingException
-    {
-        switch(jp.getCurrentToken()) {
-        case START_OBJECT:
-            writeStartObject();
-            break;
-        case END_OBJECT:
-            writeEndObject();
-            break;
-        case START_ARRAY:
-            writeStartArray();
-            break;
-        case END_ARRAY:
-            writeEndArray();
-            break;
-        case FIELD_NAME:
-            writeFieldName(jp.getCurrentName());
-            break;
-        case VALUE_STRING:
-            writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
-            break;
-        case VALUE_NUMBER_INT:
-            switch (jp.getNumberType()) {
-            case INT:
-                writeNumber(jp.getIntValue());
+            throws IOException, JsonProcessingException {
+        switch (jp.getCurrentToken()) {
+            case START_OBJECT:
+                writeStartObject();
                 break;
-            case BIG_INTEGER:
-                writeNumber(jp.getBigIntegerValue());
+            case END_OBJECT:
+                writeEndObject();
+                break;
+            case START_ARRAY:
+                writeStartArray();
+                break;
+            case END_ARRAY:
+                writeEndArray();
+                break;
+            case FIELD_NAME:
+                writeFieldName(jp.getCurrentName());
+                break;
+            case VALUE_STRING:
+                writeString(jp.getTextCharacters(), jp.getTextOffset(), jp.getTextLength());
+                break;
+            case VALUE_NUMBER_INT:
+                switch (jp.getNumberType()) {
+                    case INT:
+                        writeNumber(jp.getIntValue());
+                        break;
+                    case BIG_INTEGER:
+                        writeNumber(jp.getBigIntegerValue());
+                        break;
+                    default:
+                        writeNumber(jp.getLongValue());
+                }
+                break;
+            case VALUE_NUMBER_FLOAT:
+                switch (jp.getNumberType()) {
+                    case BIG_DECIMAL:
+                        writeNumber(jp.getDecimalValue());
+                        break;
+                    case FLOAT:
+                        writeNumber(jp.getFloatValue());
+                        break;
+                    default:
+                        writeNumber(jp.getDoubleValue());
+                }
+                break;
+            case VALUE_TRUE:
+                writeBoolean(true);
+                break;
+            case VALUE_FALSE:
+                writeBoolean(false);
+                break;
+            case VALUE_NULL:
+                writeNull();
+                break;
+            case VALUE_EMBEDDED_OBJECT:
+                writeObject(jp.getEmbeddedObject());
                 break;
             default:
-                writeNumber(jp.getLongValue());
-            }
-            break;
-        case VALUE_NUMBER_FLOAT:
-            switch (jp.getNumberType()) {
-            case BIG_DECIMAL:
-                writeNumber(jp.getDecimalValue());
-                break;
-            case FLOAT:
-                writeNumber(jp.getFloatValue());
-                break;
-            default:
-                writeNumber(jp.getDoubleValue());
-            }
-            break;
-        case VALUE_TRUE:
-            writeBoolean(true);
-            break;
-        case VALUE_FALSE:
-            writeBoolean(false);
-            break;
-        case VALUE_NULL:
-            writeNull();
-            break;
-        case VALUE_EMBEDDED_OBJECT:
-            writeObject(jp.getEmbeddedObject());
-            break;
-        default:
-            _cantHappen();
+                _cantHappen();
         }
     }
 
     public final void copyCurrentStructure(JsonParser jp)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         JsonToken t = jp.getCurrentToken();
 
         // Let's handle field-name separately first
@@ -389,22 +388,22 @@ public abstract class JsonGeneratorBase
         }
 
         switch (t) {
-        case START_ARRAY:
-            writeStartArray();
-            while (jp.nextToken() != JsonToken.END_ARRAY) {
-                copyCurrentStructure(jp);
-            }
-            writeEndArray();
-            break;
-        case START_OBJECT:
-            writeStartObject();
-            while (jp.nextToken() != JsonToken.END_OBJECT) {
-                copyCurrentStructure(jp);
-            }
-            writeEndObject();
-            break;
-        default: // others are simple:
-            copyCurrentEvent(jp);
+            case START_ARRAY:
+                writeStartArray();
+                while (jp.nextToken() != JsonToken.END_ARRAY) {
+                    copyCurrentStructure(jp);
+                }
+                writeEndArray();
+                break;
+            case START_OBJECT:
+                writeStartObject();
+                while (jp.nextToken() != JsonToken.END_OBJECT) {
+                    copyCurrentStructure(jp);
+                }
+                writeEndObject();
+                break;
+            default: // others are simple:
+                copyCurrentEvent(jp);
         }
     }
 
@@ -417,16 +416,14 @@ public abstract class JsonGeneratorBase
     protected abstract void _releaseBuffers();
 
     protected abstract void _verifyValueWrite(String typeMsg)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     protected void _reportError(String msg)
-        throws JsonGenerationException
-    {
+            throws JsonGenerationException {
         throw new JsonGenerationException(msg);
     }
 
-    protected void _cantHappen()
-    {
+    protected void _cantHappen() {
         throw new RuntimeException("Internal error: should never end up through this code path");
     }
 
@@ -437,9 +434,8 @@ public abstract class JsonGeneratorBase
      *
      * @param value Non-null value to write
      */
-    protected void _writeSimpleObject(Object value) 
-        throws IOException, JsonGenerationException
-    {
+    protected void _writeSimpleObject(Object value)
+            throws IOException, JsonGenerationException {
         /* 31-Dec-2009, tatu: Actually, we could just handle some basic
          *    types even without codec. This can improve interoperability,
          *    and specifically help with TokenBuffer.
@@ -472,5 +468,5 @@ public abstract class JsonGeneratorBase
             writeBoolean(((Boolean) value).booleanValue());
         }
         throw new IllegalStateException("No ObjectCodec defined for the generator, can not serialize regular Java objects (except for simple wrappers)");
-    }    
+    }
 }

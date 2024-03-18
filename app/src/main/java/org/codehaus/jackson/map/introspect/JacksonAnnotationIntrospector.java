@@ -1,14 +1,34 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.util.*;
-import java.lang.annotation.Annotation;
-
-import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+import org.codehaus.jackson.annotate.JsonAnySetter;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonClass;
+import org.codehaus.jackson.annotate.JsonContentClass;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonGetter;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonKeyClass;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.annotate.JsonSetter;
+import org.codehaus.jackson.annotate.JsonSubTypes;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.annotate.JsonValue;
+import org.codehaus.jackson.annotate.JsonWriteNullProperties;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.map.annotate.JsonCachable;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonTypeIdResolver;
+import org.codehaus.jackson.map.annotate.JsonTypeResolver;
+import org.codehaus.jackson.map.annotate.JsonView;
+import org.codehaus.jackson.map.annotate.NoClass;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -16,14 +36,18 @@ import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * {@link AnnotationIntrospector} implementation that handles standard
  * Jackson annotations.
  */
 public class JacksonAnnotationIntrospector
-    extends AnnotationIntrospector
-{
-    public JacksonAnnotationIntrospector() { }
+        extends AnnotationIntrospector {
+    public JacksonAnnotationIntrospector() {
+    }
 
     /*
     /****************************************************
@@ -32,8 +56,7 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public boolean isHandled(Annotation ann)
-    {
+    public boolean isHandled(Annotation ann) {
         Class<? extends Annotation> acls = ann.annotationType();
 
         /* 16-May-2009, tatu: used to check this like so...
@@ -54,15 +77,13 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public String findNamespace(Annotated ann)
-    {
+    public String findNamespace(Annotated ann) {
         // Jackson has no annotations for this (JAXB does)
         return null;
     }
 
     @Override
-    public String findEnumValue(Enum<?> value)
-    {
+    public String findEnumValue(Enum<?> value) {
         return value.name();
     }
     
@@ -73,8 +94,7 @@ public class JacksonAnnotationIntrospector
      */
 
     @Override
-    public Boolean findCachability(AnnotatedClass ac)
-    {
+    public Boolean findCachability(AnnotatedClass ac) {
         JsonCachable ann = ac.getAnnotation(JsonCachable.class);
         if (ann == null) {
             return null;
@@ -83,8 +103,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public String findRootName(AnnotatedClass ac)
-    {
+    public String findRootName(AnnotatedClass ac) {
         // No annotation currently defined for this feature, so:
         return null;
     }
@@ -106,11 +125,10 @@ public class JacksonAnnotationIntrospector
     /* Property auto-detection
     /******************************************************
      */
-    
+
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
-        VisibilityChecker<?> checker)
-    {
+                                                         VisibilityChecker<?> checker) {
         JsonAutoDetect ann = ac.getAnnotation(JsonAutoDetect.class);
         return (ann == null) ? checker : checker.with(ann);
     }
@@ -120,10 +138,9 @@ public class JacksonAnnotationIntrospector
     /* Class annotations for PM type handling (1.5+)
     /****************************************************
     */
-    
+
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
-    {
+    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType) {
         // First: maybe we have explicit type resolver?
         TypeResolverBuilder<?> b;
         JsonTypeInfo info = ac.getAnnotation(JsonTypeInfo.class);
@@ -151,22 +168,19 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
-    {
+    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType) {
         // No per-member type overrides (yet)
         return null;
     }
 
     @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType)
-    {
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType) {
         // No per-member type overrides (yet)
         return null;
     }
-    
+
     @Override
-    public List<NamedType> findSubtypes(Annotated a)
-    {
+    public List<NamedType> findSubtypes(Annotated a) {
         JsonSubTypes t = a.getAnnotation(JsonSubTypes.class);
         if (t == null) return null;
         JsonSubTypes.Type[] types = t.value();
@@ -177,9 +191,8 @@ public class JacksonAnnotationIntrospector
         return result;
     }
 
-    @Override        
-    public String findTypeName(AnnotatedClass ac)
-    {
+    @Override
+    public String findTypeName(AnnotatedClass ac) {
         JsonTypeName tn = ac.getAnnotation(JsonTypeName.class);
         return (tn == null) ? null : tn.value();
     }
@@ -218,8 +231,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public Class<? extends JsonSerializer<?>> findSerializer(Annotated a)
-    {
+    public Class<? extends JsonSerializer<?>> findSerializer(Annotated a) {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonSerialize; @JsonUseSerializer is deprecated
          */
@@ -235,8 +247,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
-    {
+    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue) {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
         if (ann != null) {
             return ann.include();
@@ -253,8 +264,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Class<?> findSerializationType(Annotated am)
-    {
+    public Class<?> findSerializationType(Annotated am) {
         // Primary annotation, JsonSerialize
         JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
         if (ann != null) {
@@ -265,17 +275,15 @@ public class JacksonAnnotationIntrospector
         }
         return null;
     }
-    
+
     @Override
-    public JsonSerialize.Typing findSerializationTyping(Annotated a)
-    {
+    public JsonSerialize.Typing findSerializationTyping(Annotated a) {
         JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
         return (ann == null) ? null : ann.typing();
     }
 
     @Override
-    public Class<?>[] findSerializationViews(Annotated a)
-    {
+    public Class<?>[] findSerializationViews(Annotated a) {
         JsonView ann = a.getAnnotation(JsonView.class);
         return (ann == null) ? null : ann.value();
     }
@@ -305,8 +313,7 @@ public class JacksonAnnotationIntrospector
 
     @SuppressWarnings("deprecation")
     @Override
-    public String findGettablePropertyName(AnnotatedMethod am)
-    {
+    public String findGettablePropertyName(AnnotatedMethod am) {
         /* 22-May-2009, tatu: JsonProperty is the primary annotation
          *   to check for
          */
@@ -331,8 +338,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public boolean hasAsValueAnnotation(AnnotatedMethod am)
-    {
+    public boolean hasAsValueAnnotation(AnnotatedMethod am) {
         JsonValue ann = am.getAnnotation(JsonValue.class);
         // value of 'false' means disabled...
         return (ann != null && ann.value());
@@ -345,8 +351,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public String findSerializablePropertyName(AnnotatedField af)
-    {
+    public String findSerializablePropertyName(AnnotatedField af) {
         JsonProperty pann = af.getAnnotation(JsonProperty.class);
         if (pann != null) {
             return pann.value();
@@ -365,8 +370,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
-    {
+    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a) {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonDeserialize; @JsonUseDeserializer is deprecated
          */
@@ -382,8 +386,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Class<? extends KeyDeserializer> findKeyDeserializer(Annotated a)
-    {
+    public Class<? extends KeyDeserializer> findKeyDeserializer(Annotated a) {
         JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
             Class<? extends KeyDeserializer> deserClass = ann.keyUsing();
@@ -395,8 +398,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public Class<? extends JsonDeserializer<?>> findContentDeserializer(Annotated a)
-    {
+    public Class<? extends JsonDeserializer<?>> findContentDeserializer(Annotated a) {
         JsonDeserialize ann = a.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
             Class<? extends JsonDeserializer<?>> deserClass = ann.contentUsing();
@@ -409,8 +411,7 @@ public class JacksonAnnotationIntrospector
 
     @Override
     public Class<?> findDeserializationType(Annotated am, JavaType baseType,
-            String propName)
-    {
+                                            String propName) {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
@@ -428,7 +429,7 @@ public class JacksonAnnotationIntrospector
         if (oldAnn != null) {
             @SuppressWarnings("deprecation")
             Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
+            if (cls != NoClass.class) {
                 return cls;
             }
         }
@@ -437,8 +438,7 @@ public class JacksonAnnotationIntrospector
 
     @Override
     public Class<?> findDeserializationKeyType(Annotated am, JavaType baseKeyType,
-            String propName)
-    {
+                                               String propName) {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
@@ -456,7 +456,7 @@ public class JacksonAnnotationIntrospector
         if (oldAnn != null) {
             @SuppressWarnings("deprecation")
             Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
+            if (cls != NoClass.class) {
                 return cls;
             }
         }
@@ -466,8 +466,7 @@ public class JacksonAnnotationIntrospector
     @SuppressWarnings("deprecation")
     @Override
     public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType,
-            String propName)
-    {
+                                                   String propName) {
         // Primary annotation, JsonDeserialize
         JsonDeserialize ann = am.getAnnotation(JsonDeserialize.class);
         if (ann != null) {
@@ -483,7 +482,7 @@ public class JacksonAnnotationIntrospector
         JsonContentClass oldAnn = am.getAnnotation(JsonContentClass.class);
         if (oldAnn != null) {
             Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
+            if (cls != NoClass.class) {
                 return cls;
             }
         }
@@ -498,8 +497,7 @@ public class JacksonAnnotationIntrospector
 
     @SuppressWarnings("deprecation")
     @Override
-    public String findSettablePropertyName(AnnotatedMethod am)
-    {
+    public String findSettablePropertyName(AnnotatedMethod am) {
         /* 22-May-2009, tatu: JsonProperty is the primary annotation
          *   to check for
          */
@@ -524,8 +522,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public boolean hasAnySetterAnnotation(AnnotatedMethod am)
-    {
+    public boolean hasAnySetterAnnotation(AnnotatedMethod am) {
         /* No dedicated disabling; regular @JsonIgnore used
          * if needs to be ignored (and if so, is handled prior
          * to this method getting called)
@@ -534,8 +531,7 @@ public class JacksonAnnotationIntrospector
     }
 
     @Override
-    public boolean hasCreatorAnnotation(Annotated a)
-    {
+    public boolean hasCreatorAnnotation(Annotated a) {
         /* No dedicated disabling; regular @JsonIgnore used
          * if needs to be ignored (and if so, is handled prior
          * to this method getting called)
@@ -550,8 +546,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-    public String findDeserializablePropertyName(AnnotatedField af)
-    {
+    public String findDeserializablePropertyName(AnnotatedField af) {
         JsonProperty pann = af.getAnnotation(JsonProperty.class);
         if (pann != null) {
             return pann.value();
@@ -570,8 +565,7 @@ public class JacksonAnnotationIntrospector
     */
 
     @Override
-        public String findPropertyNameForParam(AnnotatedParameter param)
-    {
+    public String findPropertyNameForParam(AnnotatedParameter param) {
         if (param != null) {
             JsonProperty pann = param.getAnnotation(JsonProperty.class);
             if (pann != null) {
@@ -591,8 +585,7 @@ public class JacksonAnnotationIntrospector
     ////////////////////////////////////////////////////
      */
 
-    protected boolean _isIgnorable(Annotated a)
-    {
+    protected boolean _isIgnorable(Annotated a) {
         JsonIgnore ann = a.getAnnotation(JsonIgnore.class);
         return (ann != null && ann.value());
     }

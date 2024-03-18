@@ -1,11 +1,14 @@
 package org.codehaus.jackson.map.util;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonSerializableWithType;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
 
 
 /**
@@ -13,15 +16,13 @@ import org.codehaus.jackson.type.JavaType;
  * value with arbitrary literal prefix and suffix. This can be used for
  * example to construct arbitrary Javascript values (similar to how basic
  * function name and parenthesis are used with JSONP).
- * 
- * @see org.codehaus.jackson.map.util.JSONPObject
- * 
+ *
  * @author tatu
+ * @see org.codehaus.jackson.map.util.JSONPObject
  * @since 1.5
  */
 public class JSONWrappedObject
-    implements JsonSerializableWithType
-{
+        implements JsonSerializableWithType {
     /**
      * Literal String to output before serialized value.
      * Will not be quoted when serializing value.
@@ -33,7 +34,7 @@ public class JSONWrappedObject
      * Will not be quoted when serializing value.
      */
     protected final String _suffix;
-    
+
     /**
      * Value to be serialized as JSONP padded; can be null.
      */
@@ -46,13 +47,12 @@ public class JSONWrappedObject
      * to include (if any).
      */
     protected final JavaType _serializationType;
-    
+
     public JSONWrappedObject(String prefix, String suffix, Object value) {
         this(prefix, suffix, value, (JavaType) null);
     }
 
-    public JSONWrappedObject(String prefix, String suffix, Object value, JavaType asType)
-    {
+    public JSONWrappedObject(String prefix, String suffix, Object value, JavaType asType) {
         _prefix = prefix;
         _suffix = suffix;
         _value = value;
@@ -71,19 +71,17 @@ public class JSONWrappedObject
     /* JsonSerializable(WithType) implementation
     /**************************************************************
      */
-    
+
     public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer)
-            throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // No type for JSONP wrapping: value serializer will handle typing for value:
         serialize(jgen, provider);
     }
 
     public void serialize(JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // First, wrapping:
-    	if (_prefix != null) jgen.writeRaw(_prefix);
+        if (_prefix != null) jgen.writeRaw(_prefix);
         if (_value == null) {
             provider.getNullValueSerializer().serialize(null, jgen, provider);
         } else if (_serializationType != null) {
@@ -100,10 +98,21 @@ public class JSONWrappedObject
     /* Accessors
     /**************************************************************
      */
-    
-    public String getPrefix() { return _prefix; }
-    public String getSuffix() { return _suffix; }
-    public Object getValue() { return _value; }
-    public JavaType getSerializationType() { return _serializationType; }
+
+    public String getPrefix() {
+        return _prefix;
+    }
+
+    public String getSuffix() {
+        return _suffix;
+    }
+
+    public Object getValue() {
+        return _value;
+    }
+
+    public JavaType getSerializationType() {
+        return _serializationType;
+    }
 
 }

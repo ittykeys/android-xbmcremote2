@@ -1,27 +1,33 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Calendar;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializable;
+import org.codehaus.jackson.map.JsonSerializableWithType;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSerializableSchema;
 import org.codehaus.jackson.util.TokenBuffer;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Calendar;
+
 /**
  * Container class for serializers used for handling standard JDK-provided
  * types
- * 
+ *
  * @since 1.5
  */
-public class StdSerializers
-{
-    protected StdSerializers() { }
+public class StdSerializers {
+    protected StdSerializers() {
+    }
 
     /*
     /***********************************************************
@@ -36,19 +42,17 @@ public class StdSerializers
      * types: String, Integer, Double and Boolean.
      */
     protected abstract static class NonTypedScalarSerializer<T>
-        extends ScalarSerializerBase<T>
-    {
+            extends ScalarSerializerBase<T> {
         protected NonTypedScalarSerializer(Class<T> t) {
             super(t);
         }
 
         @Override
         public final void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
-                TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
+                                            TypeSerializer typeSer)
+                throws IOException, JsonGenerationException {
             // no type info, just regular serialization
-            serialize(value, jgen, provider);            
+            serialize(value, jgen, provider);
         }
     }
     
@@ -57,40 +61,36 @@ public class StdSerializers
     // Concrete serializers, non-numeric primitives, Strings, Classes
     /////////////////////////////////////////////////////////////////
      */
-    
+
     /**
      * Serializer used for primitive boolean, as well as java.util.Boolean
      * wrapper type.
-     *<p>
+     * <p>
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class BooleanSerializer
-        extends NonTypedScalarSerializer<Boolean>
-    {
+            extends NonTypedScalarSerializer<Boolean> {
         /**
          * Whether type serialized is primitive (boolean) or wrapper
          * (java.lang.Boolean); if true, former, if false, latter.
          */
         final boolean _forPrimitive;
-    
-        public BooleanSerializer(boolean forPrimitive)
-        {
+
+        public BooleanSerializer(boolean forPrimitive) {
             super(Boolean.class);
             _forPrimitive = forPrimitive;
         }
-    
+
         @Override
         public void serialize(Boolean value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeBoolean(value.booleanValue());
         }
-    
+
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
+                throws JsonMappingException {
             /*(ryan) it may not, in fact, be optional, but there's no way
              * to tell whether we're referencing a boolean or java.lang.Boolean.
              */
@@ -103,25 +103,24 @@ public class StdSerializers
 
     /**
      * This is the special serializer for regular {@link java.lang.String}s.
-     *<p>
+     * <p>
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class StringSerializer
-        extends NonTypedScalarSerializer<String>
-    {
-        public StringSerializer() { super(String.class); }
+            extends NonTypedScalarSerializer<String> {
+        public StringSerializer() {
+            super(String.class);
+        }
 
         @Override
         public void serialize(String value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeString(value);
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("string", true);
         }
     }
@@ -135,26 +134,25 @@ public class StdSerializers
     /**
      * This is the special serializer for regular {@link java.lang.Integer}s
      * (and primitive ints)
-     *<p>
+     * <p>
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class IntegerSerializer
-        extends NonTypedScalarSerializer<Integer>
-    {
-        public IntegerSerializer() { super(Integer.class); }
-    
+            extends NonTypedScalarSerializer<Integer> {
+        public IntegerSerializer() {
+            super(Integer.class);
+        }
+
         @Override
         public void serialize(Integer value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeNumber(value.intValue());
         }
-    
+
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
+                throws JsonMappingException {
             return createSchemaNode("integer", true);
         }
     }
@@ -165,65 +163,62 @@ public class StdSerializers
      * by calling {@link java.lang.Number#intValue}.
      */
     public final static class IntLikeSerializer
-        extends ScalarSerializerBase<Number>
-    {
+            extends ScalarSerializerBase<Number> {
         final static IntLikeSerializer instance = new IntLikeSerializer();
-    
-        public IntLikeSerializer() { super(Number.class); }
-        
+
+        public IntLikeSerializer() {
+            super(Number.class);
+        }
+
         @Override
         public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeNumber(value.intValue());
         }
-    
+
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
+                throws JsonMappingException {
             return createSchemaNode("integer", true);
         }
     }
 
     public final static class LongSerializer
-        extends ScalarSerializerBase<Long>
-    {
+            extends ScalarSerializerBase<Long> {
         final static LongSerializer instance = new LongSerializer();
-    
-        public LongSerializer() { super(Long.class); }
-        
+
+        public LongSerializer() {
+            super(Long.class);
+        }
+
         @Override
         public void serialize(Long value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeNumber(value.longValue());
         }
-    
+
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("number", true);
         }
     }
-    
+
     public final static class FloatSerializer
-        extends ScalarSerializerBase<Float>
-    {
+            extends ScalarSerializerBase<Float> {
         final static FloatSerializer instance = new FloatSerializer();
-    
-        public FloatSerializer() { super(Float.class); }
-        
+
+        public FloatSerializer() {
+            super(Float.class);
+        }
+
         @Override
         public void serialize(Float value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeNumber(value.floatValue());
         }
-    
+
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("number", true);
         }
     }
@@ -231,46 +226,45 @@ public class StdSerializers
     /**
      * This is the special serializer for regular {@link java.lang.Double}s
      * (and primitive doubles)
-     *<p>
+     * <p>
      * Since this is one of "native" types, no type information is ever
      * included on serialization (unlike for most scalar types as of 1.5)
      */
     public final static class DoubleSerializer
-        extends NonTypedScalarSerializer<Double>
-    {
+            extends NonTypedScalarSerializer<Double> {
         final static DoubleSerializer instance = new DoubleSerializer();
-    
-        public DoubleSerializer() { super(Double.class); }
-    
+
+        public DoubleSerializer() {
+            super(Double.class);
+        }
+
         @Override
         public void serialize(Double value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeNumber(value.doubleValue());
         }
-    
+
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("number", true);
         }
     }
-    
+
     /**
      * As a fallback, we may need to use this serializer for other
      * types of {@link Number}s (custom types).
      */
     public final static class NumberSerializer
-        extends ScalarSerializerBase<Number>
-    {
+            extends ScalarSerializerBase<Number> {
         public final static NumberSerializer instance = new NumberSerializer();
-    
-        public NumberSerializer() { super(Number.class); }
-    
+
+        public NumberSerializer() {
+            super(Number.class);
+        }
+
         @Override
         public void serialize(Number value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             /* These shouldn't match (as there are more specific ones),
              * but just to be sure:
              */
@@ -283,10 +277,9 @@ public class StdSerializers
                 jgen.writeNumber(value.toString());
             }
         }
-    
+
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("number", true);
         }
     }
@@ -303,22 +296,21 @@ public class StdSerializers
      * and json.
      */
     public final static class CalendarSerializer
-        extends ScalarSerializerBase<Calendar>
-    {
+            extends ScalarSerializerBase<Calendar> {
         public final static CalendarSerializer instance = new CalendarSerializer();
 
-        public CalendarSerializer() { super(Calendar.class); }
-        
+        public CalendarSerializer() {
+            super(Calendar.class);
+        }
+
         @Override
         public void serialize(Calendar value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             provider.defaultSerializeDateValue(value.getTimeInMillis(), jgen);
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             //TODO: (ryan) add a format for the date in the schema?
             return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
                     ? "number" : "string", true);
@@ -330,23 +322,22 @@ public class StdSerializers
      * potentially more readable Strings.
      */
     public final static class UtilDateSerializer
-        extends ScalarSerializerBase<java.util.Date>
-    {
+            extends ScalarSerializerBase<java.util.Date> {
         public final static UtilDateSerializer instance = new UtilDateSerializer();
 
-        public UtilDateSerializer() { super(java.util.Date.class); }
+        public UtilDateSerializer() {
+            super(java.util.Date.class);
+        }
 
         @Override
         public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             provider.defaultSerializeDateValue(value, jgen);
         }
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
-        {
+                throws JsonMappingException {
             //todo: (ryan) add a format for the date in the schema?
             return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)
                     ? "number" : "string", true);
@@ -359,40 +350,38 @@ public class StdSerializers
      * that should not be used by plain SQL date.
      */
     public final static class SqlDateSerializer
-        extends ScalarSerializerBase<java.sql.Date>
-    {
-        public SqlDateSerializer() { super(java.sql.Date.class); }
+            extends ScalarSerializerBase<java.sql.Date> {
+        public SqlDateSerializer() {
+            super(java.sql.Date.class);
+        }
 
         @Override
         public void serialize(java.sql.Date value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeString(value.toString());
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             //todo: (ryan) add a format for the date in the schema?
             return createSchemaNode("string", true);
         }
     }
 
     public final static class SqlTimeSerializer
-        extends ScalarSerializerBase<java.sql.Time>
-    {
-        public SqlTimeSerializer() { super(java.sql.Time.class); }
+            extends ScalarSerializerBase<java.sql.Time> {
+        public SqlTimeSerializer() {
+            super(java.sql.Time.class);
+        }
 
         @Override
         public void serialize(java.sql.Time value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeString(value.toString());
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("string", true);
         }
     }
@@ -406,30 +395,29 @@ public class StdSerializers
 
     /**
      * Generic handler for types that implement {@link JsonSerializable}.
-     *<p>
+     * <p>
      * Note: given that this is used for anything that implements
      * interface, can not be checked for direct class equivalence.
      */
     @SuppressWarnings("deprecation")
     public final static class SerializableSerializer
-        extends SerializerBase<JsonSerializable>
-    {
+            extends SerializerBase<JsonSerializable> {
         final static SerializableSerializer instance = new SerializableSerializer();
 
-        private SerializableSerializer() { super(JsonSerializable.class); }
+        private SerializableSerializer() {
+            super(JsonSerializable.class);
+        }
 
         @Override
         public void serialize(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             value.serialize(jgen, provider);
         }
 
         @Override
         public final void serializeWithType(JsonSerializable value, JsonGenerator jgen, SerializerProvider provider,
-                TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
+                                            TypeSerializer typeSer)
+                throws IOException, JsonGenerationException {
             /* 24-Jan-2009, tatus: This is not quite optimal (perhaps we should
              *   just create separate serializer...), but works until 2.0 will
              *   deprecate non-typed interface
@@ -440,11 +428,10 @@ public class StdSerializers
                 this.serialize(value, jgen, provider);
             }
         }
-        
+
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
+                throws JsonMappingException {
             ObjectNode objectNode = createObjectNode();
             String schemaType = "any";
             String objectProperties = null;
@@ -491,14 +478,14 @@ public class StdSerializers
      * @since 1.5
      */
     public final static class TokenBufferSerializer
-        extends SerializerBase<TokenBuffer>
-    {
-        public TokenBufferSerializer() { super(TokenBuffer.class); }
+            extends SerializerBase<TokenBuffer> {
+        public TokenBufferSerializer() {
+            super(TokenBuffer.class);
+        }
 
         @Override
         public void serialize(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             value.serialize(jgen);
         }
 
@@ -512,15 +499,13 @@ public class StdSerializers
          */
         @Override
         public final void serializeWithType(TokenBuffer value, JsonGenerator jgen, SerializerProvider provider,
-                TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
+                                            TypeSerializer typeSer)
+                throws IOException, JsonGenerationException {
             serialize(value, jgen, provider);
         }
-        
+
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             /* 01-Jan-2010, tatu: Not 100% sure what we should say here:
              *   type is basically not known. This seems closest
              *   approximation
@@ -528,5 +513,5 @@ public class StdSerializers
             return createSchemaNode("any", true);
         }
     }
-    
+
 }

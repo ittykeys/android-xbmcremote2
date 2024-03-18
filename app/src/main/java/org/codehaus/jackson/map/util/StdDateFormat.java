@@ -1,13 +1,14 @@
 package org.codehaus.jackson.map.util;
 
+import org.codehaus.jackson.io.NumberInput;
+
 import java.text.DateFormat;
 import java.text.FieldPosition;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-import org.codehaus.jackson.io.NumberInput;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Default {@link DateFormat} implementation used by standard Date
@@ -17,54 +18,50 @@ import org.codehaus.jackson.io.NumberInput;
  */
 @SuppressWarnings("serial")
 public class StdDateFormat
-    extends DateFormat
-{
+        extends DateFormat {
     /* TODO !!! 24-Nov-2009, tatu: Need to rewrite this class soon:
      * JDK date parsing is awfully brittle, and ISO-8601 is quite
      * permissive. The two don't mix, need to write a better one.
      */
 
     /**
+     * A singleton instance can be used for cloning purposes.
+     */
+    public final static StdDateFormat instance = new StdDateFormat();
+    /**
      * Defines a commonly used date format that conforms
      * to ISO-8601 date formatting standard, when it includes basic undecorated
      * timezone definition
      */
     final static String DATE_FORMAT_STR_ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-
     /**
      * Same as 'regular' 8601, but handles 'Z' as an alias for "+0000"
      * (or "GMT")
      */
     final static String DATE_FORMAT_STR_ISO8601_Z = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-
     /**
      * ISO-8601 with just the Date part, no time
      *
      * @since 1.3.1
      */
     final static String DATE_FORMAT_STR_PLAIN = "yyyy-MM-dd";
-
     /**
      * This constant defines the date format specified by
      * RFC 1123.
      */
     final static String DATE_FORMAT_STR_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
-
     /**
      * For error messages we'll also need a list of all formats.
      */
-    final static String[] ALL_FORMATS = new String[] {
-        DATE_FORMAT_STR_ISO8601,
-        DATE_FORMAT_STR_ISO8601_Z,
-        DATE_FORMAT_STR_RFC1123,
-        DATE_FORMAT_STR_PLAIN
+    final static String[] ALL_FORMATS = new String[]{
+            DATE_FORMAT_STR_ISO8601,
+            DATE_FORMAT_STR_ISO8601_Z,
+            DATE_FORMAT_STR_RFC1123,
+            DATE_FORMAT_STR_PLAIN
     };
-
     final static SimpleDateFormat DATE_FORMAT_RFC1123;
-
     final static SimpleDateFormat DATE_FORMAT_ISO8601;
     final static SimpleDateFormat DATE_FORMAT_ISO8601_Z;
-
     final static SimpleDateFormat DATE_FORMAT_PLAIN;
 
     /* Let's construct "blueprint" date format instances: can not be used
@@ -86,11 +83,6 @@ public class StdDateFormat
         DATE_FORMAT_PLAIN.setTimeZone(gmt);
     }
 
-    /**
-     * A singleton instance can be used for cloning purposes.
-     */
-    public final static StdDateFormat instance = new StdDateFormat();
-
     transient SimpleDateFormat _formatRFC1123;
     transient SimpleDateFormat _formatISO8601;
     transient SimpleDateFormat _formatISO8601_z;
@@ -102,14 +94,7 @@ public class StdDateFormat
     /////////////////////////////////////////////////////
      */
 
-    public StdDateFormat() { }
-
-    public StdDateFormat clone() {
-        /* Since we always delegate all work to child DateFormat instances,
-         * let's NOT call super.clone(); this is bit unusual, but makes
-         * sense here to avoid unnecessary work.
-         */
-        return new StdDateFormat();
+    public StdDateFormat() {
     }
 
     /**
@@ -141,17 +126,29 @@ public class StdDateFormat
         return DATE_FORMAT_RFC1123;
     }
 
-
     /**
      * Method for getting a non-shared DateFormat instance
      * that uses specific timezone and can handle RFC-1123
      * compliant date format.
      */
-    public static DateFormat getRFC1123Format(TimeZone tz)
-    {
+    public static DateFormat getRFC1123Format(TimeZone tz) {
         DateFormat df = (SimpleDateFormat) DATE_FORMAT_RFC1123.clone();
         df.setTimeZone(tz);
         return df;
+    }
+
+    private final static boolean hasTimeZone(String str) {
+        // Only accept "+hh", "+hhmm" and "+hh:mm" (and with minus), so
+        int len = str.length();
+        if (len >= 6) {
+            char c = str.charAt(len - 6);
+            if (c == '+' || c == '-') return true;
+            c = str.charAt(len - 5);
+            if (c == '+' || c == '-') return true;
+            c = str.charAt(len - 3);
+            if (c == '+' || c == '-') return true;
+        }
+        return false;
     }
 
     /*
@@ -160,9 +157,16 @@ public class StdDateFormat
     /////////////////////////////////////////////////////
      */
 
+    public StdDateFormat clone() {
+        /* Since we always delegate all work to child DateFormat instances,
+         * let's NOT call super.clone(); this is bit unusual, but makes
+         * sense here to avoid unnecessary work.
+         */
+        return new StdDateFormat();
+    }
+
     public Date parse(String dateStr)
-        throws ParseException
-    {
+            throws ParseException {
         dateStr = dateStr.trim();
         ParsePosition pos = new ParsePosition(0);
         Date result = parse(dateStr, pos);
@@ -181,12 +185,11 @@ public class StdDateFormat
         }
         sb.append('"');
         throw new ParseException
-            (String.format("Can not parse date \"%s\": not compatible with any of standard forms (%s)",
-                           dateStr, sb.toString()), pos.getErrorIndex());
+                (String.format("Can not parse date \"%s\": not compatible with any of standard forms (%s)",
+                        dateStr, sb.toString()), pos.getErrorIndex());
     }
 
-    public Date parse(String dateStr, ParsePosition pos)
-    {
+    public Date parse(String dateStr, ParsePosition pos) {
         if (looksLikeISO8601(dateStr)) { // also includes "plain"
             return parseAsISO8601(dateStr, pos);
         }
@@ -207,39 +210,36 @@ public class StdDateFormat
         return parseAsRFC1123(dateStr, pos);
     }
 
-    public StringBuffer format(Date date, StringBuffer toAppendTo,
-                               FieldPosition fieldPosition)
-    {
-        if (_formatISO8601 == null) {
-            _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
-        }
-        return _formatISO8601.format(date, toAppendTo, fieldPosition);
-    }
-
     /*
     /////////////////////////////////////////////////////
     // Helper methods
     /////////////////////////////////////////////////////
      */
 
+    public StringBuffer format(Date date, StringBuffer toAppendTo,
+                               FieldPosition fieldPosition) {
+        if (_formatISO8601 == null) {
+            _formatISO8601 = (SimpleDateFormat) DATE_FORMAT_ISO8601.clone();
+        }
+        return _formatISO8601.format(date, toAppendTo, fieldPosition);
+    }
+
     /**
      * Overridable helper method used to figure out which of supported
      * formats is the likeliest match.
      */
-    protected boolean looksLikeISO8601(String dateStr)
-    {
+    protected boolean looksLikeISO8601(String dateStr) {
         if (dateStr.length() >= 5
-            && Character.isDigit(dateStr.charAt(0))
-            && Character.isDigit(dateStr.charAt(3))
-            && dateStr.charAt(4) == '-'
-            ) {
+                && Character.isDigit(dateStr.charAt(0))
+                && Character.isDigit(dateStr.charAt(3))
+                && dateStr.charAt(4) == '-'
+        ) {
             return true;
         }
         return false;
     }
 
-    protected Date parseAsISO8601(String dateStr, ParsePosition pos)
-    {
+    protected Date parseAsISO8601(String dateStr, ParsePosition pos) {
         /* 21-May-2009, tatu: SimpleDateFormat has very strict handling of
          * timezone  modifiers for ISO-8601. So we need to do some scrubbing.
          */
@@ -249,12 +249,12 @@ public class StdDateFormat
          * GMT, and hence can just strip out 'Z' altogether
          */
         int len = dateStr.length();
-        char c = dateStr.charAt(len-1);
+        char c = dateStr.charAt(len - 1);
         SimpleDateFormat df;
 
         // [JACKSON-200]: need to support "plain" date...
         if (len <= 10 && Character.isDigit(c)) {
-           df = _formatPlain;
+            df = _formatPlain;
             if (df == null) {
                 df = _formatPlain = (SimpleDateFormat) DATE_FORMAT_PLAIN.clone();
             }
@@ -266,11 +266,11 @@ public class StdDateFormat
         } else {
             // Let's see if we have timezone indicator or not...
             if (hasTimeZone(dateStr)) {
-                c = dateStr.charAt(len-3);
+                c = dateStr.charAt(len - 3);
                 if (c == ':') { // remove optional colon
                     // remove colon
                     StringBuilder sb = new StringBuilder(dateStr);
-                    sb.delete(len-3, len-2);
+                    sb.delete(len - 3, len - 2);
                     dateStr = sb.toString();
                 } else if (c == '+' || c == '-') { // missing minutes
                     // let's just append '00'
@@ -303,27 +303,11 @@ public class StdDateFormat
         return df.parse(dateStr, pos);
     }
 
-    protected Date parseAsRFC1123(String dateStr, ParsePosition pos)
-    {
+    protected Date parseAsRFC1123(String dateStr, ParsePosition pos) {
         if (_formatRFC1123 == null) {
             _formatRFC1123 = (SimpleDateFormat) DATE_FORMAT_RFC1123.clone();
         }
         return _formatRFC1123.parse(dateStr, pos);
-    }
-
-    private final static boolean hasTimeZone(String str)
-    {
-        // Only accept "+hh", "+hhmm" and "+hh:mm" (and with minus), so
-        int len = str.length();
-        if (len >= 6) {
-            char c = str.charAt(len-6);
-            if (c == '+' || c == '-') return true;
-            c = str.charAt(len-5);
-            if (c == '+' || c == '-') return true;
-            c = str.charAt(len-3);
-            if (c == '+' || c == '-') return true;
-        }
-        return false;
     }
 }
 

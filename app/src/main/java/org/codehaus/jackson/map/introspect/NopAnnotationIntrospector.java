@@ -1,16 +1,16 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.lang.annotation.Annotation;
-import java.util.List;
-
-import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.type.JavaType;
+
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Dummy, "no-operation" implementation of {@link AnnotationIntrospector}.
@@ -18,8 +18,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
  * for simple complementary annotators
  */
 public class NopAnnotationIntrospector
-    extends AnnotationIntrospector
-{
+        extends AnnotationIntrospector {
     /**
      * Static immutable and shareable instance that can be used as
      * "null" introspector: one that never finds any annotation
@@ -85,7 +84,7 @@ public class NopAnnotationIntrospector
     /* Property auto-detection
     /******************************************************
      */
-    
+
     @Override
     public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {
         return checker;
@@ -111,7 +110,7 @@ public class NopAnnotationIntrospector
     public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType baseType) {
         return null;
     }
-    
+
     @Override
     public List<NamedType> findSubtypes(Annotated a) {
         return null;
@@ -209,7 +208,7 @@ public class NopAnnotationIntrospector
     public boolean hasAsValueAnnotation(AnnotatedMethod am) {
         return false;
     }
-    
+
     @Override
     public String findDeserializablePropertyName(AnnotatedField af) {
         return null;
@@ -231,13 +230,19 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Object findDeserializer(Annotated am) { return null; }
+    public Object findDeserializer(Annotated am) {
+        return null;
+    }
 
     @Override
-    public Class<KeyDeserializer> findKeyDeserializer(Annotated am) { return null; }
+    public Class<KeyDeserializer> findKeyDeserializer(Annotated am) {
+        return null;
+    }
 
     @Override
-    public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am) { return null; }
+    public Class<JsonDeserializer<?>> findContentDeserializer(Annotated am) {
+        return null;
+    }
 
 
     @Override
@@ -251,7 +256,6 @@ public class NopAnnotationIntrospector
     }
 
 
-    
     @Override
     public String findSettablePropertyName(AnnotatedMethod am) {
         return null;

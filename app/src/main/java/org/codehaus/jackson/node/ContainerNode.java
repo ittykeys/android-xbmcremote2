@@ -1,19 +1,18 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonToken;
+
 import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonToken;
 
 /**
  * This intermediate base class is used for all container nodes,
  * specifically, array and object nodes.
  */
 public abstract class ContainerNode
-    extends BaseJsonNode
-{
+        extends BaseJsonNode {
     /**
      * We will keep a reference to the Object (usually TreeMapper)
      * that can construct instances of nodes to add to this container
@@ -21,19 +20,22 @@ public abstract class ContainerNode
      */
     JsonNodeFactory _nodeFactory;
 
-    protected ContainerNode(JsonNodeFactory nc)
-    {
+    protected ContainerNode(JsonNodeFactory nc) {
         _nodeFactory = nc;
     }
 
     @Override
-    public boolean isContainerNode() { return true; }
+    public boolean isContainerNode() {
+        return true;
+    }
 
     @Override
     public abstract JsonToken asToken();
 
     @Override
-    public String getValueAsText() { return null; }
+    public String getValueAsText() {
+        return null;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -54,26 +56,65 @@ public abstract class ContainerNode
     ////////////////////////////////////////////////////
      */
 
-    public final ArrayNode arrayNode() { return _nodeFactory.arrayNode(); }
-    public final ObjectNode objectNode() { return _nodeFactory.objectNode(); }
-    public final NullNode nullNode() { return _nodeFactory.nullNode(); }
+    public final ArrayNode arrayNode() {
+        return _nodeFactory.arrayNode();
+    }
 
-    public final BooleanNode booleanNode(boolean v) { return _nodeFactory.booleanNode(v); }
+    public final ObjectNode objectNode() {
+        return _nodeFactory.objectNode();
+    }
 
-    public final NumericNode numberNode(byte v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(short v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(int v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(long v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(float v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(double v) { return _nodeFactory.numberNode(v); }
-    public final NumericNode numberNode(BigDecimal v) { return (_nodeFactory.numberNode(v)); }
+    public final NullNode nullNode() {
+        return _nodeFactory.nullNode();
+    }
 
-    public final TextNode textNode(String text) { return _nodeFactory.textNode(text); }
+    public final BooleanNode booleanNode(boolean v) {
+        return _nodeFactory.booleanNode(v);
+    }
 
-    public final BinaryNode binaryNode(byte[] data) { return _nodeFactory.binaryNode(data); }
-    public final BinaryNode binaryNode(byte[] data, int offset, int length) { return _nodeFactory.binaryNode(data, offset, length); }
+    public final NumericNode numberNode(byte v) {
+        return _nodeFactory.numberNode(v);
+    }
 
-    public final POJONode POJONode(Object pojo) { return _nodeFactory.POJONode(pojo); }
+    public final NumericNode numberNode(short v) {
+        return _nodeFactory.numberNode(v);
+    }
+
+    public final NumericNode numberNode(int v) {
+        return _nodeFactory.numberNode(v);
+    }
+
+    public final NumericNode numberNode(long v) {
+        return _nodeFactory.numberNode(v);
+    }
+
+    public final NumericNode numberNode(float v) {
+        return _nodeFactory.numberNode(v);
+    }
+
+    public final NumericNode numberNode(double v) {
+        return _nodeFactory.numberNode(v);
+    }
+
+    public final NumericNode numberNode(BigDecimal v) {
+        return (_nodeFactory.numberNode(v));
+    }
+
+    public final TextNode textNode(String text) {
+        return _nodeFactory.textNode(text);
+    }
+
+    public final BinaryNode binaryNode(byte[] data) {
+        return _nodeFactory.binaryNode(data);
+    }
+
+    public final BinaryNode binaryNode(byte[] data, int offset, int length) {
+        return _nodeFactory.binaryNode(data, offset, length);
+    }
+
+    public final POJONode POJONode(Object pojo) {
+        return _nodeFactory.POJONode(pojo);
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -85,7 +126,6 @@ public abstract class ContainerNode
      * Method for removing all children container has (if any)
      *
      * @return Container node itself (to allow method call chaining)
-     *
      * @since 1.3
      */
     public abstract ContainerNode removeAll();
@@ -97,16 +137,23 @@ public abstract class ContainerNode
      */
 
     protected static class NoNodesIterator
-        implements Iterator<JsonNode>
-    {
+            implements Iterator<JsonNode> {
         final static NoNodesIterator instance = new NoNodesIterator();
 
-        private NoNodesIterator() { }
+        private NoNodesIterator() {
+        }
 
-        public static NoNodesIterator instance() { return instance; }
+        public static NoNodesIterator instance() {
+            return instance;
+        }
 
-        public boolean hasNext() { return false; }
-        public JsonNode next() { throw new NoSuchElementException(); }
+        public boolean hasNext() {
+            return false;
+        }
+
+        public JsonNode next() {
+            throw new NoSuchElementException();
+        }
 
         public void remove() {
             // could as well throw IllegalOperationException?
@@ -115,16 +162,23 @@ public abstract class ContainerNode
     }
 
     protected static class NoStringsIterator
-        implements Iterator<String>
-    {
+            implements Iterator<String> {
         final static NoStringsIterator instance = new NoStringsIterator();
 
-        private NoStringsIterator() { }
+        private NoStringsIterator() {
+        }
 
-        public static NoStringsIterator instance() { return instance; }
+        public static NoStringsIterator instance() {
+            return instance;
+        }
 
-        public boolean hasNext() { return false; }
-        public String next() { throw new NoSuchElementException(); }
+        public boolean hasNext() {
+            return false;
+        }
+
+        public String next() {
+            throw new NoSuchElementException();
+        }
 
         public void remove() {
             // could as well throw IllegalOperationException?

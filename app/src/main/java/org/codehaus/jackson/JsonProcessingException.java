@@ -8,14 +8,12 @@ package org.codehaus.jackson;
  * Sub-class of {@link java.io.IOException} for convenience.
  */
 public class JsonProcessingException
-    extends java.io.IOException
-{
+        extends java.io.IOException {
     final static long serialVersionUID = 123; // Stupid eclipse...
-	
+
     protected JsonLocation mLocation;
 
-    protected JsonProcessingException(String msg, JsonLocation loc, Throwable rootCause)
-    {
+    protected JsonProcessingException(String msg, JsonLocation loc, Throwable rootCause) {
         /* Argh. IOException(Throwable,String) is only available starting
          * with JDK 1.6...
          */
@@ -26,28 +24,23 @@ public class JsonProcessingException
         mLocation = loc;
     }
 
-    protected JsonProcessingException(String msg)
-    {
+    protected JsonProcessingException(String msg) {
         super(msg);
     }
 
-    protected JsonProcessingException(String msg, JsonLocation loc)
-    {
+    protected JsonProcessingException(String msg, JsonLocation loc) {
         this(msg, loc, null);
     }
 
-    protected JsonProcessingException(String msg, Throwable rootCause)
-    {
+    protected JsonProcessingException(String msg, Throwable rootCause) {
         this(msg, null, rootCause);
     }
 
-    protected JsonProcessingException(Throwable rootCause)
-    {
+    protected JsonProcessingException(Throwable rootCause) {
         this(null, null, rootCause);
     }
 
-    public JsonLocation getLocation()
-    {
+    public JsonLocation getLocation() {
         return mLocation;
     }
 
@@ -55,8 +48,7 @@ public class JsonProcessingException
      * Default method overridden so that we can add location information
      */
     @Override
-    public String getMessage()
-    {
+    public String getMessage() {
         String msg = super.getMessage();
         if (msg == null) {
             msg = "N/A";
@@ -75,6 +67,6 @@ public class JsonProcessingException
 
     @Override
     public String toString() {
-        return getClass().getName()+": "+getMessage();
+        return getClass().getName() + ": " + getMessage();
     }
 }

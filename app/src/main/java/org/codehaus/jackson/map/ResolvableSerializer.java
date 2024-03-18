@@ -7,8 +7,7 @@ package org.codehaus.jackson.map;
  * to other contained types; for example, bean serializers use this
  * to eagerly find serializers for contained field types.
  */
-public interface ResolvableSerializer
-{
+public interface ResolvableSerializer {
     /**
      * Method called after {@link SerializerProvider} has registered
      * the serializer, but before it has returned it to the caller.
@@ -16,8 +15,8 @@ public interface ResolvableSerializer
      * including self-references (direct or indirect).
      *
      * @param provider Provider that has constructed serializer this method
-     *   is called on.
+     *                 is called on.
      */
     public abstract void resolve(SerializerProvider provider)
-        throws JsonMappingException;
+            throws JsonMappingException;
 }

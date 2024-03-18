@@ -1,9 +1,11 @@
 package org.codehaus.jackson.map.ser;
 
-import java.util.*;
-
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
@@ -17,18 +19,27 @@ import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
- 
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Factory class that can provide serializers for any regular Java beans
  * (as defined by "having at least one get method recognizable as bean
  * accessor" -- where {@link Object#getClass} does not count);
  * as well as for "standard" JDK types. Latter is achieved
- * by delegating calls to {@link BasicSerializerFactory} 
+ * by delegating calls to {@link BasicSerializerFactory}
  * to find serializers both for "standard" JDK types (and in some cases,
  * sub-classes as is the case for collection classes like
  * {@link java.util.List}s and {@link java.util.Map}s) and bean (value)
  * classes.
- *<p>
+ * <p>
  * Note about delegating calls to {@link BasicSerializerFactory}:
  * although it would be nicer to use linear delegation
  * for construction (to essentially dispatch all calls first to the
@@ -40,15 +51,14 @@ import org.codehaus.jackson.type.JavaType;
  * As a result, "mixed" delegation used, and calls are NOT done using
  * regular {@link SerializerFactory} interface but rather via
  * direct calls to {@link BasicSerializerFactory}.
- *<p>
+ * <p>
  * Finally, since all caching is handled by the serializer provider
  * (not factory) and there is no configurability, this
  * factory is stateless.
  * This means that a global singleton instance can be used.
  */
 public class BeanSerializerFactory
-    extends BasicSerializerFactory
-{
+        extends BasicSerializerFactory {
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and
      * thus a single shared global (== singleton) instance can be used
@@ -67,7 +77,8 @@ public class BeanSerializerFactory
      * but make it protected so that no non-singleton instances of
      * the class will be instantiated.
      */
-    protected BeanSerializerFactory() { }
+    protected BeanSerializerFactory() {
+    }
 
     /*
     /*********************************************************
@@ -81,14 +92,13 @@ public class BeanSerializerFactory
      * we want to reliably figure out which classes are standard types,
      * and which are beans. The problem is that some bean Classes may
      * implement standard interfaces (say, {@link java.lang.Iterable}.
-     *<p>
+     * <p>
      * Note: sub-classes may choose to complete replace implementation,
      * if they want to alter priority of serializer lookups.
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
-    {
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
@@ -131,8 +141,7 @@ public class BeanSerializerFactory
      * given class. Returns null if no properties are found.
      */
     public JsonSerializer<Object> findBeanSerializer(JavaType type, SerializationConfig config,
-                                                     BasicBeanDescription beanDesc)
-    {
+                                                     BasicBeanDescription beanDesc) {
         // First things first: we know some types are not beans...
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
@@ -156,16 +165,13 @@ public class BeanSerializerFactory
      * return null.
      *
      * @param baseType Declared type to use as the base type for type information serializer
-     * 
      * @return Type serializer to use for property values, if one is needed; null if not.
-     * 
      * @since 1.5
      */
     public TypeSerializer findPropertyTypeSerializer(JavaType baseType, SerializationConfig config,
-            AnnotatedMember propertyEntity)
-    {
+                                                     AnnotatedMember propertyEntity) {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);        
+        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(propertyEntity, baseType);
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return createTypeSerializer(baseType, config);
@@ -181,17 +187,14 @@ public class BeanSerializerFactory
      * return null.
      *
      * @param containerType Declared type of the container to use as the base type for type information serializer
-     * 
      * @return Type serializer to use for property value contents, if one is needed; null if not.
-     * 
      * @since 1.5
-     */    
+     */
     public TypeSerializer findPropertyContentTypeSerializer(JavaType containerType, SerializationConfig config,
-            AnnotatedMember propertyEntity)
-    {
+                                                            AnnotatedMember propertyEntity) {
         JavaType contentType = containerType.getContentType();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, containerType);        
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, containerType);
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return createTypeSerializer(contentType, config);
@@ -208,20 +211,18 @@ public class BeanSerializerFactory
 
     /**
      * Helper method used to skip processing for types that we know
-     * can not be (i.e. are never consider to be) beans: 
+     * can not be (i.e. are never consider to be) beans:
      * things like primitives, Arrays, Enums, and proxy types.
-     *<p>
+     * <p>
      * Note that usually we shouldn't really be getting these sort of
      * types anyway; but better safe than sorry.
      */
-    protected boolean isPotentialBeanType(Class<?> type)
-    {
+    protected boolean isPotentialBeanType(Class<?> type) {
         return (ClassUtil.canBeABeanType(type) == null) && !ClassUtil.isProxyType(type);
     }
 
     protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
-                                                             BasicBeanDescription beanDesc)
-    {
+                                                             BasicBeanDescription beanDesc) {
         // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         if (props == null || props.size() == 0) {
@@ -249,8 +250,7 @@ public class BeanSerializerFactory
      * Method used to collect all actual serializable properties.
      * Can be overridden to implement custom detection schemes.
      */
-    protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
-    {
+    protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc) {
         // Ok: let's aggregate visibility settings: first, baseline:
         VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
         if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS)) {
@@ -266,8 +266,8 @@ public class BeanSerializerFactory
         // and finally per-class overrides:
         vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
+        LinkedHashMap<String, AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
+        LinkedHashMap<String, AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
 
         // nothing? can't proceed (caller may or may not throw an exception)
         if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
@@ -279,11 +279,11 @@ public class BeanSerializerFactory
         ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
         TypeBindings typeBind = beanDesc.bindingsForBeanType();
         // [JACKSON-98]: start with field properties, if any
-        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {            
+        for (Map.Entry<String, AnnotatedField> en : fieldsByProp.entrySet()) {
             props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         // and then add member properties
-        for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
+        for (Map.Entry<String, AnnotatedMethod> en : methodsByProp.entrySet()) {
             props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
         return props;
@@ -294,8 +294,7 @@ public class BeanSerializerFactory
      * given member (field or method).
      */
     protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
-            PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember)
-    {
+                                                  PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember propertyMember) {
         if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             propertyMember.fixAccess();
         }
@@ -311,7 +310,7 @@ public class BeanSerializerFactory
         // and if not JAXB collection/array with annotations, maybe regular type info?
         TypeSerializer typeSer = findPropertyTypeSerializer(type, config, propertyMember);
         BeanPropertyWriter pbw = pb.buildProperty(name, annotatedSerializer,
-        		typeSer, contentTypeSer, propertyMember, staticTyping);
+                typeSer, contentTypeSer, propertyMember, staticTyping);
         // how about views? (1.4+)
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         pbw.setViews(intr.findSerializationViews(propertyMember));
@@ -322,8 +321,7 @@ public class BeanSerializerFactory
      * Overridable method that can filter out properties. Default implementation
      * checks annotations class may have.
      */
-    protected List<BeanPropertyWriter> filterBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
-    {
+    protected List<BeanPropertyWriter> filterBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props) {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         AnnotatedClass ac = beanDesc.getClassInfo();
         String[] ignored = intr.findPropertiesToIgnore(ac);
@@ -345,13 +343,12 @@ public class BeanSerializerFactory
      * provide custom ordering of properties, beyond configurability
      * offered by annotations (whic allow alphabetic ordering, as
      * well as explicit ordering by providing array of property names).
-     *<p>
+     * <p>
      * By default Creator properties will be ordered before other
      * properties. Explicit custom ordering will override this implicit
      * default ordering.
      */
-    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
-    {
+    protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc, List<BeanPropertyWriter> props) {
         // Ok: so far so good. But do we need to (re)order these somehow?
         /* Yes; first, for [JACKSON-90] (explicit ordering and/or alphabetic)
          * and then for [JACKSON-170] (implicitly order creator properties before others)
@@ -372,23 +369,22 @@ public class BeanSerializerFactory
     /**
      * Method called to handle view information for constructed serializer,
      * based on bean property writers.
-     *<p>
+     * <p>
      * Note that this method is designed to be overridden by sub-classes
      * if they want to provide custom view handling. As such it is not
      * considered an internal implementation detail, and will be supported
      * as part of API going forward.
-     * 
+     *
      * @return Resulting bean serializer, base implementation returns
-     *    serializer passed in
+     * serializer passed in
      */
     protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
-                                          BeanSerializer ser, List<BeanPropertyWriter> props)
-    {
+                                          BeanSerializer ser, List<BeanPropertyWriter> props) {
         // [JACKSON-232]: whether non-annotated fields are included by default or not is configurable
         boolean includeByDefault = config.isEnabled(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION);
         if (includeByDefault) { // non-annotated are included
             final int propCount = props.size();
-            BeanPropertyWriter[] filtered = null;        
+            BeanPropertyWriter[] filtered = null;
             // Simple: view information is stored within individual writers, need to combine:
             for (int i = 0; i < propCount; ++i) {
                 BeanPropertyWriter bpw = props.get(i);
@@ -399,7 +395,7 @@ public class BeanSerializerFactory
                     }
                     filtered[i] = constructFilteredBeanWriter(bpw, views);
                 }
-            }        
+            }
             // Anything missing? Need to fill in
             if (filtered != null) {
                 for (int i = 0; i < propCount; ++i) {
@@ -408,7 +404,7 @@ public class BeanSerializerFactory
                     }
                 }
                 return ser.withFiltered(filtered);
-            }        
+            }
             // No views, return as is
             return ser;
         }
@@ -418,7 +414,7 @@ public class BeanSerializerFactory
             Class<?>[] views = bpw.getViews();
             if (views != null) {
                 explicit.add(constructFilteredBeanWriter(bpw, views));
-            }            
+            }
         }
         BeanPropertyWriter[] filtered = explicit.toArray(new BeanPropertyWriter[explicit.size()]);
         return ser.withFiltered(filtered);
@@ -429,21 +425,19 @@ public class BeanSerializerFactory
      * definitions. Default implementation constructs filter that checks
      * active view type to views property is to be included in.
      */
-    protected BeanPropertyWriter constructFilteredBeanWriter(BeanPropertyWriter writer, Class<?>[] inViews)
-    {
+    protected BeanPropertyWriter constructFilteredBeanWriter(BeanPropertyWriter writer, Class<?>[] inViews) {
         return FilteredBeanPropertyWriter.constructViewBased(writer, inViews);
     }
-    
+
     protected PropertyBuilder constructPropertyBuilder(SerializationConfig config,
-                                                       BasicBeanDescription beanDesc)
-    {
+                                                       BasicBeanDescription beanDesc) {
         return new PropertyBuilder(config, beanDesc);
     }
 
     /*
-    *****************************************************************
-    * Internal helper methods
-    *****************************************************************
+     *****************************************************************
+     * Internal helper methods
+     *****************************************************************
      */
 
     /**
@@ -451,21 +445,20 @@ public class BeanSerializerFactory
      * to defined criteria (usually detected by annotations)
      */
     List<BeanPropertyWriter> _sortBeanProperties(List<BeanPropertyWriter> props,
-                                                 List<String> creatorProps, String[] propertyOrder, boolean sort)
-    {
+                                                 List<String> creatorProps, String[] propertyOrder, boolean sort) {
         int size = props.size();
-        Map<String,BeanPropertyWriter> all;
+        Map<String, BeanPropertyWriter> all;
         // Need to (re)sort alphabetically?
         if (sort) {
-            all = new TreeMap<String,BeanPropertyWriter>();
+            all = new TreeMap<String, BeanPropertyWriter>();
         } else {
-            all = new LinkedHashMap<String,BeanPropertyWriter>(size*2);
+            all = new LinkedHashMap<String, BeanPropertyWriter>(size * 2);
         }
 
         for (BeanPropertyWriter w : props) {
             all.put(w.getName(), w);
         }
-        Map<String,BeanPropertyWriter> ordered = new LinkedHashMap<String,BeanPropertyWriter>(size*2);
+        Map<String, BeanPropertyWriter> ordered = new LinkedHashMap<String, BeanPropertyWriter>(size * 2);
         // Ok: primarily by explicit order
         if (propertyOrder != null) {
             for (String name : propertyOrder) {
@@ -473,7 +466,7 @@ public class BeanSerializerFactory
                 if (w != null) {
                     ordered.put(name, w);
                 }
-            }            
+            }
         }
         // And secondly by sorting Creator properties before other unordered properties
         for (String name : creatorProps) {

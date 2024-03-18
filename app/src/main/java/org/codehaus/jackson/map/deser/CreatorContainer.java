@@ -7,8 +7,7 @@ import org.codehaus.jackson.map.util.ClassUtil;
 /**
  * Container for set of Creators (constructors, factory methods)
  */
-public class CreatorContainer
-{
+public class CreatorContainer {
     /// Type of bean being created
     final Class<?> _beanClass;
     final boolean _canFixAccess;
@@ -37,9 +36,11 @@ public class CreatorContainer
     public void addStringConstructor(AnnotatedConstructor ctor) {
         _strConstructor = verifyNonDup(ctor, _strConstructor, "String");
     }
+
     public void addIntConstructor(AnnotatedConstructor ctor) {
         _intConstructor = verifyNonDup(ctor, _intConstructor, "int");
     }
+
     public void addLongConstructor(AnnotatedConstructor ctor) {
         _longConstructor = verifyNonDup(ctor, _longConstructor, "long");
     }
@@ -48,8 +49,7 @@ public class CreatorContainer
         _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "long");
     }
 
-    public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties)
-    {
+    public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties) {
         _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
         _propertyBasedConstructorProperties = properties;
     }
@@ -57,9 +57,11 @@ public class CreatorContainer
     public void addStringFactory(AnnotatedMethod factory) {
         _strFactory = verifyNonDup(factory, _strFactory, "String");
     }
+
     public void addIntFactory(AnnotatedMethod factory) {
         _intFactory = verifyNonDup(factory, _intFactory, "int");
     }
+
     public void addLongFactory(AnnotatedMethod factory) {
         _longFactory = verifyNonDup(factory, _longFactory, "long");
     }
@@ -68,8 +70,7 @@ public class CreatorContainer
         _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "long");
     }
 
-    public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty[] properties)
-    {
+    public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty[] properties) {
         _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
         _propertyBasedFactoryProperties = properties;
     }
@@ -80,39 +81,35 @@ public class CreatorContainer
     /////////////////////////////////////////////////////////
     */
 
-    public Creator.StringBased stringCreator()
-    {
-        if (_strConstructor == null &&  _strFactory == null) {
+    public Creator.StringBased stringCreator() {
+        if (_strConstructor == null && _strFactory == null) {
             return null;
         }
         return new Creator.StringBased(_beanClass, _strConstructor, _strFactory);
     }
 
-    public Creator.NumberBased numberCreator()
-    {
+    public Creator.NumberBased numberCreator() {
         if (_intConstructor == null && _intFactory == null
-            && _longConstructor == null && _longFactory == null) {
+                && _longConstructor == null && _longFactory == null) {
             return null;
         }
         return new Creator.NumberBased(_beanClass, _intConstructor, _intFactory,
-                                       _longConstructor, _longFactory);
+                _longConstructor, _longFactory);
     }
 
-    public Creator.Delegating delegatingCreator()
-    {
+    public Creator.Delegating delegatingCreator() {
         if (_delegatingConstructor == null && _delegatingFactory == null) {
             return null;
         }
         return new Creator.Delegating(_delegatingConstructor, _delegatingFactory);
     }
 
-    public Creator.PropertyBased propertyBasedCreator()
-    {
+    public Creator.PropertyBased propertyBasedCreator() {
         if (_propertyBasedConstructor == null && _propertyBasedFactory == null) {
             return null;
         }
         return new Creator.PropertyBased(_propertyBasedConstructor, _propertyBasedConstructorProperties,
-                                         _propertyBasedFactory, _propertyBasedFactoryProperties);
+                _propertyBasedFactory, _propertyBasedFactoryProperties);
     }
 
     /*
@@ -122,22 +119,20 @@ public class CreatorContainer
 */
 
     protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
-                                                String type)
-    {
+                                                String type) {
         if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting "+type+" constructors: already had "+oldOne+", encountered "+newOne);
+            throw new IllegalArgumentException("Conflicting " + type + " constructors: already had " + oldOne + ", encountered " + newOne);
         }
         if (_canFixAccess) {
             ClassUtil.checkAndFixAccess(newOne.getAnnotated());
         }
         return newOne;
     }
-        
+
     protected AnnotatedMethod verifyNonDup(AnnotatedMethod newOne, AnnotatedMethod oldOne,
-                                           String type)
-    {
+                                           String type) {
         if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting "+type+" factory methods: already had "+oldOne+", encountered "+newOne);
+            throw new IllegalArgumentException("Conflicting " + type + " factory methods: already had " + oldOne + ", encountered " + newOne);
         }
         if (_canFixAccess) {
             ClassUtil.checkAndFixAccess(newOne.getAnnotated());

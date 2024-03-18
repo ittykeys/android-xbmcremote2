@@ -22,30 +22,31 @@
 package org.xbmc.api.business;
 
 
-
 /**
  * Basically contains two things:
  * <ul>
  *   <li>The callback code of a completed HTTP API command</li>
  *   <li>The result of the HTTP API command</li>
  * </ul>
- * 
- * @author Team XBMC
+ *
  * @param <T> Type of the API command's result
+ * @author Team XBMC
  */
 public class DataResponse<T> implements Runnable, Cloneable {
-	public T value;
-	public int cacheType;
-	public void run () {
-		// do nothing if not overloaded
-	}
+    public T value;
+    public int cacheType;
 
-	/**
-	 * Executed before downloading large files. Overload and return false to 
-	 * skip downloading, for instance when a list with covers is scrolling.
-	 * @return
-	 */
-	public boolean postCache() {
-		return true;
-	}
+    public void run() {
+        // do nothing if not overloaded
+    }
+
+    /**
+     * Executed before downloading large files. Overload and return false to
+     * skip downloading, for instance when a list with covers is scrolling.
+     *
+     * @return
+     */
+    public boolean postCache() {
+        return true;
+    }
 }

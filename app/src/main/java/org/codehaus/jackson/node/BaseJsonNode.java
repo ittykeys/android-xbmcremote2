@@ -1,11 +1,16 @@
 package org.codehaus.jackson.node;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.JsonSerializableWithType;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
+
+import java.io.IOException;
 
 /**
  * Abstract base class common to all standard {@link JsonNode}
@@ -16,10 +21,10 @@ import org.codehaus.jackson.map.TypeSerializer;
  * aspects a bit, as no external serializers are needed.
  */
 public abstract class BaseJsonNode
-    extends JsonNode
-    implements JsonSerializableWithType
-{
-    protected BaseJsonNode() { }
+        extends JsonNode
+        implements JsonSerializableWithType {
+    protected BaseJsonNode() {
+    }
 
     /*
      *********************************************
@@ -48,7 +53,7 @@ public abstract class BaseJsonNode
      */
     public JsonParser.NumberType getNumberType() {
         // most types non-numeric, so:
-        return null; 
+        return null;
     }
 
     /*
@@ -61,7 +66,7 @@ public abstract class BaseJsonNode
      * Method called to serialize node instances using given generator.
      */
     public abstract void serialize(JsonGenerator jgen, SerializerProvider provider)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /**
      * Since JSON node typing is only based on JSON values,
@@ -69,9 +74,8 @@ public abstract class BaseJsonNode
      * the same way as when no typing is enabled.
      */
     public void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
-            TypeSerializer typeSer)
-        throws IOException, JsonProcessingException
-    {
+                                  TypeSerializer typeSer)
+            throws IOException, JsonProcessingException {
         serialize(jgen, provider);
     }
 
@@ -82,14 +86,13 @@ public abstract class BaseJsonNode
      */
 
     /**
-     *<p>
+     * <p>
      * Note: this method is deprecated, given that we
      * want to use the standard serialization interface.
      */
     @Override
     public final void writeTo(JsonGenerator jgen)
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         /* it's ok to pass null, as long as other nodes handle
          * it properly...
          */

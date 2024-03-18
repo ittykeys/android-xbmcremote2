@@ -1,8 +1,5 @@
 package org.codehaus.jackson.map.ser;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -17,13 +14,15 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 /**
  * Helper class for {@link BeanSerializerFactory} that is used to
  * construct {@link BeanPropertyWriter} instances. Can be sub-classed
  * to change behavior.
  */
-public class PropertyBuilder
-{
+public class PropertyBuilder {
     final SerializationConfig _config;
     final BasicBeanDescription _beanDesc;
     final JsonSerialize.Inclusion _outputProps;
@@ -38,8 +37,7 @@ public class PropertyBuilder
      */
     protected Object _defaultBean;
 
-    public PropertyBuilder(SerializationConfig config, BasicBeanDescription beanDesc)
-    {
+    public PropertyBuilder(SerializationConfig config, BasicBeanDescription beanDesc) {
         _config = config;
         _beanDesc = beanDesc;
         _outputProps = beanDesc.findSerializationInclusion(config.getSerializationInclusion());
@@ -54,13 +52,12 @@ public class PropertyBuilder
 
     /**
      * @param contentTypeSer Optional explicit type information serializer
-     *    to use for contained values (only used for properties that are
-     *    of container type)
+     *                       to use for contained values (only used for properties that are
+     *                       of container type)
      */
     protected BeanPropertyWriter buildProperty(String name, JsonSerializer<Object> ser,
-            TypeSerializer typeSer, TypeSerializer contentTypeSer,
-            AnnotatedMember am, boolean defaultUseStaticTyping)
-    {
+                                               TypeSerializer typeSer, TypeSerializer contentTypeSer,
+                                               AnnotatedMember am, boolean defaultUseStaticTyping) {
         Field f;
         Method m;
         if (am instanceof AnnotatedField) {
@@ -92,15 +89,15 @@ public class PropertyBuilder
 
         if (methodProps != null) {
             switch (methodProps) {
-            case NON_DEFAULT:
-                suppValue = getDefaultValue(name, m, f);
-                if (suppValue == null) {
+                case NON_DEFAULT:
+                    suppValue = getDefaultValue(name, m, f);
+                    if (suppValue == null) {
+                        suppressNulls = true;
+                    }
+                    break;
+                case NON_NULL:
                     suppressNulls = true;
-                }
-                break;
-            case NON_NULL:
-                suppressNulls = true;
-                break;
+                    break;
             }
         }
         return new BeanPropertyWriter(name, ser, typeSer, serializationType, m, f, suppressNulls, suppValue);
@@ -118,15 +115,14 @@ public class PropertyBuilder
      * declared type (if static typing for serialization is enabled).
      * If neither can be used (no annotations, dynamic typing), returns null.
      */
-    protected JavaType findSerializationType(Annotated a, boolean useStaticTyping)
-    {
+    protected JavaType findSerializationType(Annotated a, boolean useStaticTyping) {
         // [JACKSON-120]: Check to see if serialization type is fixed
         Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
         if (serializationType != null) {
             // Must be a super type...
             Class<?> raw = a.getRawType();
             if (!serializationType.isAssignableFrom(raw)) {
-                throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+raw.getName());
+                throw new IllegalArgumentException("Illegal concrete-type annotation for method '" + a.getName() + "': class " + serializationType.getName() + " not a super-type of (declared) class " + raw.getName());
             }
             return TypeFactory.type(serializationType);
         }
@@ -143,8 +139,7 @@ public class PropertyBuilder
         return null;
     }
 
-    protected Object getDefaultBean()
-    {
+    protected Object getDefaultBean() {
         if (_defaultBean == null) {
             /* If we can fix access rights, we should; otherwise non-public
              * classes or default constructor will prevent instantiation
@@ -152,14 +147,13 @@ public class PropertyBuilder
             _defaultBean = _beanDesc.instantiateBean(_config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
             if (_defaultBean == null) {
                 Class<?> cls = _beanDesc.getClassInfo().getAnnotated();
-                throw new IllegalArgumentException("Class "+cls.getName()+" has no default constructor; can not instantiate default bean value to support 'properties=JsonSerialize.Inclusion.NON_DEFAULT' annotation");
+                throw new IllegalArgumentException("Class " + cls.getName() + " has no default constructor; can not instantiate default bean value to support 'properties=JsonSerialize.Inclusion.NON_DEFAULT' annotation");
             }
         }
         return _defaultBean;
     }
 
-    protected Object getDefaultValue(String name, Method m, Field f)
-    {
+    protected Object getDefaultValue(String name, Method m, Field f) {
         Object defaultBean = getDefaultBean();
         try {
             if (m != null) {
@@ -171,14 +165,13 @@ public class PropertyBuilder
         }
     }
 
-    protected Object _throwWrapped(Exception e, String propName, Object defaultBean)
-    {
+    protected Object _throwWrapped(Exception e, String propName, Object defaultBean) {
         Throwable t = e;
         while (t.getCause() != null) {
             t = t.getCause();
         }
         if (t instanceof Error) throw (Error) t;
         if (t instanceof RuntimeException) throw (RuntimeException) t;
-        throw new IllegalArgumentException("Failed to get property '"+propName+"' of default "+defaultBean.getClass().getName()+" instance");
+        throw new IllegalArgumentException("Failed to get property '" + propName + "' of default " + defaultBean.getClass().getName() + " instance");
     }
 }

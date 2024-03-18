@@ -1,18 +1,28 @@
 package org.codehaus.jackson.map;
 
-import java.io.*;
-import java.net.URL;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
+import java.net.URL;
+
 /**
  * This mapper (or, codec) provides mapping between Json,
- * and Tree-like structure that consists of child-linked 
+ * and Tree-like structure that consists of child-linked
  * nodes that can be traversed with simple path operations
  * (indexing arrays by element, objects by field name).
- *<p>
+ * <p>
  * As of version 0.9.9 of Jackson, most functionality has
  * been moved away from this class: all serialization and
  * deserialization features are now accessible through either
@@ -24,8 +34,7 @@ import org.codehaus.jackson.node.NullNode;
  * @deprecated Use {@link org.codehaus.jackson.map.ObjectMapper} instead
  */
 public class TreeMapper
-    extends JsonNodeFactory
-{
+        extends JsonNodeFactory {
     /**
      * Mapper that handles actual serialization/deserialization
      */
@@ -37,13 +46,11 @@ public class TreeMapper
     ////////////////////////////////////////////////////
      */
 
-    public TreeMapper()
-    {
+    public TreeMapper() {
         this(null);
     }
 
-    public TreeMapper(ObjectMapper m)
-    {
+    public TreeMapper(ObjectMapper m) {
         _objectMapper = m;
     }
 
@@ -52,9 +59,11 @@ public class TreeMapper
      * mapper uses if it needs to construct Json parsers and/or generators.
      *
      * @return Json factory that this mapper uses when it needs to
-     *   construct Json parser and generators
+     * construct Json parser and generators
      */
-    public JsonFactory getJsonFactory() { return objectMapper().getJsonFactory(); }
+    public JsonFactory getJsonFactory() {
+        return objectMapper().getJsonFactory();
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -76,8 +85,7 @@ public class TreeMapper
      * null is returned to signal end-of-content.
      */
     public JsonNode readTree(JsonParser jp)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         /* 02-Mar-2009, tatu: Behavior here is bit different from that
          *   of ObjectMapper, since we can actually return null to
          *   indicate end-of-content. Because of this we do need to
@@ -96,44 +104,38 @@ public class TreeMapper
     }
 
     public JsonNode readTree(File src)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
 
         JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(URL src)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(InputStream src)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(Reader src)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonNode n = objectMapper().readValue(src, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(String jsonContent)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonNode n = objectMapper().readValue(jsonContent, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
 
     public JsonNode readTree(byte[] jsonContent)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonNode n = objectMapper().readValue(jsonContent, 0, jsonContent.length, JsonNode.class);
         return (n == null) ? NullNode.instance : n;
     }
@@ -146,20 +148,17 @@ public class TreeMapper
      */
 
     public void writeTree(JsonNode rootNode, File dst)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         objectMapper().writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, Writer dst)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         objectMapper().writeValue(dst, rootNode);
     }
 
     public void writeTree(JsonNode rootNode, OutputStream dst)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         objectMapper().writeValue(dst, rootNode);
     }
 
@@ -169,8 +168,7 @@ public class TreeMapper
     ////////////////////////////////////////////////////
      */
 
-    protected synchronized ObjectMapper objectMapper()
-    {
+    protected synchronized ObjectMapper objectMapper() {
         if (_objectMapper == null) {
             _objectMapper = new ObjectMapper();
         }

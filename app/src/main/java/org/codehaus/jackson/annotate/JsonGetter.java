@@ -11,19 +11,18 @@ import java.lang.annotation.Target;
  * for a logical property,
  * as an alternative to recommended
  * {@link JsonProperty} annotation (which was introduced in version 1.1).
- *<p>
+ * <p>
  * Getter means that when serializing Object instance of class that has
  * this method (possibly inherited from a super class), a call is made
  * through the method, and return value will be serialized as value of
  * the property.
- * 
+ *
  * @deprecated Use {@link JsonProperty} instead (deprecated since version 1.5)
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonGetter
-{
+public @interface JsonGetter {
     /**
      * Defines name of the logical property this
      * method is used to access ("get"); empty String means that

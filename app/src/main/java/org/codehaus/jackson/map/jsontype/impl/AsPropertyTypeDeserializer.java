@@ -1,14 +1,17 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.JsonParserSequence;
 import org.codehaus.jackson.util.TokenBuffer;
+
+import java.io.IOException;
 
 /**
  * Type deserializer used with {@link JsonTypeInfo.As#PROPERTY}
@@ -17,16 +20,14 @@ import org.codehaus.jackson.util.TokenBuffer;
  * when typed object is expressed as JSON Object; otherwise behaves similar to how
  * {@link JsonTypeInfo.As#WRAPPER_ARRAY} works.
  * Latter is used if JSON representation is polymorphic
- * 
- * @since 1.5
+ *
  * @author tatu
+ * @since 1.5
  */
-public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
-{
+public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer {
     protected final String _propertyName;
 
-    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String propName)
-    {
+    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String propName) {
         super(bt, idRes);
         _propertyName = propName;
     }
@@ -37,7 +38,9 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     }
 
     @Override
-    public String getPropertyName() { return _propertyName; }
+    public String getPropertyName() {
+        return _propertyName;
+    }
 
     /**
      * This is the trickiest thing to handle, since property we are looking
@@ -45,15 +48,14 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
      */
     @Override
     public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // but first, sanity check to ensure we have START_OBJECT or FIELD_NAME
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
         } else if (t != JsonToken.FIELD_NAME) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_OBJECT,
-                    "need JSON Object to contain As.PROPERTY type information (for class "+baseTypeName()+")");
+                    "need JSON Object to contain As.PROPERTY type information (for class " + baseTypeName() + ")");
         }
         // Ok, let's try to find the property. But first, need token buffer...
         TokenBuffer tb = null;
@@ -64,7 +66,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
             if (_propertyName.equals(name)) { // gotcha!
                 JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
                 // deserializer should take care of closing END_OBJECT as well
-               if (tb != null) {
+                if (tb != null) {
                     jp = JsonParserSequence.createFlattened(tb.asParser(jp), jp);
                 }
                 /* Must point to the next value; tb had no current, jp
@@ -82,7 +84,7 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
         }
         // Error if we get here...
         throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
-                "missing property '"+_propertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
+                "missing property '" + _propertyName + "' that is to contain type id  (for class " + baseTypeName() + ")");
     }
 
     // These are fine from base class:

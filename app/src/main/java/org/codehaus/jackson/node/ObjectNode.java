@@ -1,5 +1,11 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.SerializerProvider;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Iterator;
@@ -7,21 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.SerializerProvider;
-
 /**
  * Note that maps to Json Object structures in Json content.
  */
 public class ObjectNode
-    extends ContainerNode
-{
+        extends ContainerNode {
     LinkedHashMap<String, JsonNode> _children = null;
 
-    public ObjectNode(JsonNodeFactory nc) { super(nc); }
+    public ObjectNode(JsonNodeFactory nc) {
+        super(nc);
+    }
 
     /*
     ///////////////////////////////////////////////////////////
@@ -29,10 +30,15 @@ public class ObjectNode
     ///////////////////////////////////////////////////////////
      */
 
-    @Override public JsonToken asToken() { return JsonToken.START_OBJECT; }
+    @Override
+    public JsonToken asToken() {
+        return JsonToken.START_OBJECT;
+    }
 
     @Override
-    public boolean isObject() { return true; }
+    public boolean isObject() {
+        return true;
+    }
 
     @Override
     public int size() {
@@ -40,17 +46,17 @@ public class ObjectNode
     }
 
     @Override
-    public Iterator<JsonNode> getElements()
-    {
+    public Iterator<JsonNode> getElements() {
         return (_children == null) ? NoNodesIterator.instance() : _children.values().iterator();
     }
 
     @Override
-    public JsonNode get(int index) { return null; }
+    public JsonNode get(int index) {
+        return null;
+    }
 
     @Override
-    public JsonNode get(String fieldName)
-    {
+    public JsonNode get(String fieldName) {
         if (_children != null) {
             return _children.get(fieldName);
         }
@@ -58,20 +64,17 @@ public class ObjectNode
     }
 
     @Override
-    public Iterator<String> getFieldNames()
-    {
+    public Iterator<String> getFieldNames() {
         return (_children == null) ? NoStringsIterator.instance() : _children.keySet().iterator();
     }
 
     @Override
-    public JsonNode path(int index)
-    {
+    public JsonNode path(int index) {
         return MissingNode.getInstance();
     }
 
     @Override
-        public JsonNode path(String fieldName)
-    {
+    public JsonNode path(String fieldName) {
         if (_children != null) {
             JsonNode n = _children.get(fieldName);
             if (n != null) {
@@ -93,8 +96,7 @@ public class ObjectNode
      */
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         jg.writeStartObject();
         if (_children != null) {
             for (Map.Entry<String, JsonNode> en : _children.entrySet()) {
@@ -120,8 +122,7 @@ public class ObjectNode
      * Method to use for accessing all fields (with both names
      * and values) of this Json Object.
      */
-    public Iterator<Map.Entry<String, JsonNode>> getFields()
-    {
+    public Iterator<Map.Entry<String, JsonNode>> getFields() {
         if (_children == null) {
             return NoFieldsIterator.instance;
         }
@@ -139,14 +140,12 @@ public class ObjectNode
      * if any.
      *
      * @param value to set field to; if null, will be converted
-     *   to a {@link NullNode} first  (to remove field entry, call
-     *   {@link #remove} instead)
-     *
+     *              to a {@link NullNode} first  (to remove field entry, call
+     *              {@link #remove} instead)
      * @return Old value of the field, if any; null if there was no
-     *   old value.
+     * old value.
      */
-    public JsonNode put(String fieldName, JsonNode value)
-    {
+    public JsonNode put(String fieldName, JsonNode value) {
         if (value == null) { // let's not store 'raw' nulls but nodes
             value = nullNode();
         }
@@ -158,16 +157,14 @@ public class ObjectNode
      * Will return value of the field, if such field existed;
      * null if not.
      */
-    public JsonNode remove(String fieldName)
-    {
+    public JsonNode remove(String fieldName) {
         if (_children != null) {
             return _children.remove(fieldName);
         }
         return null;
     }
 
-    public ObjectNode removeAll()
-    {
+    public ObjectNode removeAll() {
         _children = null;
         return this;
     }
@@ -175,15 +172,12 @@ public class ObjectNode
     /**
      * Method for adding given properties to this object node, overriding
      * any existing values for those properties.
-     * 
+     *
      * @param properties Properties to add
-     * 
      * @return This node (to allow chaining)
-     * 
      * @since 1.3
      */
-    public JsonNode putAll(Map<String,JsonNode> properties)
-    {
+    public JsonNode putAll(Map<String, JsonNode> properties) {
         for (Map.Entry<String, JsonNode> en : properties.entrySet()) {
             JsonNode n = en.getValue();
             if (n == null) {
@@ -197,18 +191,15 @@ public class ObjectNode
     /**
      * Method for adding all properties of the given Object, overriding
      * any existing values for those properties.
-     * 
+     *
      * @param other Object of which properties to add to this object
-     * 
      * @return This node (to allow chaining)
-     * 
      * @since 1.3
      */
-    public JsonNode putAll(ObjectNode other)
-    {
-        Iterator<Map.Entry<String,JsonNode>> it = other.getFields();
+    public JsonNode putAll(ObjectNode other) {
+        Iterator<Map.Entry<String, JsonNode>> it = other.getFields();
         while (it.hasNext()) {
-            Map.Entry<String,JsonNode> en = it.next();
+            Map.Entry<String, JsonNode> en = it.next();
             _children.put(en.getKey(), en.getValue());
         }
         return this;
@@ -225,11 +216,10 @@ public class ObjectNode
      * field of this ObjectNode, replacing old value, if any.
      *
      * @return Newly constructed ArrayNode (NOT the old value,
-     *   which could be of any type)
+     * which could be of any type)
      */
-    public ArrayNode putArray(String fieldName)
-    {
-        ArrayNode n  = arrayNode();
+    public ArrayNode putArray(String fieldName) {
+        ArrayNode n = arrayNode();
         _put(fieldName, n);
         return n;
     }
@@ -239,44 +229,49 @@ public class ObjectNode
      * field of this ObjectNode, replacing old value, if any.
      *
      * @return Newly constructed ObjectNode (NOT the old value,
-     *   which could be of any type)
+     * which could be of any type)
      */
-    public ObjectNode putObject(String fieldName)
-    {
-        ObjectNode n  = objectNode();
+    public ObjectNode putObject(String fieldName) {
+        ObjectNode n = objectNode();
         _put(fieldName, n);
         return n;
     }
 
-    public void putPOJO(String fieldName, Object pojo)
-    {
+    public void putPOJO(String fieldName, Object pojo) {
         _put(fieldName, POJONode(pojo));
     }
 
-    public void putNull(String fieldName)
-    {
+    public void putNull(String fieldName) {
         _put(fieldName, nullNode());
     }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void put(String fieldName, int v) { _put(fieldName, numberNode(v)); }
+    public void put(String fieldName, int v) {
+        _put(fieldName, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void put(String fieldName, long v) { _put(fieldName, numberNode(v)); }
+    public void put(String fieldName, long v) {
+        _put(fieldName, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void put(String fieldName, float v) { _put(fieldName, numberNode(v)); }
+    public void put(String fieldName, float v) {
+        _put(fieldName, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void put(String fieldName, double v) { _put(fieldName, numberNode(v)); }
+    public void put(String fieldName, double v) {
+        _put(fieldName, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
@@ -304,7 +299,9 @@ public class ObjectNode
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void put(String fieldName, boolean v) { _put(fieldName, booleanNode(v)); }
+    public void put(String fieldName, boolean v) {
+        _put(fieldName, booleanNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified binary value
@@ -324,8 +321,7 @@ public class ObjectNode
      */
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) {
@@ -351,14 +347,12 @@ public class ObjectNode
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return (_children == null) ? -1 : _children.hashCode();
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder(32 + (size() << 4));
         sb.append("{");
         if (_children != null) {
@@ -383,8 +377,7 @@ public class ObjectNode
     ////////////////////////////////////////////////////////
      */
 
-    private final JsonNode _put(String fieldName, JsonNode value)
-    {
+    private final JsonNode _put(String fieldName, JsonNode value) {
         if (_children == null) {
             _children = new LinkedHashMap<String, JsonNode>();
         }
@@ -401,14 +394,19 @@ public class ObjectNode
      * For efficiency, let's share the "no fields" iterator...
      */
     protected static class NoFieldsIterator
-        implements Iterator<Map.Entry<String, JsonNode>>
-    {
+            implements Iterator<Map.Entry<String, JsonNode>> {
         final static NoFieldsIterator instance = new NoFieldsIterator();
 
-        private NoFieldsIterator() { }
+        private NoFieldsIterator() {
+        }
 
-        public boolean hasNext() { return false; }
-        public Map.Entry<String,JsonNode> next() { throw new NoSuchElementException(); }
+        public boolean hasNext() {
+            return false;
+        }
+
+        public Map.Entry<String, JsonNode> next() {
+            throw new NoSuchElementException();
+        }
 
         public void remove() { // or IllegalOperationException?
             throw new IllegalStateException();

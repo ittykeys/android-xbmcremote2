@@ -23,14 +23,14 @@ package org.xbmc.httpapi;
 
 /**
  * Throw this exception if setting values were empty.
- * 
+ *
  * @author Team XBMC
  */
 public class NoSettingsException extends Exception {
 
-	private static final long serialVersionUID = -5024397978225112156L;
+    private static final long serialVersionUID = -5024397978225112156L;
 
-	public NoSettingsException() {
-		super("Click on \"Settings\" or use the menu in order to add an XBMC host or IP address to your configuration.");
-	}
+    public NoSettingsException() {
+        super("Click on \"Settings\" or use the menu in order to add an XBMC host or IP address to your configuration.");
+    }
 }

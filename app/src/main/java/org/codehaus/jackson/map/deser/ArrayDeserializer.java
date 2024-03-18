@@ -1,21 +1,22 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
 
 /**
  * Basic serializer that can serialize non-primitive arrays.
  */
 public class ArrayDeserializer
-    extends StdDeserializer<Object>
-{
+        extends StdDeserializer<Object> {
     // // Configuration
 
     final JavaType _arrayType;
@@ -42,16 +43,14 @@ public class ArrayDeserializer
      * is the type deserializer that can handle it
      */
     final TypeDeserializer _elementTypeDeserializer;
-    
+
     @Deprecated
-    public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
-    {
+    public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser) {
         this(arrayType, elemDeser, null);
     }
 
     public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser,
-            TypeDeserializer elemTypeDeser)
-    {
+                             TypeDeserializer elemTypeDeser) {
         super(Object[].class);
         _arrayType = arrayType;
         _elementClass = arrayType.getContentType().getRawClass();
@@ -60,18 +59,19 @@ public class ArrayDeserializer
         _elementTypeDeserializer = elemTypeDeser;
     }
 
-    public JavaType getValueType() { return null; }
-    
+    public JavaType getValueType() {
+        return null;
+    }
+
     public Object deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // Ok: must point to START_ARRAY
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
             /* 04-Oct-2009, tatu: One exception; byte arrays are generally
              *   serialized as base64, so that should be handled
              */
             if (jp.getCurrentToken() == JsonToken.VALUE_STRING
-                && _elementClass == Byte.class) {
+                    && _elementClass == Byte.class) {
                 return deserializeFromBase64(jp, ctxt);
             }
             throw ctxt.mappingException(_arrayType.getRawClass());
@@ -86,7 +86,7 @@ public class ArrayDeserializer
         while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
             // Note: must handle null explicitly here; value deserializers won't
             Object value;
-            
+
             if (t == JsonToken.VALUE_NULL) {
                 value = null;
             } else if (typeDeser == null) {
@@ -113,18 +113,16 @@ public class ArrayDeserializer
     }
 
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
+                                      TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException {
         /* Should there be separate handling for base64 stuff?
          * for now this should be enough:
          */
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
-    
+
     protected Byte[] deserializeFromBase64(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // First same as what ArrayDeserializers.ByteDeser does:
         byte[] b = jp.getBinaryValue(ctxt.getBase64Variant());
         // But then need to convert to wrappers

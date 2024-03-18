@@ -29,67 +29,66 @@ import android.view.animation.Transformation;
 
 /**
  * Makes the slider glide to the next tab.
- * 
+ *
  * @author Team XBMC
  */
 class GestureRemoteAnimation extends Animation {
-	
-	private final Point mOrigin;
-	private final Point mFrom;
-	private final GestureRemoteCursor mCursor;
-	
-	private boolean mGestureZoneFadeOut = false;
-	private boolean mGestureZoneFadeIn = false;
 
-	/**
-	 * Constructor. Animation object can be declared final and re-used.
-	 * 
-	 * @param context Current context
-	 * @param attrs   Attribute set when inflated from XML
-	 * @param origin  Coordinates of screen center
-	 * @param cursor  Reference to cursor
-	 */
-	public GestureRemoteAnimation(Context context, AttributeSet attrs, Point origin, GestureRemoteCursor cursor) {
-		super(context, attrs);
-		mOrigin = origin;
-		mCursor = cursor;
-		mFrom = cursor.getPosition();
-	}
-	
-	public void setFadeIn(boolean fadein) {
-		mGestureZoneFadeIn = fadein;
-	}
-	
-	public void setFadeOut(boolean fadeout) {
-		mGestureZoneFadeOut = fadeout;
-	}
+    private final Point mOrigin;
+    private final Point mFrom;
+    private final GestureRemoteCursor mCursor;
 
-	/**
-	 * Constructor. Animation object can be declared final and re-used.
-	 *  
-	 * @param origin  Coordinates of screen center
-	 * @param cursor  Reference to cursor
-	 */
-	public GestureRemoteAnimation(Point origin, GestureRemoteCursor cursor) {
-		mOrigin = origin;
-		mCursor = cursor;
-		mFrom = cursor.getPosition();
-	}
-	
+    private boolean mGestureZoneFadeOut = false;
+    private boolean mGestureZoneFadeIn = false;
 
-	@Override
-	protected void applyTransformation(float interpolatedTime, Transformation t) {
-		final Point to = new Point(
-				mFrom.x - (int)((mFrom.x - mOrigin.x) * interpolatedTime), 
-				mFrom.y - (int)((mFrom.y - mOrigin.y) * interpolatedTime)
-			); 
-		mCursor.setPosition(to);
-		if (mGestureZoneFadeOut) {
-			mCursor.backgroundFadePos = (int)(interpolatedTime * 255.0);
-		}
-		if (mGestureZoneFadeIn) {
-			mCursor.backgroundFadePos = (int)((1 - interpolatedTime) * 255.0);
-		}
-		
-	}
+    /**
+     * Constructor. Animation object can be declared final and re-used.
+     *
+     * @param context Current context
+     * @param attrs   Attribute set when inflated from XML
+     * @param origin  Coordinates of screen center
+     * @param cursor  Reference to cursor
+     */
+    public GestureRemoteAnimation(Context context, AttributeSet attrs, Point origin, GestureRemoteCursor cursor) {
+        super(context, attrs);
+        mOrigin = origin;
+        mCursor = cursor;
+        mFrom = cursor.getPosition();
+    }
+
+    /**
+     * Constructor. Animation object can be declared final and re-used.
+     *
+     * @param origin Coordinates of screen center
+     * @param cursor Reference to cursor
+     */
+    public GestureRemoteAnimation(Point origin, GestureRemoteCursor cursor) {
+        mOrigin = origin;
+        mCursor = cursor;
+        mFrom = cursor.getPosition();
+    }
+
+    public void setFadeIn(boolean fadein) {
+        mGestureZoneFadeIn = fadein;
+    }
+
+    public void setFadeOut(boolean fadeout) {
+        mGestureZoneFadeOut = fadeout;
+    }
+
+    @Override
+    protected void applyTransformation(float interpolatedTime, Transformation t) {
+        final Point to = new Point(
+                mFrom.x - (int) ((mFrom.x - mOrigin.x) * interpolatedTime),
+                mFrom.y - (int) ((mFrom.y - mOrigin.y) * interpolatedTime)
+        );
+        mCursor.setPosition(to);
+        if (mGestureZoneFadeOut) {
+            mCursor.backgroundFadePos = (int) (interpolatedTime * 255.0);
+        }
+        if (mGestureZoneFadeIn) {
+            mCursor.backgroundFadePos = (int) ((1 - interpolatedTime) * 255.0);
+        }
+
+    }
 }

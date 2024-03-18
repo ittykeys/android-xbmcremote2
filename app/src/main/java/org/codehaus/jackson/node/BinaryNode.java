@@ -1,29 +1,30 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.Base64Variant;
+import org.codehaus.jackson.Base64Variants;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.SerializerProvider;
+
 import java.io.IOException;
 import java.util.Arrays;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Value node that contains Base64 encoded binary value, which will be
  * output and stored as Json String value.
  */
 public final class BinaryNode
-    extends ValueNode
-{
+        extends ValueNode {
     final static BinaryNode EMPTY_BINARY_NODE = new BinaryNode(new byte[0]);
 
     final byte[] _data;
 
-    public BinaryNode(byte[] data)
-    {
+    public BinaryNode(byte[] data) {
         _data = data;
     }
 
-    public BinaryNode(byte[] data, int offset, int length)
-    {
+    public BinaryNode(byte[] data, int offset, int length) {
         if (offset == 0 && length == data.length) {
             _data = data;
         } else {
@@ -32,8 +33,7 @@ public final class BinaryNode
         }
     }
 
-    public static BinaryNode valueOf(byte[] data)
-    {
+    public static BinaryNode valueOf(byte[] data) {
         if (data == null) {
             return null;
         }
@@ -43,8 +43,7 @@ public final class BinaryNode
         return new BinaryNode(data);
     }
 
-    public static BinaryNode valueOf(byte[] data, int offset, int length)
-    {
+    public static BinaryNode valueOf(byte[] data, int offset, int length) {
         if (data == null) {
             return null;
         }
@@ -54,75 +53,7 @@ public final class BinaryNode
         return new BinaryNode(data, offset, length);
     }
 
-    @Override
-    public JsonToken asToken() {
-        /* No distinct type; could use one for textual values,
-         * but given that it's not in text form at this point,
-         * embedded-object is closest
-         */
-        return JsonToken.VALUE_EMBEDDED_OBJECT;
-    }
-
-    @Override
-    public boolean isBinary() { return true; }
-
-    /**
-     *<p>
-     * Note: caller is not to modify returned array in any way, since
-     * it is not a copy but reference to the underlying byte array.
-     */
-    @Override
-    public byte[] getBinaryValue() { return _data; }
-
-    /**
-     * Hmmh. This is not quite as efficient as using {@link #serialize},
-     * but will work correctly.
-     */
-    public String getValueAsText() {
-        return _asBase64(false, _data);
-    }
-
-    @Override
-    public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
-        jg.writeBinary(_data);
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (o == this) return true;
-        if (o == null) return false;
-        if (o.getClass() != getClass()) { // final class, can do this
-            return false;
-        }
-        return Arrays.equals(((BinaryNode) o)._data, _data);
-    }
-
-    @Override
-    public int hashCode() {
-        return (_data == null) ? -1 : _data.length;
-    }
-
-    /**
-     * Different from other values, since contents need to be surrounded
-     * by (double) quotes.
-     */
-    @Override
-    public String toString()
-    {
-        return _asBase64(true, _data);
-    }
-
-    /*
-    /////////////////////////////////////////////////////////////////
-    // Internal methods
-    /////////////////////////////////////////////////////////////////
-     */
-
-    protected static String _asBase64(boolean addQuotes, byte[] input)
-    {
+    protected static String _asBase64(boolean addQuotes, byte[] input) {
         int inputEnd = input.length;
         StringBuilder sb = new StringBuilder(_outputLength(inputEnd));
         if (addQuotes) {
@@ -135,7 +66,7 @@ public final class BinaryNode
 
         // Ok, first we loop through all full triplets of data:
         int inputPtr = 0;
-        int safeInputEnd = inputEnd-3; // to get only full triplets
+        int safeInputEnd = inputEnd - 3; // to get only full triplets
 
         while (inputPtr <= safeInputEnd) {
             // First, mash 3 bytes into lsb of 32-bit int
@@ -167,10 +98,77 @@ public final class BinaryNode
         return sb.toString();
     }
 
-    private static int _outputLength(int inputLen)
-    {
+    private static int _outputLength(int inputLen) {
         // let's approximate... 33% overhead, ~= 3/8 (0.375)
         return inputLen + (inputLen >> 2) + (inputLen >> 3);
+    }
+
+    @Override
+    public JsonToken asToken() {
+        /* No distinct type; could use one for textual values,
+         * but given that it's not in text form at this point,
+         * embedded-object is closest
+         */
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
+    }
+
+    @Override
+    public boolean isBinary() {
+        return true;
+    }
+
+    /**
+     * <p>
+     * Note: caller is not to modify returned array in any way, since
+     * it is not a copy but reference to the underlying byte array.
+     */
+    @Override
+    public byte[] getBinaryValue() {
+        return _data;
+    }
+
+    /**
+     * Hmmh. This is not quite as efficient as using {@link #serialize},
+     * but will work correctly.
+     */
+    public String getValueAsText() {
+        return _asBase64(false, _data);
+    }
+
+    @Override
+    public final void serialize(JsonGenerator jg, SerializerProvider provider)
+            throws IOException, JsonProcessingException {
+        jg.writeBinary(_data);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o == null) return false;
+        if (o.getClass() != getClass()) { // final class, can do this
+            return false;
+        }
+        return Arrays.equals(((BinaryNode) o)._data, _data);
+    }
+
+    /*
+    /////////////////////////////////////////////////////////////////
+    // Internal methods
+    /////////////////////////////////////////////////////////////////
+     */
+
+    @Override
+    public int hashCode() {
+        return (_data == null) ? -1 : _data.length;
+    }
+
+    /**
+     * Different from other values, since contents need to be surrounded
+     * by (double) quotes.
+     */
+    @Override
+    public String toString() {
+        return _asBase64(true, _data);
     }
 
 }

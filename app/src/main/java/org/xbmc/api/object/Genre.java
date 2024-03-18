@@ -24,52 +24,52 @@ package org.xbmc.api.object;
 import java.io.Serializable;
 
 
-
 /**
  * Genre is basically a name and an ID. Can be a music genre or a movie/tvshow genre.
- * 
+ *
  * @author Team XBMC
  */
 public class Genre implements Serializable, INamedResource {
 
-	/**
-	 * Constructor
-	 * @param id		Database ID
-	 * @param name		Album name
-	 * @param artist	Artist
-	 */
-	public Genre(int id, String name) {
-		this.id = id;
-		this.name = name;
-	}
+    private static final long serialVersionUID = 9073064679039418773L;
+    /**
+     * Database ID
+     */
+    public int id;
+    /**
+     * Genre name
+     */
+    public String name;
 
-	/**
-	 * Returns database ID.
-	 * @return
-	 */
-	public int getId() {
-		return this.id;
-	}
+    /**
+     * Constructor
+     *
+     * @param id     Database ID
+     * @param name   Album name
+     * @param artist Artist
+     */
+    public Genre(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
-	/**
-	 * Something descriptive
-	 */
-	public String toString() {
-		return "[" + this.id + "] " + this.name;
-	}
-	
-	/**
-	 * Database ID
-	 */
-	public int id;
-	/**
-	 * Genre name
-	 */
-	public String name;
-	
-	public String getShortName() {
-		return this.name;
-	}
-	
-	private static final long serialVersionUID = 9073064679039418773L;
+    /**
+     * Returns database ID.
+     *
+     * @return
+     */
+    public int getId() {
+        return this.id;
+    }
+
+    /**
+     * Something descriptive
+     */
+    public String toString() {
+        return "[" + this.id + "] " + this.name;
+    }
+
+    public String getShortName() {
+        return this.name;
+    }
 }

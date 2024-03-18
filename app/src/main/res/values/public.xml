@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--  Copyright (C) 2005-2009 Team XBMC
+<?xml version="1.0" encoding="utf-8"?><!--  Copyright (C) 2005-2009 Team XBMC
       http://xbmc.org
 
       This Program is free software; you can redistribute it and/or modify
@@ -20,18 +19,18 @@
 
 <resources>
 
-  <!-- We don't want to publish private symbols in android.R as part of the
-       SDK.  Instead, put them here. -->
-  <!-- private-symbols package="org.xbmc.android.internal" /-->
+    <!-- We don't want to publish private symbols in android.R as part of the
+         SDK.  Instead, put them here. -->
+    <!-- private-symbols package="org.xbmc.android.internal" /-->
 
-  <!-- Widget style attribute -->
-  <!-- public type="attr" name="slidingTabWidgetStyle" id="0x9f040003" /-->
-  
-  <!-- View ID of the {@link android.widget.FrameLayout} -->
-  <public type="id" name="slidingtabcontent" id="0x9f040000" />
-  <!-- View ID of the {@link org.xbmc.android.widget.slidingtabs.SlidingTabHost} -->
-  <public type="id" name="slidingtabhost" id="0x9f040001" />
-  <!-- View ID of the {@link org.xbmc.android.widget.slidingtabs.SlidingTabWidget} -->
-  <public type="id" name="slidingtabs" id="0x9f040002" />
-  
+    <!-- Widget style attribute -->
+    <!-- public type="attr" name="slidingTabWidgetStyle" id="0x9f040003" /-->
+
+    <!-- View ID of the {@link android.widget.FrameLayout} -->
+    <public name="slidingtabcontent" id="0x9f040000" type="id" />
+    <!-- View ID of the {@link org.xbmc.android.widget.slidingtabs.SlidingTabHost} -->
+    <public name="slidingtabhost" id="0x9f040001" type="id" />
+    <!-- View ID of the {@link org.xbmc.android.widget.slidingtabs.SlidingTabWidget} -->
+    <public name="slidingtabs" id="0x9f040002" type="id" />
+
 </resources>

@@ -1,13 +1,14 @@
 package org.codehaus.jackson.impl;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
-import java.io.*;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberInput;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Another intermediate base class used by all Jackson {@link JsonParser}
@@ -17,8 +18,7 @@ import org.codehaus.jackson.io.NumberInput;
  * @author Tatu Saloranta
  */
 public abstract class JsonNumericParserBase
-    extends JsonParserBase
-{
+        extends JsonParserBase {
     /* Additionally we need to be able to distinguish between
      * various numeric representations, since we try to use
      * the fastest one that works for given textual representation.
@@ -38,25 +38,6 @@ public abstract class JsonNumericParserBase
     final protected static int NR_BIGDECIMAL = 0x0010;
 
     // Also, we need some numeric constants
-
-    final static BigDecimal BD_MIN_LONG = new BigDecimal(Long.MIN_VALUE);
-    final static BigDecimal BD_MAX_LONG = new BigDecimal(Long.MAX_VALUE);
-
-    final static BigDecimal BD_MIN_INT = new BigDecimal(Long.MIN_VALUE);
-    final static BigDecimal BD_MAX_INT = new BigDecimal(Long.MAX_VALUE);
-
-    final static long MIN_INT_L = (long) Integer.MIN_VALUE;
-    final static long MAX_INT_L = (long) Integer.MAX_VALUE;
-
-    // These are not very accurate, but have to do... (for bounds checks)
-
-    final static double MIN_LONG_D = (double) Long.MIN_VALUE;
-    final static double MAX_LONG_D = (double) Long.MAX_VALUE;
-
-    final static double MIN_INT_D = (double) Integer.MIN_VALUE;
-    final static double MAX_INT_D = (double) Integer.MAX_VALUE;
-    
-    
     // Digits, numeric
     final protected static int INT_0 = '0';
     final protected static int INT_1 = '1';
@@ -64,19 +45,28 @@ public abstract class JsonNumericParserBase
     final protected static int INT_3 = '3';
     final protected static int INT_4 = '4';
     final protected static int INT_5 = '5';
+
+    // These are not very accurate, but have to do... (for bounds checks)
     final protected static int INT_6 = '6';
     final protected static int INT_7 = '7';
     final protected static int INT_8 = '8';
     final protected static int INT_9 = '9';
-
     final protected static int INT_MINUS = '-';
     final protected static int INT_PLUS = '+';
     final protected static int INT_DECIMAL_POINT = '.';
-
     final protected static int INT_e = 'e';
     final protected static int INT_E = 'E';
-
     final protected static char CHAR_NULL = '\0';
+    final static BigDecimal BD_MIN_LONG = new BigDecimal(Long.MIN_VALUE);
+    final static BigDecimal BD_MAX_LONG = new BigDecimal(Long.MAX_VALUE);
+    final static BigDecimal BD_MIN_INT = new BigDecimal(Long.MIN_VALUE);
+    final static BigDecimal BD_MAX_INT = new BigDecimal(Long.MAX_VALUE);
+    final static long MIN_INT_L = (long) Integer.MIN_VALUE;
+    final static long MAX_INT_L = (long) Integer.MAX_VALUE;
+    final static double MIN_LONG_D = (double) Long.MIN_VALUE;
+    final static double MAX_LONG_D = (double) Long.MAX_VALUE;
+    final static double MIN_INT_D = (double) Integer.MIN_VALUE;
+    final static double MAX_INT_D = (double) Integer.MAX_VALUE;
 
     /*
     ////////////////////////////////////////////////////
@@ -84,7 +74,6 @@ public abstract class JsonNumericParserBase
     // for efficiency
     ////////////////////////////////////////////////////
      */
-
     /**
      * Bitfield that indicates which numeric representations
      * have been calculated for the current type
@@ -128,7 +117,7 @@ public abstract class JsonNumericParserBase
 
     /**
      * Length of the exponent part of the number, if any, not
-     * including 'e' marker or sign, just digits. 
+     * including 'e' marker or sign, just digits.
      * Not used for  pure integer values.
      */
     protected int mExpLength;
@@ -139,13 +128,11 @@ public abstract class JsonNumericParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected JsonNumericParserBase(IOContext ctxt, int features)
-    {
+    protected JsonNumericParserBase(IOContext ctxt, int features) {
         super(ctxt, features);
     }
 
-    protected final JsonToken reset(boolean negative, int intLen, int fractLen, int expLen)
-    {
+    protected final JsonToken reset(boolean negative, int intLen, int fractLen, int expLen) {
         _numberNegative = negative;
         mIntLength = intLen;
         mFractLength = fractLen;
@@ -165,7 +152,7 @@ public abstract class JsonNumericParserBase
      */
 
     protected abstract JsonToken parseNumberText(int ch)
-        throws IOException, JsonParseException;
+            throws IOException, JsonParseException;
 
     /*
     ////////////////////////////////////////////////////
@@ -174,8 +161,7 @@ public abstract class JsonNumericParserBase
      */
 
     public Number getNumberValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if (_numTypesValid == NR_UNKNOWN) {
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
@@ -207,8 +193,7 @@ public abstract class JsonNumericParserBase
     }
 
     public NumberType getNumberType()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if (_numTypesValid == NR_UNKNOWN) {
             parseNumericValue(NR_UNKNOWN); // will also check event type
         }
@@ -235,8 +220,7 @@ public abstract class JsonNumericParserBase
     }
 
     public int getIntValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_INT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) { // not parsed at all
                 parseNumericValue(NR_INT); // will also check event type
@@ -249,8 +233,7 @@ public abstract class JsonNumericParserBase
     }
 
     public long getLongValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_LONG) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_LONG);
@@ -263,8 +246,7 @@ public abstract class JsonNumericParserBase
     }
 
     public BigInteger getBigIntegerValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_BIGINT) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_BIGINT);
@@ -277,8 +259,7 @@ public abstract class JsonNumericParserBase
     }
 
     public float getFloatValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         double value = getDoubleValue();
         /* 22-Jan-2009, tatu: Bounds/range checks would be tricky
          *   here, so let's not bother even trying...
@@ -292,8 +273,7 @@ public abstract class JsonNumericParserBase
     }
 
     public double getDoubleValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_DOUBLE) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_DOUBLE);
@@ -306,8 +286,7 @@ public abstract class JsonNumericParserBase
     }
 
     public BigDecimal getDecimalValue()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_BIGDECIMAL) == 0) {
             if (_numTypesValid == NR_UNKNOWN) {
                 parseNumericValue(NR_BIGDECIMAL);
@@ -333,14 +312,13 @@ public abstract class JsonNumericParserBase
      * legal type (of ones available) is used for efficiency.
      *
      * @param expType Numeric type that we will immediately need, if any;
-     *   mostly necessary to optimize handling of floating point numbers
+     *                mostly necessary to optimize handling of floating point numbers
      */
     protected final void parseNumericValue(int expType)
-        throws JsonParseException
-    {
+            throws JsonParseException {
         // First things first: must be a numeric event
         if (_currToken == null || !_currToken.isNumeric()) {
-            _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
+            _reportError("Current token (" + _currToken + ") not numeric, can not use numeric value accessors");
         }
         try {
             // Int or float?
@@ -413,7 +391,7 @@ public abstract class JsonNumericParserBase
             }
         } catch (NumberFormatException nex) {
             // Can this ever occur? Due to overflow, maybe?
-            _wrapError("Malformed numeric value '"+_textBuffer.contentsAsString()+"'", nex);
+            _wrapError("Malformed numeric value '" + _textBuffer.contentsAsString() + "'", nex);
         }
     }
 
@@ -421,17 +399,16 @@ public abstract class JsonNumericParserBase
     ////////////////////////////////////////////////////
     // Conversions
     ////////////////////////////////////////////////////
-     */    
+     */
 
     protected void convertNumberToInt()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         // First, converting from long ought to be easy
         if ((_numTypesValid & NR_LONG) != 0) {
             // Let's verify it's lossless conversion by simple roundtrip
             int result = (int) _numberLong;
             if (((long) result) != _numberLong) {
-                _reportError("Numeric value ("+getText()+") out of range of int");
+                _reportError("Numeric value (" + getText() + ") out of range of int");
             }
             _numberInt = result;
         } else if ((_numTypesValid & NR_BIGINT) != 0) {
@@ -444,8 +421,8 @@ public abstract class JsonNumericParserBase
             }
             _numberInt = (int) _numberDouble;
         } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
-            if (BD_MIN_INT.compareTo(_numberBigDecimal) > 0 
-                || BD_MAX_INT.compareTo(_numberBigDecimal) < 0) {
+            if (BD_MIN_INT.compareTo(_numberBigDecimal) > 0
+                    || BD_MAX_INT.compareTo(_numberBigDecimal) < 0) {
                 reportOverflowInt();
             }
             _numberInt = _numberBigDecimal.intValue();
@@ -457,8 +434,7 @@ public abstract class JsonNumericParserBase
     }
 
     protected void convertNumberToLong()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_INT) != 0) {
             _numberLong = (long) _numberInt;
         } else if ((_numTypesValid & NR_BIGINT) != 0) {
@@ -471,8 +447,8 @@ public abstract class JsonNumericParserBase
             }
             _numberLong = (long) _numberDouble;
         } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
-            if (BD_MIN_LONG.compareTo(_numberBigDecimal) > 0 
-                || BD_MAX_LONG.compareTo(_numberBigDecimal) < 0) {
+            if (BD_MIN_LONG.compareTo(_numberBigDecimal) > 0
+                    || BD_MAX_LONG.compareTo(_numberBigDecimal) < 0) {
                 reportOverflowLong();
             }
             _numberLong = _numberBigDecimal.longValue();
@@ -484,8 +460,7 @@ public abstract class JsonNumericParserBase
     }
 
     protected void convertNumberToBigInteger()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
             // here it'll just get truncated, no exceptions thrown
             _numberBigInt = _numberBigDecimal.toBigInteger();
@@ -502,8 +477,7 @@ public abstract class JsonNumericParserBase
     }
 
     protected void convertNumberToDouble()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         /* 05-Aug-2008, tatus: Important note: this MUST start with
          *   more accurate representations, since we don't know which
          *   value is the original one (others get generated when
@@ -526,8 +500,7 @@ public abstract class JsonNumericParserBase
     }
 
     protected void convertNumberToBigDecimal()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         /* 05-Aug-2008, tatus: Important note: this MUST start with
          *   more accurate representations, since we don't know which
          *   value is the original one (others get generated when
@@ -559,32 +532,28 @@ public abstract class JsonNumericParserBase
      */
 
     protected void reportUnexpectedNumberChar(int ch, String comment)
-        throws JsonParseException
-    {
-        String msg = "Unexpected character ("+_getCharDesc(ch)+") in numeric value";
+            throws JsonParseException {
+        String msg = "Unexpected character (" + _getCharDesc(ch) + ") in numeric value";
         if (comment != null) {
-            msg += ": "+comment;
+            msg += ": " + comment;
         }
         _reportError(msg);
     }
 
     protected void reportInvalidNumber(String msg)
-        throws JsonParseException
-    {
-        _reportError("Invalid numeric value: "+msg);
+            throws JsonParseException {
+        _reportError("Invalid numeric value: " + msg);
     }
 
 
     protected void reportOverflowInt()
-        throws IOException, JsonParseException
-    {
-        _reportError("Numeric value ("+getText()+") out of range of int ("+Integer.MIN_VALUE+" - "+Integer.MAX_VALUE+")");
+            throws IOException, JsonParseException {
+        _reportError("Numeric value (" + getText() + ") out of range of int (" + Integer.MIN_VALUE + " - " + Integer.MAX_VALUE + ")");
     }
 
     protected void reportOverflowLong()
-        throws IOException, JsonParseException
-    {
-        _reportError("Numeric value ("+getText()+") out of range of long ("+Long.MIN_VALUE+" - "+Long.MAX_VALUE+")");
+            throws IOException, JsonParseException {
+        _reportError("Numeric value (" + getText() + ") out of range of long (" + Long.MIN_VALUE + " - " + Long.MAX_VALUE + ")");
     }
 
 }

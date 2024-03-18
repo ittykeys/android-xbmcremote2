@@ -1,25 +1,27 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.*;
-
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
+
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Default {@link BeanDescription} implementation.
  * Can theoretically be subclassed to customize
  * some aspects of property introspection.
  */
-public class BasicBeanDescription extends BeanDescription
-{
+public class BasicBeanDescription extends BeanDescription {
     /*
     /******************************************************
     /* Configuration
@@ -46,11 +48,9 @@ public class BasicBeanDescription extends BeanDescription
      */
 
     public BasicBeanDescription(JavaType type, AnnotatedClass ac,
-                                AnnotationIntrospector ai)
-
-    {
-    	super(type);
-    	_classInfo = ac;
+                                AnnotationIntrospector ai) {
+        super(type);
+        _classInfo = ac;
         _annotationIntrospector = ai;
     }
 
@@ -60,7 +60,60 @@ public class BasicBeanDescription extends BeanDescription
     /******************************************************
      */
 
-    public AnnotatedClass getClassInfo() { return _classInfo; }
+    /**
+     * Method called to figure out name of the property, given
+     * corresponding suggested name based on a method or field name.
+     *
+     * @param basename Name of accessor/mutator method, not including prefix
+     *                 ("get"/"is"/"set")
+     */
+    public static String manglePropertyName(String basename) {
+        int len = basename.length();
+
+        // First things first: empty basename is no good
+        if (len == 0) {
+            return null;
+        }
+        // otherwise, lower case initial chars
+        StringBuilder sb = null;
+        for (int i = 0; i < len; ++i) {
+            char upper = basename.charAt(i);
+            char lower = Character.toLowerCase(upper);
+            if (upper == lower) {
+                break;
+            }
+            if (sb == null) {
+                sb = new StringBuilder(basename);
+            }
+            sb.setCharAt(i, lower);
+        }
+        return (sb == null) ? basename : sb.toString();
+    }
+
+    /**
+     * Helper method used to describe an annotated element of type
+     * {@link Class} or {@link Method}.
+     */
+    public static String descFor(AnnotatedElement elem) {
+        if (elem instanceof Class<?>) {
+            return "class " + ((Class<?>) elem).getName();
+        }
+        if (elem instanceof Method) {
+            Method m = (Method) elem;
+            return "method " + m.getName() + " (from class " + m.getDeclaringClass().getName() + ")";
+        }
+        if (elem instanceof Constructor<?>) {
+            Constructor<?> ctor = (Constructor<?>) elem;
+            // should indicate number of args?
+            return "constructor() (from class " + ctor.getDeclaringClass().getName() + ")";
+        }
+        // what else?
+        return "unknown type [" + elem.getClass() + "]";
+    }
+
+    public AnnotatedClass getClassInfo() {
+        return _classInfo;
+    }
 
     /**
      * Method for checking whether class being described has any
@@ -70,21 +123,30 @@ public class BasicBeanDescription extends BeanDescription
         return _classInfo.hasAnnotations();
     }
 
-    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
-    {
+    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes) {
         return _classInfo.findMethod(name, paramTypes);
     }
+    
+    /*
+    /*********************************************************
+    /* Basic API
+    /*********************************************************
+     */
+
+    /*
+    /*********************************************************
+    /* Introspection for serialization (write JSON), getters
+    /*********************************************************
+     */
 
     /**
      * @param fixAccess If true, method is allowed to fix access to the
-     *   default constructor (to be able to call non-public constructor);
-     *   if false, has to use constructor as is.
-     *
+     *                  default constructor (to be able to call non-public constructor);
+     *                  if false, has to use constructor as is.
      * @return Instance of class represented by this descriptor, if
-     *   suitable default constructor was found; null otherwise.
+     * suitable default constructor was found; null otherwise.
      */
-    public Object instantiateBean(boolean fixAccess)
-    {
+    public Object instantiateBean(boolean fixAccess) {
         AnnotatedConstructor ac = _classInfo.getDefaultConstructor();
         if (ac == null) {
             return null;
@@ -101,34 +163,26 @@ public class BasicBeanDescription extends BeanDescription
             }
             if (t instanceof Error) throw (Error) t;
             if (t instanceof RuntimeException) throw (RuntimeException) t;
-            throw new IllegalArgumentException("Failed to instantiate bean of type "+_classInfo.getAnnotated().getName()+": ("+t.getClass().getName()+") "+t.getMessage(), t);
+            throw new IllegalArgumentException("Failed to instantiate bean of type " + _classInfo.getAnnotated().getName() + ": (" + t.getClass().getName() + ") " + t.getMessage(), t);
         }
     }
 
-    public TypeBindings bindingsForBeanType()
-    {
+    public TypeBindings bindingsForBeanType() {
         if (_bindings == null) {
             _bindings = new TypeBindings(_type);
         }
         return _bindings;
     }
-    
-    /*
-    /*********************************************************
-    /* Basic API
-    /*********************************************************
-     */
 
     /*
     /*********************************************************
-    /* Introspection for serialization (write JSON), getters
+    /* Introspection for serialization, factories
     /*********************************************************
      */
-    
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
-                                                             Collection<String> ignoredProperties)
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+
+    public LinkedHashMap<String, AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
+                                                              Collection<String> ignoredProperties) {
+        LinkedHashMap<String, AnnotatedMethod> results = new LinkedHashMap<String, AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             /* note: signature has already been checked to some degree
              * via filters; however, no checks were done for arg count
@@ -147,7 +201,7 @@ public class BasicBeanDescription extends BeanDescription
                  * name if possible; and only if not use unmodified
                  * method name
                  */
-                if (propName.length() == 0) { 
+                if (propName.length() == 0) {
                     propName = okNameForAnyGetter(am, am.getName());
                     if (propName == null) {
                         propName = am.getName();
@@ -176,7 +230,7 @@ public class BasicBeanDescription extends BeanDescription
                     continue;
                 }
             }
-            
+
             /* Yup, it is a valid name. But now... do we have a conflict?
              * If so, should throw an exception
              */
@@ -184,7 +238,7 @@ public class BasicBeanDescription extends BeanDescription
             if (old != null) {
                 String oldDesc = old.getFullName();
                 String newDesc = am.getFullName();
-                throw new IllegalArgumentException("Conflicting getter definitions for property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+                throw new IllegalArgumentException("Conflicting getter definitions for property \"" + propName + "\": " + oldDesc + " vs " + newDesc);
             }
         }
         return results;
@@ -196,8 +250,7 @@ public class BasicBeanDescription extends BeanDescription
      * if any. If multiple ones are found,
      * an error is reported by throwing {@link IllegalArgumentException}
      */
-    public AnnotatedMethod findJsonValueMethod()
-    {
+    public AnnotatedMethod findJsonValueMethod() {
         AnnotatedMethod found = null;
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             // must be marked with "JsonValue" (or similar)
@@ -205,7 +258,7 @@ public class BasicBeanDescription extends BeanDescription
                 continue;
             }
             if (found != null) {
-                throw new IllegalArgumentException("Multiple methods with active 'as-value' annotation ("+found.getName()+"(), "+am.getName()+")");
+                throw new IllegalArgumentException("Multiple methods with active 'as-value' annotation (" + found.getName() + "(), " + am.getName() + ")");
             }
             // Also, must have getter signature
             /* 18-May-2009, tatu: Should this be moved to annotation
@@ -213,18 +266,12 @@ public class BasicBeanDescription extends BeanDescription
              *  will leave here, may want to reconsider in future.
              */
             if (!ClassUtil.hasGetterSignature(am.getAnnotated())) {
-                throw new IllegalArgumentException("Method "+am.getName()+"() marked with an 'as-value' annotation, but does not have valid getter signature (non-static, takes no args, returns a value)");
+                throw new IllegalArgumentException("Method " + am.getName() + "() marked with an 'as-value' annotation, but does not have valid getter signature (non-static, takes no args, returns a value)");
             }
             found = am;
         }
         return found;
     }
-
-    /*
-    /*********************************************************
-    /* Introspection for serialization, factories
-    /*********************************************************
-     */
 
     /**
      * Method that will locate the no-arg constructor for this class,
@@ -232,8 +279,7 @@ public class BasicBeanDescription extends BeanDescription
      * ignorable.
      * Method will also ensure that the constructor is accessible.
      */
-    public Constructor<?> findDefaultConstructor()
-    {
+    public Constructor<?> findDefaultConstructor() {
         AnnotatedConstructor ac = _classInfo.getDefaultConstructor();
         if (ac == null) {
             return null;
@@ -241,13 +287,11 @@ public class BasicBeanDescription extends BeanDescription
         return ac.getAnnotated();
     }
 
-    public List<AnnotatedConstructor> getConstructors()
-    {
+    public List<AnnotatedConstructor> getConstructors() {
         return _classInfo.getConstructors();
     }
 
-    public List<AnnotatedMethod> getFactoryMethods()
-    {
+    public List<AnnotatedMethod> getFactoryMethods() {
         // must filter out anything that clearly is not a factory method
         List<AnnotatedMethod> candidates = _classInfo.getStaticMethods();
         if (candidates.isEmpty()) {
@@ -268,8 +312,7 @@ public class BasicBeanDescription extends BeanDescription
      *
      * @param argTypes Type(s) of the argument that we are looking for
      */
-    public Constructor<?> findSingleArgConstructor(Class<?>... argTypes)
-    {
+    public Constructor<?> findSingleArgConstructor(Class<?>... argTypes) {
         for (AnnotatedConstructor ac : _classInfo.getConstructors()) {
             // This list is already filtered to only include accessible
             /* (note: for now this is a redundant check; but in future
@@ -293,11 +336,10 @@ public class BasicBeanDescription extends BeanDescription
      * introspected type, given one of acceptable types.
      *
      * @param expArgTypes Types that the matching single argument factory
-     *   method can take: will also accept super types of these types
-     *   (ie. arg just has to be assignable from expArgType)
+     *                    method can take: will also accept super types of these types
+     *                    (ie. arg just has to be assignable from expArgType)
      */
-    public Method findFactoryMethod(Class<?>... expArgTypes)
-    {
+    public Method findFactoryMethod(Class<?>... expArgTypes) {
         // So, of all single-arg static methods:
         for (AnnotatedMethod am : _classInfo.getStaticMethods()) {
             if (isFactoryMethod(am)) {
@@ -314,8 +356,13 @@ public class BasicBeanDescription extends BeanDescription
         return null;
     }
 
-    protected boolean isFactoryMethod(AnnotatedMethod am)
-    {
+    /*
+    /*********************************************************
+    /* Introspection for serialization, fields
+    /*********************************************************
+     */
+
+    protected boolean isFactoryMethod(AnnotatedMethod am) {
         /* First: return type must be compatible with the introspected class
          * (i.e. allowed to be sub-class, although usually is the same
          * class)
@@ -337,6 +384,12 @@ public class BasicBeanDescription extends BeanDescription
         }
         return false;
     }
+    
+    /*
+    /*********************************************************
+    /* Introspection for serialization, other
+    /*********************************************************
+     */
 
     /**
      * Method for getting ordered list of named Creator properties.
@@ -347,13 +400,12 @@ public class BasicBeanDescription extends BeanDescription
      * usual case of just a single Creator, named properties are
      * thus properly ordered.
      */
-    public List<String> findCreatorPropertyNames()
-    {
+    public List<String> findCreatorPropertyNames() {
         List<String> names = null;
 
         for (int i = 0; i < 2; ++i) {
             List<? extends AnnotatedWithParams> l = (i == 0)
-                ? getConstructors() : getFactoryMethods();
+                    ? getConstructors() : getFactoryMethods();
             for (AnnotatedWithParams creator : l) {
                 int argCount = creator.getParameterCount();
                 if (argCount < 1) continue;
@@ -376,21 +428,14 @@ public class BasicBeanDescription extends BeanDescription
 
     /*
     /*********************************************************
-    /* Introspection for serialization, fields
+    /* Introspection for deserialization, setters:
     /*********************************************************
      */
 
-    public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> vchecker,
-                                                                       Collection<String> ignoredProperties)
-    {
+    public LinkedHashMap<String, AnnotatedField> findSerializableFields(VisibilityChecker<?> vchecker,
+                                                                        Collection<String> ignoredProperties) {
         return _findPropertyFields(vchecker, ignoredProperties, true);
     }
-    
-    /*
-    /*********************************************************
-    /* Introspection for serialization, other
-    /*********************************************************
-     */
 
     /**
      * Method for determining whether null properties should be written
@@ -398,20 +443,18 @@ public class BasicBeanDescription extends BeanDescription
      * feature (lowest priority, passed as argument)
      * and per-class annotation (highest priority).
      */
-    public JsonSerialize.Inclusion findSerializationInclusion(JsonSerialize.Inclusion defValue)
-    {
+    public JsonSerialize.Inclusion findSerializationInclusion(JsonSerialize.Inclusion defValue) {
         return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
     }
 
     /*
     /*********************************************************
-    /* Introspection for deserialization, setters:
+    /* Introspection for deserialization, fields:
     /*********************************************************
      */
 
-    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker)
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+    public LinkedHashMap<String, AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker) {
+        LinkedHashMap<String, AnnotatedMethod> results = new LinkedHashMap<String, AnnotatedMethod>();
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             // note: signature has already been checked via filters
 
@@ -430,7 +473,7 @@ public class BasicBeanDescription extends BeanDescription
                 /* As per [JACKSON-64], let's still use mangled name if
                  * possible; and only if not use unmodified method name
                  */
-                if (propName.length() == 0) { 
+                if (propName.length() == 0) {
                     propName = okNameForSetter(am);
                     // null means it's not named as a Bean getter; fine, use as is
                     if (propName == null) {
@@ -452,24 +495,29 @@ public class BasicBeanDescription extends BeanDescription
              */
             AnnotatedMethod old = results.put(propName, am);
             if (old != null) {
-            	/* [JACKSON-255] Only throw exception if they are in same class. Must
-            	 *   be careful to choose "correct" one; first one should actually
-            	 *   have priority
-            	 * 
-            	 */
-            	if (old.getDeclaringClass() == am.getDeclaringClass()) {
-	                String oldDesc = old.getFullName();
-	                String newDesc = am.getFullName();
-	                throw new IllegalArgumentException("Conflicting setter definitions for property \""+propName+"\": "+oldDesc+" vs "+newDesc);
-            	}
-            	// to put earlier one back
-            	results.put(propName, old);
+                /* [JACKSON-255] Only throw exception if they are in same class. Must
+                 *   be careful to choose "correct" one; first one should actually
+                 *   have priority
+                 *
+                 */
+                if (old.getDeclaringClass() == am.getDeclaringClass()) {
+                    String oldDesc = old.getFullName();
+                    String newDesc = am.getFullName();
+                    throw new IllegalArgumentException("Conflicting setter definitions for property \"" + propName + "\": " + oldDesc + " vs " + newDesc);
+                }
+                // to put earlier one back
+                results.put(propName, old);
             }
         }
 
         return results;
     }
 
+    /*
+    /*********************************************************
+    /* Helper methods for getters
+    /*********************************************************
+     */
 
     /**
      * Method used to locate the method of introspected class that
@@ -482,19 +530,18 @@ public class BasicBeanDescription extends BeanDescription
      */
 
     public AnnotatedMethod findAnySetter()
-        throws IllegalArgumentException
-    {
+            throws IllegalArgumentException {
         AnnotatedMethod found = null;
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             if (!_annotationIntrospector.hasAnySetterAnnotation(am)) {
                 continue;
             }
             if (found != null) {
-                throw new IllegalArgumentException("Multiple methods with 'any-setter' annotation ("+found.getName()+"(), "+am.getName()+")");
+                throw new IllegalArgumentException("Multiple methods with 'any-setter' annotation (" + found.getName() + "(), " + am.getName() + ")");
             }
             int pcount = am.getParameterCount();
             if (pcount != 2) {
-                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+am.getName()+"(): takes "+pcount+" parameters, should take 2");
+                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method " + am.getName() + "(): takes " + pcount + " parameters, should take 2");
             }
             /* Also, let's be somewhat strict on how field name is to be
              * passed; String, Object make sense, others not
@@ -506,33 +553,19 @@ public class BasicBeanDescription extends BeanDescription
              */
             Class<?> type = am.getParameterClass(0);
             if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+am.getName()+"(): first argument not of type String or Object, but "+type.getName());
+                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method " + am.getName() + "(): first argument not of type String or Object, but " + type.getName());
             }
             found = am;
         }
         return found;
     }
 
-    /*
-    /*********************************************************
-    /* Introspection for deserialization, fields:
-    /*********************************************************
-     */
-
-    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> vchecker,
-                                                                       Collection<String> ignoredProperties)
-    {
+    public LinkedHashMap<String, AnnotatedField> findDeserializableFields(VisibilityChecker<?> vchecker,
+                                                                          Collection<String> ignoredProperties) {
         return _findPropertyFields(vchecker, ignoredProperties, false);
     }
 
-    /*
-    /*********************************************************
-    /* Helper methods for getters
-    /*********************************************************
-     */
-
-    public String okNameForAnyGetter(AnnotatedMethod am, String name)
-    {
+    public String okNameForAnyGetter(AnnotatedMethod am, String name) {
         String str = okNameForIsGetter(am, name);
         if (str == null) {
             str = okNameForGetter(am, name);
@@ -540,13 +573,12 @@ public class BasicBeanDescription extends BeanDescription
         return str;
     }
 
-    public String okNameForGetter(AnnotatedMethod am, String name)
-    {
+    public String okNameForGetter(AnnotatedMethod am, String name) {
         if (name.startsWith("get")) {
             /* 16-Feb-2009, tatu: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
              *   safe critieria to get decent coverage without false matches;
-             *   but for now let's assume there's no reason to use any 
+             *   but for now let's assume there's no reason to use any
              *   such getter from CGLib.
              *   But let's try this approach...
              */
@@ -567,8 +599,7 @@ public class BasicBeanDescription extends BeanDescription
         return null;
     }
 
-    public String okNameForIsGetter(AnnotatedMethod am, String name)
-    {
+    public String okNameForIsGetter(AnnotatedMethod am, String name) {
         if (name.startsWith("is")) {
             // plus, must return boolean...
             Class<?> rt = am.getRawType();
@@ -583,26 +614,24 @@ public class BasicBeanDescription extends BeanDescription
 
     /**
      * @return Null to indicate that method is not a valid accessor;
-     *   otherwise name of the property it is accessor for
+     * otherwise name of the property it is accessor for
      */
-    protected String mangleGetterName(Annotated a, String basename)
-    {
+    protected String mangleGetterName(Annotated a, String basename) {
         return manglePropertyName(basename);
     }
 
     /**
      * This method was added to address [JACKSON-53]: need to weed out
-     * CGLib-injected "getCallbacks". 
+     * CGLib-injected "getCallbacks".
      * At this point caller has detected a potential getter method
      * with name "getCallbacks" and we need to determine if it is
      * indeed injectect by Cglib. We do this by verifying that the
      * result type is "net.sf.cglib.proxy.Callback[]"
-     *<p>
+     * <p>
      * Also, see [JACKSON-177]; Hibernate may repackage cglib
      * it uses, so we better catch that too
      */
-    protected boolean isCglibGetCallbacks(AnnotatedMethod am)
-    {
+    protected boolean isCglibGetCallbacks(AnnotatedMethod am) {
         Class<?> rt = am.getRawType();
         // Ok, first: must return an array type
         if (rt == null || !rt.isArray()) {
@@ -618,20 +647,25 @@ public class BasicBeanDescription extends BeanDescription
         if (pkg != null) {
             String pname = pkg.getName();
             if (pname.startsWith("net.sf.cglib")
-                // also, as per [JACKSON-177]
-                || pname.startsWith("org.hibernate.repackage.cglib")) {
+                    // also, as per [JACKSON-177]
+                    || pname.startsWith("org.hibernate.repackage.cglib")) {
                 return true;
             }
         }
         return false;
     }
+ 
+    /*
+    /*********************************************************
+    /* Helper methods for setters
+    /*********************************************************
+     */
 
     /**
      * Similar to {@link #isCglibGetCallbacks}, need to suppress
      * a cyclic reference to resolve [JACKSON-103]
      */
-    protected boolean isGroovyMetaClassSetter(AnnotatedMethod am)
-    {
+    protected boolean isGroovyMetaClassSetter(AnnotatedMethod am) {
         Class<?> argType = am.getParameterClass(0);
         Package pkg = argType.getPackage();
         if (pkg != null && pkg.getName().startsWith("groovy.lang")) {
@@ -643,8 +677,7 @@ public class BasicBeanDescription extends BeanDescription
     /**
      * Another helper method to deal with rest of [JACKSON-103]
      */
-    protected boolean isGroovyMetaClassGetter(AnnotatedMethod am)
-    {
+    protected boolean isGroovyMetaClassGetter(AnnotatedMethod am) {
         Class<?> rt = am.getRawType();
         if (rt == null || rt.isArray()) {
             return false;
@@ -655,15 +688,14 @@ public class BasicBeanDescription extends BeanDescription
         }
         return false;
     }
- 
+
     /*
     /*********************************************************
-    /* Helper methods for setters
+    /* Helper methods for field introspection
     /*********************************************************
      */
 
-    public String okNameForSetter(AnnotatedMethod am)
-    {
+    public String okNameForSetter(AnnotatedMethod am) {
         String name = am.getName();
 
         /* For mutators, let's not require it to be public. Just need
@@ -686,41 +718,38 @@ public class BasicBeanDescription extends BeanDescription
         return null;
     }
 
+    /*
+    /*********************************************************
+    /* Property name mangling (getFoo -> foo)
+    /*********************************************************
+     */
+
     /**
      * @return Null to indicate that method is not a valid accessor;
-     *   otherwise name of the property it is accessor for
+     * otherwise name of the property it is accessor for
      */
-    protected String mangleSetterName(Annotated a, String basename)
-    {
+    protected String mangleSetterName(Annotated a, String basename) {
         return manglePropertyName(basename);
     }
 
-    /*
-    /*********************************************************
-    /* Helper methods for field introspection
-    /*********************************************************
-     */
-
     /**
-     * @param vchecker (optional) Object that determines whether specific fields
-     *   have enough visibility to be considered for inclusion; if null,
-     *   auto-detection is disabled
+     * @param vchecker          (optional) Object that determines whether specific fields
+     *                          have enough visibility to be considered for inclusion; if null,
+     *                          auto-detection is disabled
      * @param ignoredProperties (optional) names of properties to ignore;
-     *   any fields that would be recognized as one of these properties
-     *   is ignored.
-     * @param forSerialization If true, will collect serializable property
-     *    fields; if false, deserializable
-     *
+     *                          any fields that would be recognized as one of these properties
+     *                          is ignored.
+     * @param forSerialization  If true, will collect serializable property
+     *                          fields; if false, deserializable
      * @return Ordered Map with logical property name as key, and
-     *    matching field as value.
+     * matching field as value.
      */
-    public LinkedHashMap<String,AnnotatedField> _findPropertyFields(VisibilityChecker<?> vchecker,
-                                                                   Collection<String> ignoredProperties,
-                                                                   boolean forSerialization)
-    {
-        LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
+    public LinkedHashMap<String, AnnotatedField> _findPropertyFields(VisibilityChecker<?> vchecker,
+                                                                     Collection<String> ignoredProperties,
+                                                                     boolean forSerialization) {
+        LinkedHashMap<String, AnnotatedField> results = new LinkedHashMap<String, AnnotatedField>();
         for (AnnotatedField af : _classInfo.fields()) {
-            /* note: some pre-filtering has been; no static or transient fields 
+            /* note: some pre-filtering has been; no static or transient fields
              * included; nor anything marked as ignorable (@JsonIgnore).
              * Field masking has also been resolved, but it is still possible
              * to get conflicts due to logical name overwrites.
@@ -731,11 +760,10 @@ public class BasicBeanDescription extends BeanDescription
              * (b) be public
              */
             String propName = forSerialization
-                ? _annotationIntrospector.findSerializablePropertyName(af)
-                : _annotationIntrospector.findDeserializablePropertyName(af)
-                ;
+                    ? _annotationIntrospector.findSerializablePropertyName(af)
+                    : _annotationIntrospector.findDeserializablePropertyName(af);
             if (propName != null) { // is annotated
-                if (propName.length() == 0) { 
+                if (propName.length() == 0) {
                     propName = af.getName();
                 }
             } else { // nope, but may be visible (usually, public, can be recofingured)
@@ -769,69 +797,10 @@ public class BasicBeanDescription extends BeanDescription
                 if (old.getDeclaringClass() == af.getDeclaringClass()) {
                     String oldDesc = old.getFullName();
                     String newDesc = af.getFullName();
-                    throw new IllegalArgumentException("Multiple fields representing property \""+propName+"\": "+oldDesc+" vs "+newDesc);
+                    throw new IllegalArgumentException("Multiple fields representing property \"" + propName + "\": " + oldDesc + " vs " + newDesc);
                 }
             }
         }
         return results;
-    }
-
-    /*
-    /*********************************************************
-    /* Property name mangling (getFoo -> foo)
-    /*********************************************************
-     */
-
-    /**
-     * Method called to figure out name of the property, given 
-     * corresponding suggested name based on a method or field name.
-     *
-     * @param basename Name of accessor/mutator method, not including prefix
-     *  ("get"/"is"/"set")
-     */
-    public static String manglePropertyName(String basename)
-    {
-        int len = basename.length();
-
-        // First things first: empty basename is no good
-        if (len == 0) {
-            return null;
-        }
-        // otherwise, lower case initial chars
-        StringBuilder sb = null;
-        for (int i = 0; i < len; ++i) {
-            char upper = basename.charAt(i);
-            char lower = Character.toLowerCase(upper);
-            if (upper == lower) {
-                break;
-            }
-            if (sb == null) {
-                sb = new StringBuilder(basename);
-            }
-            sb.setCharAt(i, lower);
-        }
-        return (sb == null) ? basename : sb.toString();
-    }
-
-    /**
-     * Helper method used to describe an annotated element of type
-     * {@link Class} or {@link Method}.
-     */
-    public static String descFor(AnnotatedElement elem)
-    {
-        if (elem instanceof Class<?>) {
-            return "class "+((Class<?>) elem).getName();
-        }
-        if (elem instanceof Method) {
-            Method m = (Method) elem;
-            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
-        }
-        if (elem instanceof Constructor<?>) {
-            Constructor<?> ctor = (Constructor<?>) elem;
-            // should indicate number of args?
-            return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
-        }
-        // what else?
-        return "unknown type ["+elem.getClass()+"]";
     }
 }

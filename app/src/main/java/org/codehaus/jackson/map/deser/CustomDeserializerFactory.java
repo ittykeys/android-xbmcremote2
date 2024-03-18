@@ -1,10 +1,13 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.*;
-
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.DeserializerProvider;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.*;
+
+import java.util.HashMap;
 
 /**
  * Deserializer factory implementation that allows for configuring
@@ -13,23 +16,23 @@ import org.codehaus.jackson.map.type.*;
  * {@link BeanDeserializerFactory} (and its super class,
  * {@link BasicDeserializerFactory}) are used if no overrides are
  * defined.
- *<p>
+ * <p>
  * Unlike base deserializer factories, this factory is stateful because
  * of configuration settings. It is thread-safe, however, as long as
  * all configuration as done before using the factory -- a single
  * instance can be shared between providers and mappers.
- *<p>
+ * <p>
  * Configurations currently available are:
- *<ul>
+ * <ul>
  * <li>Ability to define explicit mappings between simple non-generic
  *   classes/interfaces and deserializers to use for deserializing
  *   instance of these classes. Mappings are one-to-one (i.e. there is
  *   no "generic" variant for handling sub- or super-classes/interfaces).
  *  </li>
- *</ul>
- *<p>
+ * </ul>
+ * <p>
  * In near future, following features are planned to be added:
- *<ul>
+ * <ul>
  * <li>Ability to define "mix-in annotations": associations between types
  *   (classes, interfaces) to deserialize, and a "mix-in" type which will
  *   be used so that all of its annotations are added to the deserialized
@@ -40,8 +43,7 @@ import org.codehaus.jackson.map.type.*;
  *  </li>
  */
 public class CustomDeserializerFactory
-    extends BeanDeserializerFactory
-{
+        extends BeanDeserializerFactory {
     /*
     ////////////////////////////////////////////////////
     // Configuration, direct/special mappings
@@ -52,7 +54,7 @@ public class CustomDeserializerFactory
      * Direct mappings that are used for exact class and interface type
      * matches.
      */
-    HashMap<ClassKey,JsonDeserializer<Object>> _directClassMappings = null;
+    HashMap<ClassKey, JsonDeserializer<Object>> _directClassMappings = null;
 
     /*
     //////////////////////////////////////////////////////////
@@ -64,7 +66,7 @@ public class CustomDeserializerFactory
      * Mapping that defines how to apply mix-in annotations: key is
      * the type to received additional annotations, and value is the
      * type that has annotations to "mix in".
-     *<p>
+     * <p>
      * Annotations associated with the value classes will be used to
      * override annotations of the key class, associated with the
      * same field or method. They can be further masked by sub-classes:
@@ -73,7 +75,7 @@ public class CustomDeserializerFactory
      *
      * @since 1.2
      */
-    HashMap<ClassKey,Class<?>> _mixInAnnotations;
+    HashMap<ClassKey, Class<?>> _mixInAnnotations;
 
     /*
     ////////////////////////////////////////////////////
@@ -81,7 +83,9 @@ public class CustomDeserializerFactory
     ////////////////////////////////////////////////////
      */
 
-    public CustomDeserializerFactory() { super(); }
+    public CustomDeserializerFactory() {
+        super();
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -93,26 +97,25 @@ public class CustomDeserializerFactory
      * Method used to add a mapping for specific type -- and only that
      * type -- to use specified deserializer.
      * This means that binding is not used for sub-types.
-     *<p>
+     * <p>
      * Note that both class and interfaces can be mapped, since the type
      * is derived from method declarations; and hence may be abstract types
      * and interfaces. This is different from custom serialization where
      * only class types can be directly mapped.
      *
      * @param forClass Class to deserialize using specific deserializer.
-     * @param deser Deserializer to use for the class. Declared type for
-     *   deserializer may be more specific (sub-class) than declared class
-     *   to map, since that will still be compatible (deserializer produces
-     *   sub-class which is assignable to field/method)
+     * @param deser    Deserializer to use for the class. Declared type for
+     *                 deserializer may be more specific (sub-class) than declared class
+     *                 to map, since that will still be compatible (deserializer produces
+     *                 sub-class which is assignable to field/method)
      */
     @SuppressWarnings("unchecked")
-    public <T> void addSpecificMapping(Class<T> forClass, JsonDeserializer<? extends T> deser)
-    {
+    public <T> void addSpecificMapping(Class<T> forClass, JsonDeserializer<? extends T> deser) {
         ClassKey key = new ClassKey(forClass);
         if (_directClassMappings == null) {
-            _directClassMappings = new HashMap<ClassKey,JsonDeserializer<Object>>();
+            _directClassMappings = new HashMap<ClassKey, JsonDeserializer<Object>>();
         }
-        _directClassMappings.put(key, (JsonDeserializer<Object>)deser);
+        _directClassMappings.put(key, (JsonDeserializer<Object>) deser);
     }
 
     /**
@@ -126,15 +129,13 @@ public class CustomDeserializerFactory
      * has already.
      *
      * @param destinationClass Class to modify by adding annotations
-     * @param classWithMixIns Class that contains annotations to add
-     *
+     * @param classWithMixIns  Class that contains annotations to add
      * @since 1.2
      */
     public void addMixInAnnotationMapping(Class<?> destinationClass,
-                                          Class<?> classWithMixIns)
-    {
+                                          Class<?> classWithMixIns) {
         if (_mixInAnnotations == null) {
-            _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
+            _mixInAnnotations = new HashMap<ClassKey, Class<?>>();
         }
         _mixInAnnotations.put(new ClassKey(destinationClass), classWithMixIns);
     }
@@ -148,8 +149,7 @@ public class CustomDeserializerFactory
 
     @Override
     public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         Class<?> cls = type.getRawClass();
         ClassKey key = new ClassKey(cls);
 
@@ -169,8 +169,7 @@ public class CustomDeserializerFactory
     //public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p) throws JsonMappingException
 
     @Override
-    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p) throws JsonMappingException
-    {
+    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p) throws JsonMappingException {
         /* Enums can't extend anything (or implement); must be a direct
          * match, if anything:
          */

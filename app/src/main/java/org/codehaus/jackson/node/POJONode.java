@@ -1,9 +1,11 @@
 package org.codehaus.jackson.node;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.SerializerProvider;
+
+import java.io.IOException;
 
 /**
  * Value node that contains a wrapped POJO, to be serialized as
@@ -11,11 +13,12 @@ import org.codehaus.jackson.map.SerializerProvider;
  * calling {@link org.codehaus.jackson.map.ObjectMapper}).
  */
 public final class POJONode
-    extends ValueNode
-{
+        extends ValueNode {
     final Object _value;
 
-    public POJONode(Object v) { _value = v; }
+    public POJONode(Object v) {
+        _value = v;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -28,10 +31,15 @@ public final class POJONode
         return null;
     }
 
-    @Override public JsonToken asToken() { return JsonToken.VALUE_EMBEDDED_OBJECT; }
+    @Override
+    public JsonToken asToken() {
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
+    }
 
     @Override
-    public boolean isPojo() { return true; }
+    public boolean isPojo() {
+        return true;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -41,8 +49,7 @@ public final class POJONode
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         if (_value == null) {
             jg.writeNull();
         } else {
@@ -59,7 +66,9 @@ public final class POJONode
     /**
      * Method that can be used to access the POJO this node wraps.
      */
-    public Object getPojo() { return _value; }
+    public Object getPojo() {
+        return _value;
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -68,8 +77,7 @@ public final class POJONode
      */
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
@@ -83,11 +91,12 @@ public final class POJONode
     }
 
     @Override
-        public int hashCode() { return _value.hashCode(); }
+    public int hashCode() {
+        return _value.hashCode();
+    }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return String.valueOf(_value);
     }
 }

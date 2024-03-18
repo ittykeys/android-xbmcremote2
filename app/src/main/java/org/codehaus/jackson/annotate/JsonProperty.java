@@ -11,24 +11,23 @@ import java.lang.annotation.Target;
  * (depending on its signature),
  * or non-static object field to be used (serialized, deserialized) as
  * a logical property.
- *<p>
+ * <p>
  * Default value ("") indicates that the field name is used
  * as the property name without any modifications, but it
  * can be specified to non-empty value to specify different
  * name. Property name refers to name used externally, as
  * the field name in Json objects.
- *<p>
+ * <p>
  * NOTE: since version 1.1, annotation has also been applicable
  * to fields (not with 1.0).
- *<p>
+ * <p>
  * NOTE: since version 1.2, annotation has also been applicable
  * to (constructor) parameters
  */
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonProperty
-{
+public @interface JsonProperty {
     /**
      * Defines name of the logical property, i.e. Json object field
      * name to use for the property: if empty String (which is the

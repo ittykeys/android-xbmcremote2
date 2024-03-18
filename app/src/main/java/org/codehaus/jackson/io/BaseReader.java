@@ -1,7 +1,8 @@
-
 package org.codehaus.jackson.io;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 
 
 /**
@@ -9,8 +10,7 @@ import java.io.*;
  * "cookie-cutter" methods that are used by all actual implementations.
  */
 abstract class BaseReader
-    extends Reader
-{
+        extends Reader {
     /**
      * JSON actually limits available Unicode range in the high end
      * to the same as xml (to basically limit UTF-8 max byte sequence
@@ -35,16 +35,7 @@ abstract class BaseReader
     // Life-cycle
     ////////////////////////////////////////
     */
-
-    protected BaseReader(IOContext context,
-                         InputStream in, byte[] buf, int ptr, int len)
-    {
-        mContext = context;
-        mIn = in;
-        mBuffer = buf;
-        mPtr = ptr;
-        mLength = len;
-    }
+    char[] mTmpBuf = null;
 
     /*
     ////////////////////////////////////////
@@ -52,9 +43,17 @@ abstract class BaseReader
     ////////////////////////////////////////
     */
 
+    protected BaseReader(IOContext context,
+                         InputStream in, byte[] buf, int ptr, int len) {
+        mContext = context;
+        mIn = in;
+        mBuffer = buf;
+        mPtr = ptr;
+        mLength = len;
+    }
+
     public void close()
-        throws IOException
-    {
+            throws IOException {
         InputStream in = mIn;
 
         if (in != null) {
@@ -64,16 +63,13 @@ abstract class BaseReader
         }
     }
 
-    char[] mTmpBuf = null;
-
     /**
      * Although this method is implemented by the base class, AND it should
      * never be called by main code, let's still implement it bit more
      * efficiently just in case
      */
     public int read()
-        throws IOException
-    {
+            throws IOException {
         if (mTmpBuf == null) {
             mTmpBuf = new char[1];
         }
@@ -94,8 +90,7 @@ abstract class BaseReader
      * close. After calling this method, no further reads should be tried.
      * Method will try to recycle read buffers (if any).
      */
-    public final void freeBuffers()
-    {
+    public final void freeBuffers() {
         byte[] buf = mBuffer;
         if (buf != null) {
             mBuffer = null;
@@ -104,14 +99,12 @@ abstract class BaseReader
     }
 
     protected void reportBounds(char[] cbuf, int start, int len)
-        throws IOException
-    {
-        throw new ArrayIndexOutOfBoundsException("read(buf,"+start+","+len+"), cbuf["+cbuf.length+"]");
+            throws IOException {
+        throw new ArrayIndexOutOfBoundsException("read(buf," + start + "," + len + "), cbuf[" + cbuf.length + "]");
     }
 
     protected void reportStrangeStream()
-        throws IOException
-    {
+            throws IOException {
         throw new IOException("Strange I/O stream, returned 0 bytes on read");
     }
 }

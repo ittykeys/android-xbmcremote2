@@ -22,24 +22,24 @@
 package org.xbmc.api.type;
 
 public enum DirectoryMask {
-	Directories,
-	AllFiles,
-	All,
-	Music,
-	Video;
-	
-	public String toString() {
-		switch (this) {
-		case Directories:
-			return "*";
-		case AllFiles:
-			return "*.*";
-		case Music:
-			return "music";
-		case Video:
-			return "video";
-		default:
-			return "/";
-		}
-	}
+    Directories,
+    AllFiles,
+    All,
+    Music,
+    Video;
+
+    public String toString() {
+        switch (this) {
+            case Directories:
+                return "*";
+            case AllFiles:
+                return "*.*";
+            case Music:
+                return "music";
+            case Video:
+                return "video";
+            default:
+                return "/";
+        }
+    }
 }

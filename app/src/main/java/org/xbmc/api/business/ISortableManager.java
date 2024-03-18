@@ -24,18 +24,20 @@ package org.xbmc.api.business;
 import android.content.SharedPreferences;
 
 public interface ISortableManager {
-	
-	/**
-	 * Sets the static reference to the preferences object. Used to obtain
-	 * current sort values.
-	 * @param pref
-	 */
-	public void setPreferences(SharedPreferences pref);
-	
-	/**
-	 * Sets which kind of view is currently active.
-	 * @param sortKey
-	 */
-	public void setSortKey(int sortKey);
-	
+
+    /**
+     * Sets the static reference to the preferences object. Used to obtain
+     * current sort values.
+     *
+     * @param pref
+     */
+    public void setPreferences(SharedPreferences pref);
+
+    /**
+     * Sets which kind of view is currently active.
+     *
+     * @param sortKey
+     */
+    public void setSortKey(int sortKey);
+
 }

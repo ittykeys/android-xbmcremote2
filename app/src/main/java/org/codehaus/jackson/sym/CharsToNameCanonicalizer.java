@@ -1,8 +1,8 @@
 package org.codehaus.jackson.sym;
 
-import java.util.Arrays;
-
 import org.codehaus.jackson.util.InternCache;
+
+import java.util.Arrays;
 
 /**
  * This class is a kind of specialized type-safe Map, from char array to
@@ -13,7 +13,7 @@ import org.codehaus.jackson.util.InternCache;
  * to obtain such concurrently usable instances. Main use for the class
  * is to store symbol table information for things like compilers and
  * parsers; especially when number of symbols (keywords) is limited.
- *<p>
+ * <p>
  * For optimal performance, usage pattern should be one where matches
  * should be very common (esp. after "warm-up"), and as with most hash-based
  * maps/sets, that hash codes are uniformly distributed. Also, collisions
@@ -24,7 +24,7 @@ import org.codehaus.jackson.util.InternCache;
  * stored; rehashing requires all entries' hash codes to be recalculated.
  * Reason for not storing hash codes is reduced memory usage, hoping
  * for better memory locality.
- *<p>
+ * <p>
  * Usual usage pattern is to create a single "master" instance, and either
  * use that instance in sequential fashion, or to create derived "child"
  * instances, which after use, are asked to return possible symbol additions
@@ -32,7 +32,7 @@ import org.codehaus.jackson.util.InternCache;
  * initialized so that further uses are more efficient, as eventually all
  * symbols needed will already be in symbol table. At that point no more
  * Symbol String allocations are needed, nor changes to symbol table itself.
- *<p>
+ * <p>
  * Note that while individual SymbolTable instances are NOT thread-safe
  * (much like generic collection classes), concurrently used "child"
  * instances can be freely used without synchronization. However, using
@@ -40,12 +40,11 @@ import org.codehaus.jackson.util.InternCache;
  * access to master instance is read-only (ie. no modifications done).
  */
 
-public final class CharsToNameCanonicalizer
-{
+public final class CharsToNameCanonicalizer {
     /**
      * Default initial table size. Shouldn't be miniscule (as there's
      * cost to both array realloc and rehashing), but let's keep
-     * it reasonably small nonetheless. For systems that properly 
+     * it reasonably small nonetheless. For systems that properly
      * reuse factories it doesn't matter either way; but when
      * recreating factories often, initial overhead may dominate.
      */
@@ -55,7 +54,7 @@ public final class CharsToNameCanonicalizer
      * Let's not expand symbol tables past some maximum size;
      * this should protected against OOMEs caused by large documents
      * with uniquer (~= random) names.
-     * 
+     *
      * @since 1.5
      */
     protected static final int MAX_TABLE_SIZE = 0x10000; // 64k entries == 256k mem
@@ -68,6 +67,7 @@ public final class CharsToNameCanonicalizer
     final static int MAX_ENTRIES_FOR_REUSE = 12000;
 
     final static CharsToNameCanonicalizer sBootstrapSymbolTable;
+
     static {
         sBootstrapSymbolTable = new CharsToNameCanonicalizer();
     }
@@ -79,31 +79,28 @@ public final class CharsToNameCanonicalizer
      */
 
     /**
+     * Whether canonical symbol Strings are to be intern()ed before added
+     * to the table or not
+     */
+    final protected boolean _intern;
+    /**
+     * Whether any canonicalization should be attempted (whether using
+     * intern or not)
+     */
+    final protected boolean _canonicalize;
+    /**
      * Sharing of learnt symbols is done by optional linking of symbol
      * table instances with their parents. When parent linkage is
      * defined, and child instance is released (call to <code>release</code>),
      * parent's shared tables may be updated from the child instance.
      */
     protected CharsToNameCanonicalizer _parent;
-
-    /**
-     * Whether canonical symbol Strings are to be intern()ed before added
-     * to the table or not
-     */
-    final protected boolean _intern;
-
-    /**
-     * Whether any canonicalization should be attempted (whether using
-     * intern or not)
-     */
-    final protected boolean _canonicalize;
     
     /*
     /****************************************
     /* Actual symbol table data:
     /****************************************
      */
-
     /**
      * Primary matching symbols; it's expected most match occur from
      * here.
@@ -113,7 +110,7 @@ public final class CharsToNameCanonicalizer
     /**
      * Overflow buckets; if primary doesn't match, lookup is done
      * from here.
-     *<p>
+     * <p>
      * Note: Number of buckets is half of number of symbol entries, on
      * assumption there's less need for buckets.
      */
@@ -160,23 +157,12 @@ public final class CharsToNameCanonicalizer
      */
 
     /**
-     * Method called to create root canonicalizer for a {@link org.codehaus.jackson.JsonFactory}
-     * instance. Root instance is never used directly; its main use is for
-     * storing and sharing underlying symbol arrays as needed.
-     */
-    public static CharsToNameCanonicalizer createRoot()
-    {
-        return sBootstrapSymbolTable.makeOrphan();
-    }
-
-    /**
      * Main method for constructing a master symbol table instance.
      *
      * @param initialSize Minimum initial size for bucket array; internally
-     *   will always use a power of two equal to or bigger than this value.
+     *                    will always use a power of two equal to or bigger than this value.
      */
-    private CharsToNameCanonicalizer()
-    {
+    private CharsToNameCanonicalizer() {
         // these settings don't really matter for the bootstrap instance
         _canonicalize = true;
         _intern = true;
@@ -185,24 +171,12 @@ public final class CharsToNameCanonicalizer
         initTables(DEFAULT_TABLE_SIZE);
     }
 
-    private void initTables(int initialSize)
-    {
-        _symbols = new String[initialSize];
-        _buckets = new Bucket[initialSize >> 1];
-        // Mask is easy to calc for powers of two.
-        _indexMask = initialSize - 1;
-        _size = 0;
-        // Hard-coded fill factor is 75%
-        _sizeThreshold = (initialSize - (initialSize >> 2));
-    }
-
     /**
      * Internal constructor used when creating child instances.
      */
     private CharsToNameCanonicalizer(CharsToNameCanonicalizer parent,
-            boolean canonicalize, boolean intern,
-            String[] symbols, Bucket[] buckets, int size)
-    {
+                                     boolean canonicalize, boolean intern,
+                                     String[] symbols, Bucket[] buckets, int size) {
         _parent = parent;
         _canonicalize = canonicalize;
         _intern = intern;
@@ -213,10 +187,55 @@ public final class CharsToNameCanonicalizer
         // Hard-coded fill factor, 75%
         int arrayLen = (symbols.length);
         _sizeThreshold = arrayLen - (arrayLen >> 2);
-        _indexMask =  (arrayLen - 1);
+        _indexMask = (arrayLen - 1);
 
         // Need to make copies of arrays, if/when adding new entries
         _dirty = false;
+    }
+
+    /**
+     * Method called to create root canonicalizer for a {@link org.codehaus.jackson.JsonFactory}
+     * instance. Root instance is never used directly; its main use is for
+     * storing and sharing underlying symbol arrays as needed.
+     */
+    public static CharsToNameCanonicalizer createRoot() {
+        return sBootstrapSymbolTable.makeOrphan();
+    }
+
+    /**
+     * Implementation of a hashing method for variable length
+     * Strings. Most of the time intention is that this calculation
+     * is done by caller during parsing, not here; however, sometimes
+     * it needs to be done for parsed "String" too.
+     *
+     * @param len Length of String; has to be at least 1 (caller guarantees
+     *            this pre-condition)
+     */
+    public static int calcHash(char[] buffer, int start, int len) {
+        int hash = (int) buffer[0];
+        for (int i = 1; i < len; ++i) {
+            hash = (hash * 31) + (int) buffer[i];
+        }
+        return hash;
+    }
+
+    public static int calcHash(String key) {
+        int hash = (int) key.charAt(0);
+        for (int i = 1, len = key.length(); i < len; ++i) {
+            hash = (hash * 31) + (int) key.charAt(i);
+
+        }
+        return hash;
+    }
+
+    private void initTables(int initialSize) {
+        _symbols = new String[initialSize];
+        _buckets = new Bucket[initialSize >> 1];
+        // Mask is easy to calc for powers of two.
+        _indexMask = initialSize - 1;
+        _size = 0;
+        // Hard-coded fill factor is 75%
+        _sizeThreshold = (initialSize - (initialSize >> 2));
     }
 
     /**
@@ -224,32 +243,35 @@ public final class CharsToNameCanonicalizer
      * table. It will be a copy-on-write instance, ie. it will only use
      * read-only copy of parent's data, but when changes are needed, a
      * copy will be created.
-     *<p>
+     * <p>
      * Note: while this method is synchronized, it is generally not
      * safe to both use makeChild/mergeChild, AND to use instance
      * actively. Instead, a separate 'root' instance should be used
      * on which only makeChild/mergeChild are called, but instance itself
      * is not used as a symbol table.
      */
-    public synchronized CharsToNameCanonicalizer makeChild(boolean canonicalize, boolean intern)
-    {
+    public synchronized CharsToNameCanonicalizer makeChild(boolean canonicalize, boolean intern) {
         return new CharsToNameCanonicalizer(this, canonicalize, intern, _symbols, _buckets, _size);
     }
 
-    private CharsToNameCanonicalizer makeOrphan()
-    {
+    private CharsToNameCanonicalizer makeOrphan() {
         return new CharsToNameCanonicalizer(null, true, true, _symbols, _buckets, _size);
     }
+
+    /*
+    /****************************************
+    /* Public API, generic accessors:
+    /****************************************
+     */
 
     /**
      * Method that allows contents of child table to potentially be
      * "merged in" with contents of this symbol table.
-     *<p>
+     * <p>
      * Note that caller has to make sure symbol table passed in is
      * really a child or sibling of this symbol table.
      */
-    private synchronized void mergeChild(CharsToNameCanonicalizer child)
-    {
+    private synchronized void mergeChild(CharsToNameCanonicalizer child) {
         /* One caveat: let's try to avoid problems with
          * degenerate cases of documents with generated "random"
          * names: for these, symbol tables would bloat indefinitely.
@@ -285,8 +307,7 @@ public final class CharsToNameCanonicalizer
         _dirty = false;
     }
 
-    public void release()
-    {
+    public void release() {
         // If nothing has been added, nothing to do
         if (!maybeDirty()) {
             return;
@@ -303,22 +324,19 @@ public final class CharsToNameCanonicalizer
 
     /*
     /****************************************
-    /* Public API, generic accessors:
-    /****************************************
-     */
-
-    public int size() { return _size; }
-
-    public boolean maybeDirty() { return _dirty; }
-
-    /*
-    /****************************************
     /* Public API, accessing symbols:
     /****************************************
      */
 
-    public String findSymbol(char[] buffer, int start, int len, int hash)
-    {
+    public int size() {
+        return _size;
+    }
+
+    public boolean maybeDirty() {
+        return _dirty;
+    }
+
+    public String findSymbol(char[] buffer, int start, int len, int hash) {
         if (len < 1) { // empty Strings are simplest to handle up front
             return "";
         }
@@ -336,7 +354,7 @@ public final class CharsToNameCanonicalizer
             if (sym.length() == len) {
                 int i = 0;
                 do {
-                    if (sym.charAt(i) != buffer[start+i]) {
+                    if (sym.charAt(i) != buffer[start + i]) {
                         break;
                     }
                 } while (++i < len);
@@ -359,7 +377,7 @@ public final class CharsToNameCanonicalizer
             copyArrays();
             _dirty = true;
         } else if (_size >= _sizeThreshold) { // Need to expand?
-           rehash();
+            rehash();
             /* Need to recalc hash; rare occurence (index mask has been
              * recalculated as part of rehash)
              */
@@ -380,32 +398,6 @@ public final class CharsToNameCanonicalizer
         }
 
         return newSymbol;
-    }
-
-    /**
-     * Implementation of a hashing method for variable length
-     * Strings. Most of the time intention is that this calculation
-     * is done by caller during parsing, not here; however, sometimes
-     * it needs to be done for parsed "String" too.
-     *
-     * @param len Length of String; has to be at least 1 (caller guarantees
-     *   this pre-condition)
-     */
-    public static int calcHash(char[] buffer, int start, int len) {
-        int hash = (int) buffer[0];
-        for (int i = 1; i < len; ++i) {
-            hash = (hash * 31) + (int) buffer[i];
-        }
-        return hash;
-    }
-
-    public static int calcHash(String key) {
-        int hash = (int) key.charAt(0);
-        for (int i = 1, len = key.length(); i < len; ++i) {
-            hash = (hash * 31) + (int) key.charAt(i);
-
-        }
-        return hash;
     }
 
     /*
@@ -436,8 +428,7 @@ public final class CharsToNameCanonicalizer
      * is really redistributing old entries into new String/Bucket
      * entries.
      */
-    private void rehash()
-    {
+    private void rehash() {
         int size = _symbols.length;
         int newSize = size + size;
 
@@ -456,7 +447,7 @@ public final class CharsToNameCanonicalizer
             _dirty = true;
             return;
         }
-        
+
         String[] oldSyms = _symbols;
         Bucket[] oldBuckets = _buckets;
         _symbols = new String[newSize];
@@ -464,7 +455,7 @@ public final class CharsToNameCanonicalizer
         // Let's update index mask, threshold, now (needed for rehashing)
         _indexMask = newSize - 1;
         _sizeThreshold += _sizeThreshold;
-        
+
         int count = 0; // let's do sanity check
 
         /* Need to do two loops, unfortunately, since spill-over area is
@@ -502,7 +493,7 @@ public final class CharsToNameCanonicalizer
         }
 
         if (count != _size) {
-            throw new Error("Internal error on SymbolTable.rehash(): had "+_size+" entries; now have "+count+".");
+            throw new Error("Internal error on SymbolTable.rehash(): had " + _size + " entries; now have " + count + ".");
         }
     }
 
@@ -525,8 +516,13 @@ public final class CharsToNameCanonicalizer
             mNext = next;
         }
 
-        public String getSymbol() { return _symbol; }
-        public Bucket getNext() { return mNext; }
+        public String getSymbol() {
+            return _symbol;
+        }
+
+        public Bucket getNext() {
+            return mNext;
+        }
 
         public String find(char[] buf, int start, int len) {
             String sym = _symbol;
@@ -536,7 +532,7 @@ public final class CharsToNameCanonicalizer
                 if (sym.length() == len) {
                     int i = 0;
                     do {
-                        if (sym.charAt(i) != buf[start+i]) {
+                        if (sym.charAt(i) != buf[start + i]) {
                             break;
                         }
                     } while (++i < len);
@@ -553,9 +549,9 @@ public final class CharsToNameCanonicalizer
             return null;
         }
 
-    /* 26-Nov-2008, tatu: not used currently; if not used in near future,
-     *   let's just delete it.
-     */
+        /* 26-Nov-2008, tatu: not used currently; if not used in near future,
+         *   let's just delete it.
+         */
         /*
         public String find(String str) {
             String sym = _symbol;

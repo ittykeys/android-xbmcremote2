@@ -22,7 +22,7 @@
 package org.xbmc.api.type;
 
 public enum LogType {
-	info,
-	warning,
-	error
+    info,
+    warning,
+    error
 }

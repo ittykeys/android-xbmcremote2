@@ -1,10 +1,11 @@
 package org.codehaus.jackson.impl;
 
-import java.io.*;
-
-import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.io.IOContext;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Intermediate class that implements handling of numeric parsing,
@@ -15,8 +16,7 @@ import org.codehaus.jackson.JsonToken;
  * underlying buffers.
  */
 public abstract class Utf8NumericParser
-    extends StreamBasedParserBase
-{
+        extends StreamBasedParserBase {
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
@@ -26,8 +26,7 @@ public abstract class Utf8NumericParser
     public Utf8NumericParser(IOContext pc, int features,
                              InputStream in,
                              byte[] inputBuffer, int start, int end,
-                             boolean bufferRecyclable)
-    {
+                             boolean bufferRecyclable) {
         super(pc, features, in, inputBuffer, start, end, bufferRecyclable);
     }
 
@@ -45,7 +44,7 @@ public abstract class Utf8NumericParser
      * as a floating point number. The basic rule is that if the number
      * has no fractional or exponential part, it is an integer; otherwise
      * a floating point number.
-     *<p>
+     * <p>
      * Because much of input has to be processed in any case, no partial
      * parsing is done: all input text will be stored for further
      * processing. However, actual numeric value conversion will be
@@ -54,8 +53,7 @@ public abstract class Utf8NumericParser
      */
     @Override
     protected final JsonToken parseNumberText(int c)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = 0;
         boolean negative = (c == INT_MINUS);
@@ -82,7 +80,7 @@ public abstract class Utf8NumericParser
             ++intLen;
             // Quickie check: no leading zeroes allowed
             if (intLen == 2) {
-                if (outBuf[outPtr-1] == '0') {
+                if (outBuf[outPtr - 1] == '0') {
                     reportInvalidNumber("Leading zeroes not allowed");
                 }
             }
@@ -101,7 +99,7 @@ public abstract class Utf8NumericParser
         }
         // Also, integer part is not optional
         if (intLen == 0) {
-            reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
+            reportInvalidNumber("Missing integer part (next char " + _getCharDesc(c) + ")");
         }
 
         int fractLen = 0;

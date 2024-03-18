@@ -1,27 +1,26 @@
 package org.codehaus.jackson.schema;
 
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Retention;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
-
 import org.codehaus.jackson.annotate.JacksonAnnotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotation that can be used to define JSON Schema definition for
  * the annotated class.
- *<p>
+ * <p>
  * Note that annotation is often not needed: for example, regular
  * Jackson beans that Jackson can introspect can be used without
  * annotations, to produce JSON schema definition.
- * 
+ *
  * @author Ryan Heaton
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonSerializableSchema
-{
+public @interface JsonSerializableSchema {
     /**
      * The schema type for this JsonSerializable instance.
      * Possible values: "string", "number", "boolean", "object", "array", "null", "any"

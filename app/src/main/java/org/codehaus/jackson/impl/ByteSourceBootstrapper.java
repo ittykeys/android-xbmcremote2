@@ -1,11 +1,21 @@
 package org.codehaus.jackson.impl;
 
-import java.io.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.io.*;
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.MergedStream;
+import org.codehaus.jackson.io.UTF32Reader;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
+
+import java.io.ByteArrayInputStream;
+import java.io.CharConversionException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 /**
  * This class is used to determine the encoding of byte stream
@@ -14,8 +24,7 @@ import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
  * for BOM handling, which is a property of underlying
  * streams.
  */
-public final class ByteSourceBootstrapper
-{
+public final class ByteSourceBootstrapper {
     /*
     /*********************************************
     /* Configuration
@@ -33,40 +42,35 @@ public final class ByteSourceBootstrapper
      */
 
     final byte[] _inputBuffer;
-
-    private int _inputPtr;
-
-    private int _inputEnd;
-
     /**
      * Flag that indicates whether buffer above is to be recycled
      * after being used or not.
      */
     private final boolean _bufferRecyclable;
+    /**
+     * Current number of input units (bytes or chars) that were processed in
+     * previous blocks,
+     * before contents of current input buffer.
+     * <p>
+     * Note: includes possible BOMs, if those were part of the input.
+     */
+    protected int _inputProcessed;
+    boolean _bigEndian = true;
 
     /*
     /*********************************************
     /* Input location
     /*********************************************
      */
-
-    /**
-     * Current number of input units (bytes or chars) that were processed in
-     * previous blocks,
-     * before contents of current input buffer.
-     *<p>
-     * Note: includes possible BOMs, if those were part of the input.
-     */
-    protected int _inputProcessed;
+    int _bytesPerChar = 0; // 0 means "dunno yet"
 
     /*
     /*********************************************
     /* Data gathered
     /*********************************************
      */
-
-    boolean _bigEndian = true;
-    int _bytesPerChar = 0; // 0 means "dunno yet"
+    private int _inputPtr;
+    private int _inputEnd;
 
     /*
     /*********************************************
@@ -74,8 +78,7 @@ public final class ByteSourceBootstrapper
     /*********************************************
      */
 
-    public ByteSourceBootstrapper(IOContext ctxt, InputStream in)
-    {
+    public ByteSourceBootstrapper(IOContext ctxt, InputStream in) {
         _context = ctxt;
         _in = in;
         _inputBuffer = ctxt.allocReadIOBuffer();
@@ -84,8 +87,7 @@ public final class ByteSourceBootstrapper
         _bufferRecyclable = true;
     }
 
-    public ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen)
-    {
+    public ByteSourceBootstrapper(IOContext ctxt, byte[] inputBuffer, int inputStart, int inputLen) {
         _context = ctxt;
         _in = null;
         _inputBuffer = inputBuffer;
@@ -102,8 +104,7 @@ public final class ByteSourceBootstrapper
      * for instantiating a proper scanner object.
      */
     public JsonEncoding detectEncoding()
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         boolean foundEncoding = false;
 
         // First things first: BOM handling
@@ -114,11 +115,11 @@ public final class ByteSourceBootstrapper
          * is always at least 4 chars long)
          */
         if (ensureLoaded(4)) {
-            int quad =  (_inputBuffer[_inputPtr] << 24)
-                | ((_inputBuffer[_inputPtr+1] & 0xFF) << 16)
-                | ((_inputBuffer[_inputPtr+2] & 0xFF) << 8)
-                | (_inputBuffer[_inputPtr+3] & 0xFF);
-            
+            int quad = (_inputBuffer[_inputPtr] << 24)
+                    | ((_inputBuffer[_inputPtr + 1] & 0xFF) << 16)
+                    | ((_inputBuffer[_inputPtr + 2] & 0xFF) << 8)
+                    | (_inputBuffer[_inputPtr + 3] & 0xFF);
+
             if (handleBOM(quad)) {
                 foundEncoding = true;
             } else {
@@ -136,7 +137,7 @@ public final class ByteSourceBootstrapper
             }
         } else if (ensureLoaded(2)) {
             int i16 = ((_inputBuffer[_inputPtr] & 0xFF) << 8)
-                | (_inputBuffer[_inputPtr+1] & 0xFF);
+                    | (_inputBuffer[_inputPtr + 1] & 0xFF);
             if (checkUTF16(i16)) {
                 foundEncoding = true;
             }
@@ -159,18 +160,17 @@ public final class ByteSourceBootstrapper
     }
 
     public Reader constructReader()
-        throws IOException
-    {
+            throws IOException {
         JsonEncoding enc = _context.getEncoding();
-        switch (enc) { 
-        case UTF32_BE:
-        case UTF32_LE:
-            return new UTF32Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd,
-                                   _context.getEncoding().isBigEndian());
+        switch (enc) {
+            case UTF32_BE:
+            case UTF32_LE:
+                return new UTF32Reader(_context, _in, _inputBuffer, _inputPtr, _inputEnd,
+                        _context.getEncoding().isBigEndian());
 
-        case UTF16_BE:
-        case UTF16_LE:
-        case UTF8: // only in non-common case where we don't want to do direct mapping
+            case UTF16_BE:
+            case UTF16_LE:
+            case UTF8: // only in non-common case where we don't want to do direct mapping
             {
                 // First: do we have a Stream? If not, need to create one:
                 InputStream in = _in;
@@ -192,8 +192,7 @@ public final class ByteSourceBootstrapper
     }
 
     public JsonParser constructParser(int features, ObjectCodec codec, BytesToNameCanonicalizer rootByteSymbols, CharsToNameCanonicalizer rootCharSymbols)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         JsonEncoding enc = detectEncoding();
 
         // As per [JACKSON-259], may want to fully disable canonicalization:
@@ -219,29 +218,28 @@ public final class ByteSourceBootstrapper
 
     /**
      * @return True if a BOM was succesfully found, and encoding
-     *   thereby recognized.
+     * thereby recognized.
      */
     private boolean handleBOM(int quad)
-        throws IOException
-    {
+            throws IOException {
         /* Handling of (usually) optional BOM (required for
          * multi-byte formats); first 32-bit charsets:
          */
         switch (quad) {
-        case 0x0000FEFF:
-            _bigEndian = true;
-            _inputPtr += 4;
-            _bytesPerChar = 4;
-            return true;
-        case 0xFFFE0000: // UCS-4, LE?
-            _inputPtr += 4;
-            _bytesPerChar = 4;
-            _bigEndian = false;
-            return true;
-        case 0x0000FFFE: // UCS-4, in-order...
-            reportWeirdUCS4("2143"); // throws exception
-        case 0xFEFF0000: // UCS-4, in-order...
-            reportWeirdUCS4("3412"); // throws exception
+            case 0x0000FEFF:
+                _bigEndian = true;
+                _inputPtr += 4;
+                _bytesPerChar = 4;
+                return true;
+            case 0xFFFE0000: // UCS-4, LE?
+                _inputPtr += 4;
+                _bytesPerChar = 4;
+                _bigEndian = false;
+                return true;
+            case 0x0000FFFE: // UCS-4, in-order...
+                reportWeirdUCS4("2143"); // throws exception
+            case 0xFEFF0000: // UCS-4, in-order...
+                reportWeirdUCS4("3412"); // throws exception
         }
         // Ok, if not, how about 16-bit encoding BOMs?
         int msw = quad >>> 16;
@@ -268,8 +266,7 @@ public final class ByteSourceBootstrapper
     }
 
     private boolean checkUTF32(int quad)
-        throws IOException
-    {
+            throws IOException {
         /* Handling of (usually) optional BOM (required for
          * multi-byte formats); first 32-bit charsets:
          */
@@ -291,8 +288,7 @@ public final class ByteSourceBootstrapper
         return true;
     }
 
-    private boolean checkUTF16(int i16)
-    {
+    private boolean checkUTF16(int i16) {
         if ((i16 & 0xFF00) == 0) { // UTF-16BE
             _bigEndian = true;
         } else if ((i16 & 0x00FF) == 0) { // UTF-16LE
@@ -313,9 +309,8 @@ public final class ByteSourceBootstrapper
      */
 
     private void reportWeirdUCS4(String type)
-        throws IOException
-    {
-        throw new CharConversionException("Unsupported UCS-4 endianness ("+type+") detected");
+            throws IOException {
+        throw new CharConversionException("Unsupported UCS-4 endianness (" + type + ") detected");
     }
 
     /*
@@ -325,8 +320,7 @@ public final class ByteSourceBootstrapper
     */
 
     protected boolean ensureLoaded(int minimum)
-        throws IOException
-    {
+            throws IOException {
         /* Let's assume here buffer has enough room -- this will always
          * be true for the limited used this method gets
          */

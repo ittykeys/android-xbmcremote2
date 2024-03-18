@@ -1,15 +1,14 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 
+import java.io.IOException;
+
 public abstract class ScalarSerializerBase<T>
-    extends SerializerBase<T>
-{
+        extends SerializerBase<T> {
     protected ScalarSerializerBase(Class<T> t) {
         super(t);
     }
@@ -22,7 +21,7 @@ public abstract class ScalarSerializerBase<T>
     protected ScalarSerializerBase(Class<?> t, boolean dummy) {
         super((Class<T>) t);
     }
-    
+
     /**
      * Default implementation will write type prefix, call regular serialization
      * method (since assumption is that value itself does not need JSON
@@ -32,9 +31,8 @@ public abstract class ScalarSerializerBase<T>
      */
     @Override
     public void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
-            TypeSerializer typeSer)
-        throws IOException, JsonGenerationException
-    {
+                                  TypeSerializer typeSer)
+            throws IOException, JsonGenerationException {
         typeSer.writeTypePrefixForScalar(value, jgen);
         serialize(value, jgen, provider);
         typeSer.writeTypeSuffixForScalar(value, jgen);

@@ -8,43 +8,37 @@ import java.lang.reflect.Method;
  * member functions ({@link Method}s and {@link Constructor}s)
  * in {@link java.util.Map}s.
  */
-public final class MemberKey
-{
+public final class MemberKey {
     final static Class<?>[] NO_CLASSES = new Class<?>[0];
 
     final String _name;
     final Class<?>[] _argTypes;
 
-    public MemberKey(Method m)
-    {
+    public MemberKey(Method m) {
         this(m.getName(), m.getParameterTypes());
     }
 
-    public MemberKey(Constructor<?> ctor)
-    {
+    public MemberKey(Constructor<?> ctor) {
         this("", ctor.getParameterTypes());
     }
 
-    public MemberKey(String name, Class<?>[] argTypes)
-    {
+    public MemberKey(String name, Class<?>[] argTypes) {
         _name = name;
         _argTypes = (argTypes == null) ? NO_CLASSES : argTypes;
     }
 
     @Override
     public String toString() {
-        return _name + "(" + _argTypes.length+"-args)";
+        return _name + "(" + _argTypes.length + "-args)";
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return _name.hashCode() + _argTypes.length;
     }
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) {

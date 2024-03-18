@@ -5,13 +5,11 @@ package org.codehaus.jackson.sym;
  * means that its byte (UTF-8) representation is 13 bytes or more.
  */
 public final class NameN
-    extends Name
-{
+        extends Name {
     final int[] mQuads;
     final int mQuadLen;
 
-    NameN(String name, int hash, int[] quads, int quadLen)
-    {
+    NameN(String name, int hash, int[] quads, int quadLen) {
         super(name, hash);
         /* We have specialized implementations for shorter
          * names, so let's not allow runt instances here
@@ -25,15 +23,18 @@ public final class NameN
 
     // Implies quad length == 1, never matches
     @Override
-	public boolean equals(int quad) { return false; }
+    public boolean equals(int quad) {
+        return false;
+    }
 
     // Implies quad length == 2, never matches
     @Override
-	public boolean equals(int quad1, int quad2) { return false; }
+    public boolean equals(int quad1, int quad2) {
+        return false;
+    }
 
     @Override
-	public boolean equals(int[] quads, int qlen)
-    {
+    public boolean equals(int[] quads, int qlen) {
         if (qlen != mQuadLen) {
             return false;
         }

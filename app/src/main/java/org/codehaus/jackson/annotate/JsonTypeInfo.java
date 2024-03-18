@@ -11,35 +11,65 @@ import java.lang.annotation.Target;
  * about actual class of Object instances. This is necessarily for polymorphic
  * types, and may also be needed to link abstract declared types and matching
  * concrete implementation.
- *<p>
+ * <p>
  * Some examples of typical annotations:
- *<pre>
+ * <pre>
  *  // Include Java class name ("com.myempl.ImplClass") as JSON property "class"
  *  \@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="class")
- *  
+ *
  *  // Include logical type name (defined in impl classes) as wrapper; 2 annotations
  *  \@JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
  *  \@JsonSubTypes({com.myemp.Impl1.class, com.myempl.Impl2.class})
- *</pre>
+ * </pre>
  * Alternatively you can also define fully customized type handling by using
  * {@link org.codehaus.jackson.map.annotate.JsonTypeResolver} annotation.
- * 
+ *
+ * @author tatu
  * @see org.codehaus.jackson.map.annotate.JsonTypeResolver
  * @since 1.5
- * 
- * @author tatu
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonTypeInfo
-{    
+public @interface JsonTypeInfo {
     /*
      *******************************************************************
      * Value enumerations used for properties
      *******************************************************************
      */
-    
+
+    /**
+     * What kind of type metadata is to be used for serializing and deserializing
+     * type information for instances of annotated type (and its subtypes
+     * unless overridden)
+     */
+    public Id use();
+
+    /**
+     * What mechanism is used for including type metadata (if any; for
+     * {@link Id#NONE} nothing is included). Default
+     * <p>
+     * Note that for type metadata type of {@link Id#CUSTOM},
+     * this setting may or may not have any effect.
+     */
+    public As include() default As.PROPERTY;
+
+    /*
+     *******************************************************************
+     * Annotation properties
+     *******************************************************************
+     */
+
+    /**
+     * Property names used when type inclusion method ({@link As#PROPERTY}) is used
+     * (or possibly when using type metadata of type {@link Id#CUSTOM}).
+     * <p>
+     * Default property name used if this property is not explicitly defined
+     * (or is set to empty String) is based on
+     * type metadata type ({@link #use}) used.
+     */
+    public String property() default "";
+
     /**
      * Definition of different type identifiers that can be included in JSON
      * during serialization, and used for deserialization.
@@ -49,7 +79,7 @@ public @interface JsonTypeInfo
          * This means that no explicit type metadata is included, and typing is
          * purely done using contextual information possibly augmented with other
          * annotations.
-         *<p>
+         * <p>
          * Note: no {@link org.codehaus.jackson.map.jsontype.TypeIdResolver}
          * is constructed if this value is used.
          */
@@ -68,7 +98,7 @@ public @interface JsonTypeInfo
          * For example, for supertype "com.foobar.Base", and concrete type
          * "com.foo.Impl", only "Impl" would be included; and for "com.foo.impl.Impl2"
          * only "impl.Impl2" would be included.
-         *<p>
+         * <p>
          * If all related classes are in the same Java package, this option can reduce
          * amount of type information overhead, especially for small types.
          * However, please note that using this alternative is inherently risky since it
@@ -90,8 +120,7 @@ public @interface JsonTypeInfo
          * custom configuration. This means that semantics of other properties is
          * not defined by Jackson package, but by the custom implementation.
          */
-        CUSTOM(null)
-        ;
+        CUSTOM(null);
 
         private final String _defaultPropertyName;
 
@@ -99,7 +128,9 @@ public @interface JsonTypeInfo
             _defaultPropertyName = defProp;
         }
 
-        public String getDefaultPropertyName() { return _defaultPropertyName; }
+        public String getDefaultPropertyName() {
+            return _defaultPropertyName;
+        }
     }
 
     /**
@@ -122,7 +153,7 @@ public @interface JsonTypeInfo
          * a JSON Object that has a single entry,
          * where field name is serialized type identifier,
          * and value is the actual JSON value.
-         *<p>
+         * <p>
          * Note: can only be used if type information can be serialized as
          * String. This is true for standard type metadata types, but not
          * necessarily for custom types.
@@ -139,36 +170,4 @@ public @interface JsonTypeInfo
         WRAPPER_ARRAY,
         ;
     }
-    
-    /*
-     *******************************************************************
-     * Annotation properties
-     *******************************************************************
-     */
-    
-    /**
-     * What kind of type metadata is to be used for serializing and deserializing
-     * type information for instances of annotated type (and its subtypes
-     * unless overridden)
-     */
-    public Id use();    
-    
-    /**
-     * What mechanism is used for including type metadata (if any; for
-     * {@link Id#NONE} nothing is included). Default
-     *<p>
-     * Note that for type metadata type of {@link Id#CUSTOM},
-     * this setting may or may not have any effect.
-     */
-    public As include() default As.PROPERTY;
-
-    /**
-     * Property names used when type inclusion method ({@link As#PROPERTY}) is used
-     * (or possibly when using type metadata of type {@link Id#CUSTOM}).
-     *<p>
-     * Default property name used if this property is not explicitly defined
-     * (or is set to empty String) is based on
-     * type metadata type ({@link #use}) used.
-     */
-    public String property() default "";
 }

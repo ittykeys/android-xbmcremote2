@@ -1,53 +1,68 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.io.NumberOutput;
+import org.codehaus.jackson.map.SerializerProvider;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.io.NumberOutput;
-import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Numeric node that contains 64-bit ("double precision")
  * floating point values simple 32-bit integer values.
  */
 public final class DoubleNode
-    extends NumericNode
-{
+        extends NumericNode {
     final double _value;
 
-    /* 
-    ************************************************
-    * Construction
-    ************************************************
+    /*
+     ************************************************
+     * Construction
+     ************************************************
      */
 
-    public DoubleNode(double v) { _value = v; }
+    public DoubleNode(double v) {
+        _value = v;
+    }
 
-    public static DoubleNode valueOf(double v) { return new DoubleNode(v); }
+    public static DoubleNode valueOf(double v) {
+        return new DoubleNode(v);
+    }
 
-    /* 
-    ************************************************
-    * BaseJsonNode extended API
-    ************************************************
-     */
-
-    @Override public JsonToken asToken() { return JsonToken.VALUE_NUMBER_FLOAT; }
-
-    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.DOUBLE; }
-
-    /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
+    /*
+     ************************************************
+     * BaseJsonNode extended API
+     ************************************************
      */
 
     @Override
-    public boolean isFloatingPointNumber() { return true; }
+    public JsonToken asToken() {
+        return JsonToken.VALUE_NUMBER_FLOAT;
+    }
+
+    public JsonParser.NumberType getNumberType() {
+        return JsonParser.NumberType.DOUBLE;
+    }
+
+    /*
+     ************************************************
+     * Overrridden JsonNode methods
+     ************************************************
+     */
 
     @Override
-    public boolean isDouble() { return true; }
+    public boolean isFloatingPointNumber() {
+        return true;
+    }
+
+    @Override
+    public boolean isDouble() {
+        return true;
+    }
 
     @Override
     public Number getNumberValue() {
@@ -55,16 +70,24 @@ public final class DoubleNode
     }
 
     @Override
-        public int getIntValue() { return (int) _value; }
+    public int getIntValue() {
+        return (int) _value;
+    }
 
     @Override
-        public long getLongValue() { return (long) _value; }
+    public long getLongValue() {
+        return (long) _value;
+    }
 
     @Override
-        public double getDoubleValue() { return _value; }
+    public double getDoubleValue() {
+        return _value;
+    }
 
     @Override
-        public BigDecimal getDecimalValue() { return BigDecimal.valueOf(_value); }
+    public BigDecimal getDecimalValue() {
+        return BigDecimal.valueOf(_value);
+    }
 
     @Override
     public BigInteger getBigIntegerValue() {
@@ -77,14 +100,12 @@ public final class DoubleNode
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         jg.writeNumber(_value);
     }
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
@@ -94,8 +115,7 @@ public final class DoubleNode
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         // same as hashCode Double.class uses
         long l = Double.doubleToLongBits(_value);
         return ((int) l) ^ (int) (l >> 32);

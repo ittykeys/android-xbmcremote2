@@ -1,14 +1,21 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.*;
-import java.lang.reflect.Type;
-import java.util.*;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.util.Provider;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Class used for namespacing and to contain serializers for misc
@@ -16,15 +23,13 @@ import org.codehaus.jackson.map.util.Provider;
  * such
  */
 public class JdkSerializers
-    implements Provider<Map.Entry<Class<?>,JsonSerializer<?>>>
-{
+        implements Provider<Map.Entry<Class<?>, JsonSerializer<?>>> {
     /**
      * Method called by {@link BasicSerializerFactory} to access
      * all serializers this class provides.
      */
-    public Collection<Map.Entry<Class<?>, JsonSerializer<?>>> provide()
-    {
-        HashMap<Class<?>,JsonSerializer<?>> sers = new HashMap<Class<?>,JsonSerializer<?>>();
+    public Collection<Map.Entry<Class<?>, JsonSerializer<?>>> provide() {
+        HashMap<Class<?>, JsonSerializer<?>> sers = new HashMap<Class<?>, JsonSerializer<?>>();
 
         // First things that 'toString()' can handle
         final ToStringSerializer sls = ToStringSerializer.instance;
@@ -47,9 +52,9 @@ public class JdkSerializers
     }
 
     /*
-    ********************************************************
-    * Specialized serializers
-    ********************************************************
+     ********************************************************
+     * Specialized serializers
+     ********************************************************
      */
 
     /**
@@ -57,20 +62,19 @@ public class JdkSerializers
      * absolute (but not canonical) name as String value
      */
     public final static class FileSerializer
-        extends SerializerBase<File>
-    {
-        public FileSerializer() { super(File.class); }
+            extends SerializerBase<File> {
+        public FileSerializer() {
+            super(File.class);
+        }
 
         @Override
         public void serialize(File value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeString(value.getAbsolutePath());
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             return createSchemaNode("string", true);
         }
     }
@@ -81,21 +85,20 @@ public class JdkSerializers
      */
     @SuppressWarnings("unchecked")
     public final static class ClassSerializer
-        extends SerializerBase<Class>
-    {
-        public ClassSerializer() { super(Class.class); }
+            extends SerializerBase<Class> {
+        public ClassSerializer() {
+            super(Class.class);
+        }
 
         @Override
         public void serialize(Class value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeString(value.getName());
         }
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
+                throws JsonMappingException {
             return createSchemaNode("string", true);
         }
     }

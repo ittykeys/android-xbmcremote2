@@ -13,28 +13,27 @@ import java.lang.annotation.Target;
  * Annotation definition will override any implicit orderings (such as
  * guarantee that Creator-properties are serialized before non-creator
  * properties)
- *<p>
+ * <p>
  * Examples:
- *<pre>
+ * <pre>
  *  // ensure that "id" and "name" are output before other properties
  *  \@JsonPropertyOrder({ "id", "name" })
  *  // order any properties that don't have explicit setting using alphabetic order
  *  \@JsonPropertyOrder(alphabetic=true)
- *</pre>
- *<p>
+ * </pre>
+ * <p>
  * This annotation has no effect on deserialization.
- * 
+ *
  * @since 1.4
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonPropertyOrder
-{
+public @interface JsonPropertyOrder {
     /**
      * Order in which properties of annotated object are to be serialized in.
      */
-    public String[] value() default { };
+    public String[] value() default {};
 
     /**
      * Property that defines what to do regarding ordering of properties

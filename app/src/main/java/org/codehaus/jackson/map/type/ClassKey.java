@@ -4,7 +4,7 @@ package org.codehaus.jackson.map.type;
  * Key class, used as an efficient and accurate key
  * for locating per-class values, such as
  * {@link org.codehaus.jackson.map.JsonSerializer}s.
- *<p>
+ * <p>
  * The reason for having a separate key class instead of
  * directly using {@link Class} as key is mostly
  * to allow for redefining <code>hashCode</code> method --
@@ -12,13 +12,12 @@ package org.codehaus.jackson.map.type;
  * redefine {@link Object#hashCode} and thus uses identity
  * hash, which is pretty slow. This makes key access using
  * {@link Class} unnecessarily slow.
- *<p>
+ * <p>
  * Note: since class is not strictly immutable, caller must
  * know what it is doing, if changing field values.
  */
 public final class ClassKey
-    implements Comparable<ClassKey>
-{
+        implements Comparable<ClassKey> {
     String _className;
 
     Class<?> _class;
@@ -29,22 +28,19 @@ public final class ClassKey
      */
     int _hashCode;
 
-    public ClassKey() 
-    {
+    public ClassKey() {
         _class = null;
         _className = null;
         _hashCode = 0;
     }
 
-    public ClassKey(Class<?> clz)
-    {
+    public ClassKey(Class<?> clz) {
         _class = clz;
         _className = clz.getName();
         _hashCode = _className.hashCode();
     }
 
-    public void reset(Class<?> clz)
-    {
+    public void reset(Class<?> clz) {
         _class = clz;
         _className = clz.getName();
         _hashCode = _className.hashCode();
@@ -56,8 +52,7 @@ public final class ClassKey
     //////////////////////////////////////////////////
      */
 
-    public int compareTo(ClassKey other)
-    {
+    public int compareTo(ClassKey other) {
         // Just need to sort by name, ok to collide
         return _className.compareTo(other._className);
     }
@@ -69,8 +64,7 @@ public final class ClassKey
      */
 
     @Override
-        public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;
@@ -87,8 +81,14 @@ public final class ClassKey
         return other._class == _class;
     }
 
-    @Override public int hashCode() { return _hashCode; }
+    @Override
+    public int hashCode() {
+        return _hashCode;
+    }
 
-    @Override public String toString() { return _className; }
-    
+    @Override
+    public String toString() {
+        return _className;
+    }
+
 }

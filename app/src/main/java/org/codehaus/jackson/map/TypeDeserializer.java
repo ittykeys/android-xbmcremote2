@@ -1,28 +1,28 @@
 package org.codehaus.jackson.map;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
+
+import java.io.IOException;
 
 /**
  * Interface for deserializing type information from JSON content, to
  * type-safely deserialize data into correct polymorphic instance
  * (when type inclusion has been enabled for type handled).
- *<p>
+ * <p>
  * Separate deserialization methods are needed because serialized
  * form for inclusion mechanism {@link JsonTypeInfo.As#PROPERTY}
  * is slighty different if value is not expressed as JSON Object:
  * and as such both type deserializer and serializer need to
  * JSON Object form (array, object or other (== scalar)) being
  * used.
- * 
- * @since 1.5
+ *
  * @author tatus
+ * @since 1.5
  */
-public abstract class TypeDeserializer
-{
+public abstract class TypeDeserializer {
     /*
     /**********************************************************
     /* Introspection
@@ -55,7 +55,7 @@ public abstract class TypeDeserializer
      */
 
     /**
-     * Method called to let this type deserializer handle 
+     * Method called to let this type deserializer handle
      * deserialization of "typed" object, when value itself
      * is serialized as JSON Object (regardless of Java type).
      * Method needs to figure out intended
@@ -64,10 +64,10 @@ public abstract class TypeDeserializer
      * type information).
      */
     public abstract Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /**
-     * Method called to let this type deserializer handle 
+     * Method called to let this type deserializer handle
      * deserialization of "typed" object, when value itself
      * is serialized as JSON Array (regardless of Java type).
      * Method needs to figure out intended
@@ -76,10 +76,10 @@ public abstract class TypeDeserializer
      * type information).
      */
     public abstract Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /**
-     * Method called to let this type deserializer handle 
+     * Method called to let this type deserializer handle
      * deserialization of "typed" object, when value itself
      * is serialized as a scalar JSON value (something other
      * than Array or Object), regardless of Java type.
@@ -89,10 +89,10 @@ public abstract class TypeDeserializer
      * type information).
      */
     public abstract Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /**
-     * Method called to let this type deserializer handle 
+     * Method called to let this type deserializer handle
      * deserialization of "typed" object, when value itself
      * may have been serialized using any kind of JSON value
      * (Array, Object, scalar). Should only be called if JSON
@@ -101,7 +101,7 @@ public abstract class TypeDeserializer
      * (which may be Map, Collection, wrapper/primitive etc).
      */
     public abstract Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
 }
     

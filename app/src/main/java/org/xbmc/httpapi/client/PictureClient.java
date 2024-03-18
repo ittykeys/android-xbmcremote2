@@ -21,103 +21,103 @@
 
 package org.xbmc.httpapi.client;
 
-import java.util.HashMap;
-
 import org.xbmc.api.data.IControlClient.ICurrentlyPlaying;
 import org.xbmc.api.info.PlayStatus;
 import org.xbmc.api.type.MediaType;
 
+import java.util.HashMap;
+
 /**
  * Takes care of Picture/SlideShow stuff
- * 
- * @author Team XBMC
  *
+ * @author Team XBMC
  */
 public class PictureClient {
 
-	public static final String TAG = "PictureClient";
-	
-	static ICurrentlyPlaying getCurrentlyPlaying(final HashMap<String, String> map) {
-		return new ICurrentlyPlaying() {
-			private static final long serialVersionUID = 5036994329211476713L;
-			
-			public int getMediaType() {
-				return MediaType.PICTURES;
-			}
+    public static final String TAG = "PictureClient";
 
-			public String getAlbum() {
-				String[] path = map.get("Filename").replaceAll("\\\\", "/").split("/");
-				return path[path.length - 2];
-			}
+    static ICurrentlyPlaying getCurrentlyPlaying(final HashMap<String, String> map) {
+        return new ICurrentlyPlaying() {
+            private static final long serialVersionUID = 5036994329211476713L;
 
-			public String getArtist() {
-				return "Image";
-			}
+            public int getMediaType() {
+                return MediaType.PICTURES;
+            }
 
-			public int getDuration() {
-				return 0;
-			}
+            public String getAlbum() {
+                String[] path = map.get("Filename").replaceAll("\\\\", "/").split("/");
+                return path[path.length - 2];
+            }
 
-			public String getFilename() {
-				return map.get("Filename");
-			}
+            public String getArtist() {
+                return "Image";
+            }
 
-			public float getPercentage() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
+            public int getDuration() {
+                return 0;
+            }
 
-			public int getPlayStatus() {
-				return PlayStatus.PLAYING;
-			}
+            public String getFilename() {
+                return map.get("Filename");
+            }
 
-			public int getPlaylistPosition() {
-				// TODO Auto-generated method stub
-				return 0;
-			}
+            public float getPercentage() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
 
-			public int getTime() {
-				return 0;
-			}
+            public int getPlayStatus() {
+                return PlayStatus.PLAYING;
+            }
 
-			public String getTitle() {
-				String[] path = map.get("Filename").split("/");
-				return path[path.length - 1];
-				//return map.get("Filename").substring(map.get("Filename").lastIndexOf("/") + 1);
-			}
+            public int getPlaylistPosition() {
+                // TODO Auto-generated method stub
+                return 0;
+            }
 
-			public boolean isPlaying() {
-				return true;
-			}
+            public int getTime() {
+                return 0;
+            }
 
-			public int getHeight() {
-				return parseHeight(map.get("Resolution"));
-			}
+            public String getTitle() {
+                String[] path = map.get("Filename").split("/");
+                return path[path.length - 1];
+                //return map.get("Filename").substring(map.get("Filename").lastIndexOf("/") + 1);
+            }
 
-			public int getWidth() {
-				return parseWidth(map.get("Resolution"));
-			}
-			
-			private int parseHeight(String resolution){
-				String[] xy = resolution.split("x");
-				if (xy.length != 2)
-					return 0;
-				try{
-					return Integer.parseInt(xy[1].trim());
-				} catch (NumberFormatException e) {
-					return 0;
-				}
-			}
-			private int parseWidth(String resolution){
-				String[] xy = resolution.split("x");
-				if (xy.length != 2)
-					return 0;
-				try{
-					return Integer.parseInt(xy[0].trim());
-				} catch (NumberFormatException e) {
-					return 0;
-				}
-			}			
-		};
-	}
+            public boolean isPlaying() {
+                return true;
+            }
+
+            public int getHeight() {
+                return parseHeight(map.get("Resolution"));
+            }
+
+            public int getWidth() {
+                return parseWidth(map.get("Resolution"));
+            }
+
+            private int parseHeight(String resolution) {
+                String[] xy = resolution.split("x");
+                if (xy.length != 2)
+                    return 0;
+                try {
+                    return Integer.parseInt(xy[1].trim());
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            }
+
+            private int parseWidth(String resolution) {
+                String[] xy = resolution.split("x");
+                if (xy.length != 2)
+                    return 0;
+                try {
+                    return Integer.parseInt(xy[0].trim());
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            }
+        };
+    }
 }

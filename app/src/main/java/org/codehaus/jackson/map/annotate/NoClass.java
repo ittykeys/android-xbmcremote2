@@ -6,14 +6,14 @@ package org.codehaus.jackson.map.annotate;
  * as either default or explicit values. Hence for class values we must
  * explicitly use a bogus placeholder to denote equivalent of
  * "no class" (for which 'null' is usually the natural choice).
- *<p>
+ * <p>
  * Note before version 1.4, this marker class was under
  * "org.codehaus.jackson.annotate". However, since it is only used
  * by annotations in "org.codehaus.jackson.map.annotate" (and not externally
  * exposed), it was moved to that package as of version 1.5.
  */
-public final class NoClass
-{
-    private NoClass() { }
+public final class NoClass {
+    private NoClass() {
+    }
 }
 

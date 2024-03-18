@@ -2,8 +2,7 @@ package org.codehaus.jackson.util;
 
 import java.util.Arrays;
 
-public final class CharTypes
-{
+public final class CharTypes {
     final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 
     /**
@@ -11,6 +10,43 @@ public final class CharTypes
      * need special handling when contained in text segment.
      */
     final static int[] sInputCodes;
+    /**
+     * Additionally we can combine UTF-8 decoding info into similar
+     * data table.
+     */
+    final static int[] sInputCodesUtf8;
+    /**
+     * To support non-default (and -standard) unquoted field names mode,
+     * need to have alternate checking.
+     * Basically this is list of 8-bit ascii characters that are legal
+     * as part of Javascript identifier
+     *
+     * @since 1.2
+     */
+    final static int[] sInputCodesJsNames;
+    /**
+     * This table is similar to Latin1, except that it marks all "high-bit"
+     * code as ok. They will be validated at a later point, when decoding
+     * name
+     */
+    final static int[] sInputCodesUtf8JsNames;
+    /**
+     * Decoding table used to quickly determine characters that are
+     * relevant within comment content
+     */
+    final static int[] sInputCodesComment = new int[256];
+    /**
+     * Lookup table used for determining which output characters
+     * need to be quoted.
+     */
+    final static int[] sOutputEscapes;
+    /**
+     * Lookup table for the first 128 Unicode characters (7-bit ascii)
+     * range. For actual hex digits, contains corresponding value;
+     * for others -1.
+     */
+    final static int[] sHexValues = new int[128];
+
     static {
         /* 96 would do for most cases (backslash is ascii 94)
          * but if we want to do lookups by raw bytes it's better
@@ -27,11 +63,6 @@ public final class CharTypes
         sInputCodes = table;
     }
 
-    /**
-     * Additionally we can combine UTF-8 decoding info into similar
-     * data table.
-     */
-    final static int[] sInputCodesUtf8;
     static {
         int[] table = new int[sInputCodes.length];
         System.arraycopy(sInputCodes, 0, table, 0, sInputCodes.length);
@@ -55,15 +86,6 @@ public final class CharTypes
         sInputCodesUtf8 = table;
     }
 
-    /**
-     * To support non-default (and -standard) unquoted field names mode,
-     * need to have alternate checking.
-     * Basically this is list of 8-bit ascii characters that are legal
-     * as part of Javascript identifier
-     *
-     * @since 1.2
-     */
-    final static int[] sInputCodesJsNames;
     static {
         int[] table = new int[256];
         // Default is "not a name char", mark ones that are
@@ -77,29 +99,18 @@ public final class CharTypes
         sInputCodesJsNames = table;
     }
 
-    /**
-     * This table is similar to Latin1, except that it marks all "high-bit"
-     * code as ok. They will be validated at a later point, when decoding
-     * name
-     */
-    final static int[] sInputCodesUtf8JsNames;
     static {
         int[] table = new int[256];
-        // start with 8-bit JS names 
+        // start with 8-bit JS names
         System.arraycopy(sInputCodesJsNames, 0, table, 0, sInputCodesJsNames.length);
         Arrays.fill(table, 128, 128, 0);
         sInputCodesUtf8JsNames = table;
     }
 
-    /**
-     * Decoding table used to quickly determine characters that are
-     * relevant within comment content
-     */
-    final static int[] sInputCodesComment = new int[256];
     static {
         // but first: let's start with UTF-8 multi-byte markers:
         System.arraycopy(sInputCodesUtf8, 128, sInputCodesComment, 128, 128);
-    
+
         // default (0) means "ok" (skip); -1 invalid, others marked by char itself
         Arrays.fill(sInputCodesComment, 0, 32, -1); // invalid white space
         sInputCodesComment['\t'] = 0; // tab is still fine
@@ -108,11 +119,6 @@ public final class CharTypes
         sInputCodesComment['*'] = '*'; // end marker for c-style comments
     }
 
-    /**
-     * Lookup table used for determining which output characters
-     * need to be quoted.
-     */
-    final static int[] sOutputEscapes;
     static {
         int[] table = new int[256];
         // Control chars need generic escape sequence
@@ -133,12 +139,6 @@ public final class CharTypes
         sOutputEscapes = table;
     }
 
-    /**
-     * Lookup table for the first 128 Unicode characters (7-bit ascii)
-     * range. For actual hex digits, contains corresponding value;
-     * for others -1.
-     */
-    final static int[] sHexValues = new int[128];
     static {
         Arrays.fill(sHexValues, -1);
         for (int i = 0; i < 10; ++i) {
@@ -150,22 +150,35 @@ public final class CharTypes
         }
     }
 
-    public final static int[] getInputCodeLatin1() { return sInputCodes; }
-    public final static int[] getInputCodeUtf8() { return sInputCodesUtf8; }
+    public final static int[] getInputCodeLatin1() {
+        return sInputCodes;
+    }
 
-    public final static int[] getInputCodeLatin1JsNames() { return sInputCodesJsNames; }
-    public final static int[] getInputCodeUtf8JsNames() { return sInputCodesUtf8JsNames; }
+    public final static int[] getInputCodeUtf8() {
+        return sInputCodesUtf8;
+    }
 
-    public final static int[] getInputCodeComment() { return sInputCodesComment; }
-    public final static int[] getOutputEscapes() { return sOutputEscapes; }
+    public final static int[] getInputCodeLatin1JsNames() {
+        return sInputCodesJsNames;
+    }
 
-    public static int charToHex(int ch)
-    {
+    public final static int[] getInputCodeUtf8JsNames() {
+        return sInputCodesUtf8JsNames;
+    }
+
+    public final static int[] getInputCodeComment() {
+        return sInputCodesComment;
+    }
+
+    public final static int[] getOutputEscapes() {
+        return sOutputEscapes;
+    }
+
+    public static int charToHex(int ch) {
         return (ch > 127) ? -1 : sHexValues[ch];
     }
 
-    public static void appendQuoted(StringBuilder sb, String content)
-    {
+    public static void appendQuoted(StringBuilder sb, String content) {
         final int[] escCodes = sOutputEscapes;
         int escLen = escCodes.length;
         for (int i = 0, len = content.length(); i < len; ++i) {

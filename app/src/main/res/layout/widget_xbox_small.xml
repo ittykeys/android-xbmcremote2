@@ -10,7 +10,7 @@
         android:id="@+id/RemoteXboxWidgetRow1"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" >
+        android:layout_weight="1">
 
         <ImageView
             android:layout_width="0dp"
@@ -36,7 +36,7 @@
         android:id="@+id/RemoteXboxWidgetRow3"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" >
+        android:layout_weight="1">
 
         <Button
             android:id="@+id/RemoteXboxWidgetImgBtnSeekBack"
@@ -64,7 +64,7 @@
         android:id="@+id/RemoteXboxWidgetRow4"
         android:layout_width="fill_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" >
+        android:layout_weight="1">
 
         <Button
             android:id="@+id/RemoteXboxWidgetImgBtnPrevious"

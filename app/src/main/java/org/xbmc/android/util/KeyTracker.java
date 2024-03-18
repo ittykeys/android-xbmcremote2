@@ -21,36 +21,19 @@ import android.view.ViewConfiguration;
 
 public class KeyTracker {
 
-    public enum Stage {
-        DOWN,           //!< the key has just been pressed
-        SHORT_REPEAT,   //!< repeated key, but duration is under the long-press threshold
-        LONG_REPEAT,    //!< repeated key, but duration is over the long-press threshold
-        UP              //!< the key is being released
-    }
-    
-    public enum State {
-        KEEP_TRACKING,  //!< return this to continue to track the key
-        DONE_TRACKING,  //!< return this if you handled the key, but need not track it anymore
-        NOT_TRACKING    //!< return this if you will not handle this key
-    }
-    
-    public interface OnKeyTracker {
+    private static final int LONG_PRESS_DURATION_MS =
+            ViewConfiguration.getLongPressTimeout();
+    private static final int NOT_A_KEYCODE = -123456;
+    private int mKeyCode = NOT_A_KEYCODE;
+    private KeyEvent mEvent;
+    private long mStartMS;
+    private State mState;
+    private OnKeyTracker mTracker;
 
-        /** Called whenever there is a key event [down, short/long repeat, up]
-            @param keyCode  The current keyCode (see KeyEvent class)
-            @param msg      The message associated with the keyCode
-            @maram stage    The state the key press is in [down, short/long repeat, up]
-            @param duration The number of milliseconds since this key was initially pressed
-            @return your state after seeing the key. If you return DONE_TRACKING or NOT_TRACKING,
-                    you will not be called again for the lifetime of this key event.
-        */
-        public State onKeyTracker(int keyCode, KeyEvent event, Stage stage, int duration);
-    }
-    
     public KeyTracker(OnKeyTracker tracker) {
         mTracker = tracker;
     }
-    
+
     public boolean doKeyDown(int keyCode, KeyEvent event) {
         long now = System.currentTimeMillis();
         Stage stage = null;
@@ -60,19 +43,18 @@ public class KeyTracker {
             mKeyCode = keyCode;
             mStartMS = now;
             stage = Stage.DOWN;
-        }
-        else if (mState == State.KEEP_TRACKING) {
+        } else if (mState == State.KEEP_TRACKING) {
             stage = (now - mStartMS) >= LONG_PRESS_DURATION_MS ? Stage.LONG_REPEAT : Stage.SHORT_REPEAT;
         }
 
         if (stage != null) {
-            mEvent = event;        
+            mEvent = event;
             callTracker(stage, now);
         }
 
         return mState != State.NOT_TRACKING;
     }
-    
+
     public boolean doKeyUp(int keyCode, KeyEvent event) {
         boolean handled = false;
 
@@ -84,24 +66,42 @@ public class KeyTracker {
         mKeyCode = NOT_A_KEYCODE;
         return handled;
     }
-    
+
     private void callTracker(Stage stage, long now) {
-        mState = mTracker.onKeyTracker(mKeyCode, mEvent, stage, (int)(now - mStartMS));
+        mState = mTracker.onKeyTracker(mKeyCode, mEvent, stage, (int) (now - mStartMS));
     }
-    
+
     public void dump() {
         System.out.println(" key=" + mKeyCode + " dur=" + (System.currentTimeMillis() - mStartMS) +
-                            " state=" + mState);
+                " state=" + mState);
     }
 
-    private int             mKeyCode = NOT_A_KEYCODE;
-    private KeyEvent        mEvent;
-    private long            mStartMS;
-    private State           mState;
-    private OnKeyTracker    mTracker;
+    public enum Stage {
+        DOWN,           //!< the key has just been pressed
+        SHORT_REPEAT,   //!< repeated key, but duration is under the long-press threshold
+        LONG_REPEAT,    //!< repeated key, but duration is over the long-press threshold
+        UP              //!< the key is being released
+    }
 
-    private static final int LONG_PRESS_DURATION_MS = 
-            ViewConfiguration.getLongPressTimeout();
-    private static final int NOT_A_KEYCODE = -123456;
+    public enum State {
+        KEEP_TRACKING,  //!< return this to continue to track the key
+        DONE_TRACKING,  //!< return this if you handled the key, but need not track it anymore
+        NOT_TRACKING    //!< return this if you will not handle this key
+    }
+
+    public interface OnKeyTracker {
+
+        /**
+         * Called whenever there is a key event [down, short/long repeat, up]
+         *
+         * @param keyCode  The current keyCode (see KeyEvent class)
+         * @param msg      The message associated with the keyCode
+         * @param duration The number of milliseconds since this key was initially pressed
+         * @return your state after seeing the key. If you return DONE_TRACKING or NOT_TRACKING,
+         * you will not be called again for the lifetime of this key event.
+         * @maram stage    The state the key press is in [down, short/long repeat, up]
+         */
+        public State onKeyTracker(int keyCode, KeyEvent event, Stage stage, int duration);
+    }
 }
 

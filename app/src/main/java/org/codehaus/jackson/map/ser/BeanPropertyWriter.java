@@ -16,8 +16,7 @@ import java.lang.reflect.Type;
  * reflection-based functionality for accessing a property value
  * and serializing it.
  */
-public class BeanPropertyWriter
-{
+public class BeanPropertyWriter {
     /*
     /*****************************************************
     /* Settings for accessing property value to serialize
@@ -30,7 +29,7 @@ public class BeanPropertyWriter
      * Null if and only if {@link #_field} is null.
      */
     protected final Method _accessorMethod;
-    
+
     /**
      * Field that contains the property value for field-accessible
      * properties.
@@ -78,7 +77,7 @@ public class BeanPropertyWriter
     /**
      * Alternate set of property writers used when view-based filtering
      * is available for the Bean.
-     * 
+     *
      * @since 1.4
      */
     protected Class<?>[] _includeInViews;
@@ -91,7 +90,7 @@ public class BeanPropertyWriter
      * actual runtime type used for serializing actual state).
      */
     protected TypeSerializer _typeSerializer;
-    
+
     /**
      * Base type of the property, if the declared type is "non-trivial";
      * meaning it is either a structured type (collection, map, array),
@@ -110,15 +109,13 @@ public class BeanPropertyWriter
      */
 
     /**
-     *
      * @param suppressableValue Value to suppress
      */
     public BeanPropertyWriter(String name, JsonSerializer<Object> ser, TypeSerializer typeSer,
                               JavaType serType,
                               Method acc, Field f,
                               boolean suppressNulls,
-                              Object suppressableValue)
-    {
+                              Object suppressableValue) {
         _name = name;
         _serializer = ser;
         _typeSerializer = typeSer;
@@ -132,8 +129,7 @@ public class BeanPropertyWriter
     /**
      * "Copy constructor" to be used by filtering sub-classes
      */
-    protected BeanPropertyWriter(BeanPropertyWriter base)
-    {
+    protected BeanPropertyWriter(BeanPropertyWriter base) {
         _name = base._name;
         _serializer = base._serializer;
         _typeSerializer = base._typeSerializer;
@@ -149,22 +145,11 @@ public class BeanPropertyWriter
      * same properties as this writer, but uses specified serializer
      * instead of currently configured one (if any).
      */
-    public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
-    {
+    public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser) {
         return new BeanPropertyWriter(_name, ser, _typeSerializer, _cfgSerializationType,
-                                      _accessorMethod, _field,
-                                      _suppressNulls, _suppressableValue);
+                _accessorMethod, _field,
+                _suppressNulls, _suppressableValue);
     }
-
-    /**
-     * Method for defining which views to included value of this
-     * property in. If left undefined, will always be included;
-     * otherwise active view definition will be checked against
-     * definition list and value is only included if active
-     * view is one of defined views, or its sub-view (as defined
-     * by class/sub-class relationship).
-     */
-    public void setViews(Class<?>[] views) { _includeInViews = views; }
 
     /**
      * Method called to define type to consider as "non-trivial" basetype,
@@ -176,6 +161,10 @@ public class BeanPropertyWriter
     public void setNonTrivialBaseType(JavaType t) {
         _nonTrivialBaseType = t;
     }
+
+    public final String getName() {
+        return _name;
+    }
     
     /*
     /*****************************************************
@@ -183,10 +172,10 @@ public class BeanPropertyWriter
     /*****************************************************
      */
 
-    public final String getName() { return _name; }
+    public boolean hasSerializer() {
+        return _serializer != null;
+    }
 
-    public boolean hasSerializer() { return _serializer != null; }
-    
     // Needed by BeanSerializer#getSchema
     protected JsonSerializer<Object> getSerializer() {
         return _serializer;
@@ -199,9 +188,8 @@ public class BeanPropertyWriter
     public Class<?> getRawSerializationType() {
         return (_cfgSerializationType == null) ? null : _cfgSerializationType.getRawClass();
     }
-    
-    public Class<?> getPropertyType() 
-    {
+
+    public Class<?> getPropertyType() {
         if (_accessorMethod != null) {
             return _accessorMethod.getReturnType();
         }
@@ -213,15 +201,28 @@ public class BeanPropertyWriter
      *
      * @return The property type, or null if not found.
      */
-    public Type getGenericPropertyType()
-    {
+    public Type getGenericPropertyType() {
         if (_accessorMethod != null) {
             return _accessorMethod.getGenericReturnType();
         }
         return _field.getGenericType();
     }
 
-    public Class<?>[] getViews() { return _includeInViews; }
+    public Class<?>[] getViews() {
+        return _includeInViews;
+    }
+
+    /**
+     * Method for defining which views to included value of this
+     * property in. If left undefined, will always be included;
+     * otherwise active view definition will be checked against
+     * definition list and value is only included if active
+     * view is one of defined views, or its sub-view (as defined
+     * by class/sub-class relationship).
+     */
+    public void setViews(Class<?>[] views) {
+        _includeInViews = views;
+    }
 
     /*
     /*****************************************************
@@ -235,8 +236,7 @@ public class BeanPropertyWriter
      * using appropriate serializer.
      */
     public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws Exception
-    {
+            throws Exception {
         Object value = get(bean);
         // Null handling is bit different, check that first
         if (value == null) {
@@ -274,13 +274,12 @@ public class BeanPropertyWriter
     /**
      * Method that can be used to access value of the property this
      * Object describes, from given bean instance.
-     *<p>
+     * <p>
      * Note: method is final as it should not need to be overridden -- rather,
      * calling method(s) ({@link #serializeAsField}) should be overridden
      * to change the behavior
      */
-    public final Object get(Object bean) throws Exception
-    {
+    public final Object get(Object bean) throws Exception {
         if (_accessorMethod != null) {
             return _accessorMethod.invoke(bean);
         }
@@ -288,13 +287,12 @@ public class BeanPropertyWriter
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder(40);
         sb.append("property '").append(getName()).append("' (");
         if (_accessorMethod != null) {
             sb.append("via method ").append(_accessorMethod.getDeclaringClass().getName()).append("#").append(_accessorMethod.getName());
-               } else {
+        } else {
             sb.append("field \"").append(_field.getDeclaringClass().getName()).append("#").append(_field.getName());
         }
         sb.append(')');
@@ -302,8 +300,7 @@ public class BeanPropertyWriter
     }
 
     protected void _reportSelfReference(Object bean)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         throw new JsonMappingException("Direct self-reference leading to cycle");
     }
 }

@@ -1,5 +1,10 @@
 package org.codehaus.jackson.map.deser;
 
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationContext;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -7,25 +12,18 @@ import java.util.Currency;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.DeserializationContext;
-
 /**
  * Base class for simple deserializer which only accept Json String
  * values as the source.
  */
 public abstract class FromStringDeserializer<T>
-    extends StdScalarDeserializer<T>
-{
+        extends StdScalarDeserializer<T> {
     protected FromStringDeserializer(Class<?> vc) {
         super(vc);
     }
 
     public final T deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
             String text = jp.getText();
             try {
@@ -40,9 +38,9 @@ public abstract class FromStringDeserializer<T>
         }
         throw ctxt.mappingException(_valueClass);
     }
-        
+
     protected abstract T _deserialize(String value, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /*
     /////////////////////////////////////////////////////////////
@@ -51,61 +49,61 @@ public abstract class FromStringDeserializer<T>
     */
 
     public static class UUIDDeserializer
-        extends FromStringDeserializer<UUID>
-    {
-        public UUIDDeserializer() { super(UUID.class); }
-        
-        protected UUID _deserialize(String value, DeserializationContext ctxt)
-        {
+            extends FromStringDeserializer<UUID> {
+        public UUIDDeserializer() {
+            super(UUID.class);
+        }
+
+        protected UUID _deserialize(String value, DeserializationContext ctxt) {
             return UUID.fromString(value);
         }
     }
 
     public static class URLDeserializer
-        extends FromStringDeserializer<URL>
-    {
-        public URLDeserializer() { super(URL.class); }
-        
+            extends FromStringDeserializer<URL> {
+        public URLDeserializer() {
+            super(URL.class);
+        }
+
         protected URL _deserialize(String value, DeserializationContext ctxt)
-            throws IOException
-        {
+                throws IOException {
             return new URL(value);
         }
     }
 
     public static class URIDeserializer
-        extends FromStringDeserializer<URI>
-    {
-        public URIDeserializer() { super(URI.class); }
-        
+            extends FromStringDeserializer<URI> {
+        public URIDeserializer() {
+            super(URI.class);
+        }
+
         protected URI _deserialize(String value, DeserializationContext ctxt)
-            throws IllegalArgumentException
-        {
+                throws IllegalArgumentException {
             return URI.create(value);
         }
     }
 
     public static class CurrencyDeserializer
-        extends FromStringDeserializer<Currency>
-    {
-        public CurrencyDeserializer() { super(Currency.class); }
-        
+            extends FromStringDeserializer<Currency> {
+        public CurrencyDeserializer() {
+            super(Currency.class);
+        }
+
         protected Currency _deserialize(String value, DeserializationContext ctxt)
-            throws IllegalArgumentException
-        {
+                throws IllegalArgumentException {
             // will throw IAE if unknown:
             return Currency.getInstance(value);
         }
     }
 
     public static class PatternDeserializer
-        extends FromStringDeserializer<Pattern>
-    {
-        public PatternDeserializer() { super(Pattern.class); }
-        
+            extends FromStringDeserializer<Pattern> {
+        public PatternDeserializer() {
+            super(Pattern.class);
+        }
+
         protected Pattern _deserialize(String value, DeserializationContext ctxt)
-            throws IllegalArgumentException
-        {
+                throws IllegalArgumentException {
             // will throw IAE (or its subclass) if malformed
             return Pattern.compile(value);
         }

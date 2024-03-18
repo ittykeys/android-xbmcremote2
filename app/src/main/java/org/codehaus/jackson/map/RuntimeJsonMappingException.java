@@ -5,8 +5,7 @@ package org.codehaus.jackson.map;
  * {@link JsonMappingException}
  */
 @SuppressWarnings("serial")
-public class RuntimeJsonMappingException extends RuntimeException
-{
+public class RuntimeJsonMappingException extends RuntimeException {
     public RuntimeJsonMappingException(JsonMappingException cause) {
         super(cause);
     }

@@ -1,9 +1,12 @@
 package org.codehaus.jackson.node;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.SerializerProvider;
+
+import java.io.IOException;
 
 /**
  * This singleton node class is generated to denote "missing nodes"
@@ -13,40 +16,51 @@ import org.codehaus.jackson.map.SerializerProvider;
  * will be reference to this node.
  */
 public final class MissingNode
-    extends BaseJsonNode
-{
+        extends BaseJsonNode {
     private final static MissingNode instance = new MissingNode();
 
-    private MissingNode() { }
+    private MissingNode() {
+    }
 
-    public static MissingNode getInstance() { return instance; }
-
-    @Override public JsonToken asToken() { return JsonToken.NOT_AVAILABLE; }
-
-    @Override
-    public boolean isMissingNode() { return true; }
+    public static MissingNode getInstance() {
+        return instance;
+    }
 
     @Override
-    public String getValueAsText() { return null; }
+    public JsonToken asToken() {
+        return JsonToken.NOT_AVAILABLE;
+    }
 
     @Override
-    public JsonNode path(String fieldName) { return this; }
+    public boolean isMissingNode() {
+        return true;
+    }
 
     @Override
-    public JsonNode path(int index) { return this; }
+    public String getValueAsText() {
+        return null;
+    }
+
+    @Override
+    public JsonNode path(String fieldName) {
+        return this;
+    }
+
+    @Override
+    public JsonNode path(int index) {
+        return this;
+    }
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         /* Nothing to output... should we signal an error tho?
          * Chances are, this is an erroneous call. For now, let's
          * not do that.
          */
     }
 
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         /* Hmmh. Since there's just a singleton instance, this
          * fails in all cases but with identity comparison.
          * However: if this placeholder value was to be considered
@@ -59,8 +73,7 @@ public final class MissingNode
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         // toString() should never return null
         return "";
     }

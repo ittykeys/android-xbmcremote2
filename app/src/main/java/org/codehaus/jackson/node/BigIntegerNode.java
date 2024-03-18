@@ -1,47 +1,61 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.SerializerProvider;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.SerializerProvider;
 
 /**
  * Numeric node that contains simple 64-bit integer values.
  */
 public final class BigIntegerNode
-    extends NumericNode
-{
+        extends NumericNode {
     final BigInteger _value;
 
-    /* 
-    ************************************************
-    * Construction
-    ************************************************
-    */
+    /*
+     ************************************************
+     * Construction
+     ************************************************
+     */
 
-    public BigIntegerNode(BigInteger v) { _value = v; }
+    public BigIntegerNode(BigInteger v) {
+        _value = v;
+    }
 
-    public static BigIntegerNode valueOf(BigInteger v) { return new BigIntegerNode(v); }
+    public static BigIntegerNode valueOf(BigInteger v) {
+        return new BigIntegerNode(v);
+    }
 
-    /* 
-    ************************************************
-    * Overrridden JsonNode methods
-    ************************************************
-    */
-
-    @Override
-    public JsonToken asToken() { return JsonToken.VALUE_NUMBER_INT; }
-
-    @Override
-    public JsonParser.NumberType getNumberType() { return JsonParser.NumberType.BIG_INTEGER; }
+    /*
+     ************************************************
+     * Overrridden JsonNode methods
+     ************************************************
+     */
 
     @Override
-    public boolean isIntegralNumber() { return true; }
+    public JsonToken asToken() {
+        return JsonToken.VALUE_NUMBER_INT;
+    }
 
     @Override
-    public boolean isBigInteger() { return true; }
+    public JsonParser.NumberType getNumberType() {
+        return JsonParser.NumberType.BIG_INTEGER;
+    }
+
+    @Override
+    public boolean isIntegralNumber() {
+        return true;
+    }
+
+    @Override
+    public boolean isBigInteger() {
+        return true;
+    }
 
     @Override
     public Number getNumberValue() {
@@ -49,19 +63,29 @@ public final class BigIntegerNode
     }
 
     @Override
-        public int getIntValue() { return _value.intValue(); }
+    public int getIntValue() {
+        return _value.intValue();
+    }
 
     @Override
-        public long getLongValue() { return _value.longValue(); }
+    public long getLongValue() {
+        return _value.longValue();
+    }
 
     @Override
-        public BigInteger getBigIntegerValue() { return _value; }
+    public BigInteger getBigIntegerValue() {
+        return _value;
+    }
 
     @Override
-        public double getDoubleValue() { return _value.doubleValue(); }
+    public double getDoubleValue() {
+        return _value.doubleValue();
+    }
 
     @Override
-        public BigDecimal getDecimalValue() { return new BigDecimal(_value); }
+    public BigDecimal getDecimalValue() {
+        return new BigDecimal(_value);
+    }
 
     public String getValueAsText() {
         return _value.toString();
@@ -69,14 +93,12 @@ public final class BigIntegerNode
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         jg.writeNumber(_value);
     }
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this

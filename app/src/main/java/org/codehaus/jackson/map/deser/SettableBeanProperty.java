@@ -1,12 +1,18 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.lang.reflect.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.InternCache;
+
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * Base class for settable properties of a bean: contains
@@ -14,8 +20,7 @@ import org.codehaus.jackson.util.InternCache;
  * Concrete sub-classes implement details, so that both field- and
  * setter-backed properties can be handled
  */
-public abstract class SettableBeanProperty
-{
+public abstract class SettableBeanProperty {
     /**
      * Logical name of the property (often but not always derived
      * from the setter method name)
@@ -32,7 +37,7 @@ public abstract class SettableBeanProperty
      * used to handle type resolution.
      */
     protected TypeDeserializer _valueTypeDeserializer;
-    
+
     /**
      * Value to be used when 'null' literal is encountered in Json.
      * For most types simply Java null, but for primitive types must
@@ -47,8 +52,7 @@ public abstract class SettableBeanProperty
      */
 
     protected SettableBeanProperty(String propName, JavaType type,
-            TypeDeserializer typeDeser)
-    {
+                                   TypeDeserializer typeDeser) {
         /* 09-Jan-2009, tatu: Intern()ing makes sense since Jackson parsed
          *   field names are (usually) interned too, hence lookups will be faster.
          */
@@ -62,10 +66,9 @@ public abstract class SettableBeanProperty
         _valueTypeDeserializer = typeDeser;
     }
 
-    public void setValueDeserializer(JsonDeserializer<Object> deser)
-    {
+    public void setValueDeserializer(JsonDeserializer<Object> deser) {
         if (_valueDeserializer != null) { // sanity check
-            throw new IllegalStateException("Already had assigned deserializer for property '"+_propName+"' (class "+getDeclaringClass().getName()+")");
+            throw new IllegalStateException("Already had assigned deserializer for property '" + _propName + "' (class " + getDeclaringClass().getName() + ")");
         }
         _valueDeserializer = deser;
         _nullValue = _valueDeserializer.getNullValue();
@@ -79,20 +82,29 @@ public abstract class SettableBeanProperty
     /******************************************************
      */
 
-    public String getPropertyName() { return _propName; }
-    public JavaType getType() { return _type; }
+    public String getPropertyName() {
+        return _propName;
+    }
 
-    public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
+    public JavaType getType() {
+        return _type;
+    }
+
+    public boolean hasValueDeserializer() {
+        return (_valueDeserializer != null);
+    }
 
     /**
      * Method to use for accessing index of the property (related to
      * other properties in the same context); currently only applicable
      * to "Creator properties".
-     *<p>
+     * <p>
      * Base implementation returns -1 to indicate that no index exists
      * for the property.
      */
-    public int getCreatorIndex() { return -1; }
+    public int getCreatorIndex() {
+        return -1;
+    }
 
     /*
     /******************************************************
@@ -109,22 +121,21 @@ public abstract class SettableBeanProperty
      */
     public abstract void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                            Object instance)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     public abstract void set(Object instance, Object value)
-        throws IOException;
+            throws IOException;
 
     /**
      * This method is needed by some specialized bean deserializers,
      * and also called by some {@link #deserializeAndSet} implementations.
-     *<p>
+     * <p>
      * Pre-condition is that passed parser must point to the first token
      * that should be consumed to produce the value (the only value for
      * scalars, multiple for Objects and Arrays).
      */
     public final Object deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.VALUE_NULL) {
             return _nullValue;
@@ -146,8 +157,7 @@ public abstract class SettableBeanProperty
      * to an IOException or its subclass.
      */
     protected void _throwAsIOE(Exception e, Object value)
-        throws IOException
-    {
+            throws IOException {
         if (e instanceof IllegalArgumentException) {
             String actType = (value == null) ? "[NULL]" : value.getClass().getName();
             StringBuilder msg = new StringBuilder("Problem deserializing property '").append(getPropertyName());
@@ -165,8 +175,7 @@ public abstract class SettableBeanProperty
     }
 
     protected IOException _throwAsIOE(Exception e)
-        throws IOException
-    {
+            throws IOException {
         if (e instanceof IOException) {
             throw (IOException) e;
         }
@@ -180,8 +189,11 @@ public abstract class SettableBeanProperty
         }
         throw new JsonMappingException(th.getMessage(), null, th);
     }
-    
-    @Override public String toString() { return "[property '"+_propName+"']"; }
+
+    @Override
+    public String toString() {
+        return "[property '" + _propName + "']";
+    }
 
     /*
     ////////////////////////////////////////////////////////
@@ -194,8 +206,7 @@ public abstract class SettableBeanProperty
      * using regular "setter" method.
      */
     public final static class MethodProperty
-        extends SettableBeanProperty
-    {
+            extends SettableBeanProperty {
         /**
          * Setter method for modifying property value; used for
          * "regular" method-accessible properties.
@@ -203,27 +214,23 @@ public abstract class SettableBeanProperty
         protected final Method _setter;
 
         public MethodProperty(String propName, JavaType type, TypeDeserializer typeDeser,
-                Method setter)
-        {
+                              Method setter) {
             super(propName, type, typeDeser);
             _setter = setter;
         }
 
-        protected Class<?> getDeclaringClass()
-        {
+        protected Class<?> getDeclaringClass() {
             return _setter.getDeclaringClass();
         }
 
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             set(instance, deserialize(jp, ctxt));
         }
 
         public final void set(Object instance, Object value)
-            throws IOException
-        {
+                throws IOException {
             try {
                 _setter.invoke(instance, value);
             } catch (Exception e) {
@@ -237,8 +244,7 @@ public abstract class SettableBeanProperty
      * indirectly by getting the property value and directly modifying it.
      */
     public final static class SetterlessProperty
-        extends SettableBeanProperty
-    {
+            extends SettableBeanProperty {
         /**
          * Get method for accessing property value used to access property
          * (of Collection or Map type) to modify.
@@ -246,21 +252,18 @@ public abstract class SettableBeanProperty
         protected final Method _getter;
 
         public SetterlessProperty(String propName, JavaType type, TypeDeserializer typeDeser,
-                                  Method getter)
-        {
+                                  Method getter) {
             super(propName, type, typeDeser);
             _getter = getter;
         }
 
-        protected Class<?> getDeclaringClass()
-        {
+        protected Class<?> getDeclaringClass() {
             return _getter.getDeclaringClass();
         }
-        
+
         public final void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                             Object instance)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             JsonToken t = jp.getCurrentToken();
             if (t == JsonToken.VALUE_NULL) {
                 /* Hmmh. Is this a problem? We won't be setting anything, so it's
@@ -283,14 +286,13 @@ public abstract class SettableBeanProperty
              * be compatible. If so, implementation could be changed.
              */
             if (toModify == null) {
-                throw new JsonMappingException("Problem deserializing 'setterless' property '"+getPropertyName()+"': get method returned null");
+                throw new JsonMappingException("Problem deserializing 'setterless' property '" + getPropertyName() + "': get method returned null");
             }
             _valueDeserializer.deserialize(jp, ctxt, toModify);
         }
 
         public final void set(Object instance, Object value)
-            throws IOException
-        {
+                throws IOException {
             throw new UnsupportedOperationException("Should never call 'set' on setterless property");
         }
     }
@@ -300,35 +302,30 @@ public abstract class SettableBeanProperty
      * directly assigning to a Field.
      */
     public final static class FieldProperty
-        extends SettableBeanProperty
-    {
+            extends SettableBeanProperty {
         /**
          * Actual field to set when deserializing this property.
          */
         protected final Field _field;
 
         public FieldProperty(String propName, JavaType type, TypeDeserializer typeDeser,
-                             Field f)
-        {
+                             Field f) {
             super(propName, type, typeDeser);
             _field = f;
         }
 
-        protected Class<?> getDeclaringClass()
-        {
+        protected Class<?> getDeclaringClass() {
             return _field.getDeclaringClass();
         }
 
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             set(instance, deserialize(jp, ctxt));
         }
 
         public final void set(Object instance, Object value)
-            throws IOException
-        {
+                throws IOException {
             try {
                 _field.set(instance, value);
             } catch (Exception e) {
@@ -342,8 +339,7 @@ public abstract class SettableBeanProperty
      * via Creator (constructor or static factory method).
      */
     public final static class CreatorProperty
-        extends SettableBeanProperty
-    {
+            extends SettableBeanProperty {
         final Class<?> _declaringClass;
 
         /**
@@ -353,8 +349,7 @@ public abstract class SettableBeanProperty
 
         public CreatorProperty(String propName, JavaType type,
                                TypeDeserializer typeDeser,
-                               Class<?> declaringClass, int index)
-        {
+                               Class<?> declaringClass, int index) {
             super(propName, type, typeDeser);
             _declaringClass = declaringClass;
             _index = index;
@@ -364,27 +359,26 @@ public abstract class SettableBeanProperty
          * Method to use for accessing index of the property (related to
          * other properties in the same context); currently only applicable
          * to "Creator properties".
-         *<p>
+         * <p>
          * Base implementation returns -1 to indicate that no index exists
          * for the property.
          */
-        public int getCreatorIndex() { return _index; }
-        
-        protected Class<?> getDeclaringClass()
-        {
+        public int getCreatorIndex() {
+            return _index;
+        }
+
+        protected Class<?> getDeclaringClass() {
             return _declaringClass;
         }
 
         public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
                                       Object instance)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             set(instance, deserialize(jp, ctxt));
         }
 
         public void set(Object instance, Object value)
-            throws IOException
-        {
+                throws IOException {
             /* Hmmmh. Should we return quietly (NOP), or error?
              * For now, let's just bail out without fuss.
              */

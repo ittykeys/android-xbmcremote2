@@ -23,12 +23,13 @@ package org.xbmc.httpapi;
 
 /**
  * Throw this exception if network is not available on the device
- * 
+ *
  * @author Team XBMC
  */
 public class NoNetworkException extends Exception {
-	private static final long serialVersionUID = -300859290934884233L;
-	public NoNetworkException() {
-		super("This application requires network access. Enable mobile network or Wi-Fi to download data.");
-	}
+    private static final long serialVersionUID = -300859290934884233L;
+
+    public NoNetworkException() {
+        super("This application requires network access. Enable mobile network or Wi-Fi to download data.");
+    }
 }

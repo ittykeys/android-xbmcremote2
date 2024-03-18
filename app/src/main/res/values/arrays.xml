@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--  Copyright (C) 2005-2009 Team XBMC
+<?xml version="1.0" encoding="utf-8"?><!--  Copyright (C) 2005-2009 Team XBMC
       http://xbmc.org
 
       This Program is free software; you can redistribute it and/or modify
@@ -19,22 +18,22 @@
 -->
 
 <resources>
-	<string-array name="KeyguardPreferenceValues">
-		<item>0</item>
-		<item>1</item>
-		<item>2</item>
-	</string-array>
-	<string-array name="KeyguardPreferenceEntries">
-		<item>Never</item>
-		<item>On Remote</item>
-		<item>Always</item>
-	</string-array>
-	<string-array name="SelectionPreferenceValues">
-		<item>0</item>
-		<item>1</item>
-	</string-array>
-	<string-array name="SelectionPreferenceEntries">
-		<item>Play Song</item>
-		<item>Queue Song</item>
-	</string-array>
+    <string-array name="KeyguardPreferenceValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string-array name="KeyguardPreferenceEntries">
+        <item>Never</item>
+        <item>On Remote</item>
+        <item>Always</item>
+    </string-array>
+    <string-array name="SelectionPreferenceValues">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string-array name="SelectionPreferenceEntries">
+        <item>Play Song</item>
+        <item>Queue Song</item>
+    </string-array>
 </resources>

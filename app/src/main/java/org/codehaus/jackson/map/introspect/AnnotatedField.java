@@ -8,12 +8,11 @@ import java.lang.reflect.Type;
 /**
  * Object that represents non-static (and usually non-transient/volatile)
  * fields of a class.
- * 
+ *
  * @author tatu
  */
 public final class AnnotatedField
-    extends AnnotatedMember
-{
+        extends AnnotatedMember {
     protected final Field _field;
 
     protected final AnnotationMap _annotations;
@@ -24,8 +23,7 @@ public final class AnnotatedField
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedField(Field field, AnnotationMap annMap)
-    {
+    public AnnotatedField(Field field, AnnotationMap annMap) {
         _field = field;
         _annotations = annMap;
     }
@@ -35,8 +33,7 @@ public final class AnnotatedField
      * annotation masking or overriding an annotation 'real' constructor
      * has.
      */
-    public void addOrOverride(Annotation a)
-    {
+    public void addOrOverride(Annotation a) {
         _annotations.add(a);
     }
 
@@ -46,14 +43,19 @@ public final class AnnotatedField
     //////////////////////////////////////////////////////
      */
 
-    public Field getAnnotated() { return _field; }
+    public Field getAnnotated() {
+        return _field;
+    }
 
-    public int getModifiers() { return _field.getModifiers(); }
+    public int getModifiers() {
+        return _field.getModifiers();
+    }
 
-    public String getName() { return _field.getName(); }
+    public String getName() {
+        return _field.getName();
+    }
 
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
+    public <A extends Annotation> A getAnnotation(Class<A> acls) {
         return _annotations.get(acls);
     }
 
@@ -71,9 +73,13 @@ public final class AnnotatedField
     //////////////////////////////////////////////////////
      */
 
-    public Class<?> getDeclaringClass() { return _field.getDeclaringClass(); }
+    public Class<?> getDeclaringClass() {
+        return _field.getDeclaringClass();
+    }
 
-    public Member getMember() { return _field; }
+    public Member getMember() {
+        return _field;
+    }
     
     /*
     //////////////////////////////////////////////////////
@@ -85,11 +91,12 @@ public final class AnnotatedField
         return getDeclaringClass().getName() + "#" + getName();
     }
 
-    public int getAnnotationCount() { return _annotations.size(); }
+    public int getAnnotationCount() {
+        return _annotations.size();
+    }
 
-    public String toString()
-    {
-        return "[field "+getName()+", annotations: "+_annotations+"]";
+    public String toString() {
+        return "[field " + getName() + ", annotations: " + _annotations + "]";
     }
 }
 

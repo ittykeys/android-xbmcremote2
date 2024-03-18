@@ -6,9 +6,10 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 */
 
-import java.util.*;
-
 import org.codehaus.jackson.type.JavaType;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Simple types are defined as anything other than one of recognized
@@ -17,8 +18,7 @@ import org.codehaus.jackson.type.JavaType;
  * with generic types other than Collections and Maps.
  */
 public final class SimpleType
-    extends TypeBase
-{
+        extends TypeBase {
     /**
      * Generic type arguments for this type.
      */
@@ -51,39 +51,35 @@ public final class SimpleType
             _typeParameters = typeParams;
         }
     }
-    
-    protected JavaType _narrow(Class<?> subclass)
-    {
-        // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass, _typeNames, _typeParameters);
-    }
 
-    public JavaType narrowContentsBy(Class<?> subclass)
-    {
-        // should never get called
-        throw new IllegalArgumentException("Internal error: SimpleType.narrowContentsBy() should never be called");
-    }
-
-    public static SimpleType construct(Class<?> cls)
-    {
+    public static SimpleType construct(Class<?> cls) {
         /* Let's add sanity checks, just to ensure no
          * Map/Collection entries are constructed
          */
         if (Map.class.isAssignableFrom(cls)) {
-            throw new IllegalArgumentException("Can not construct SimpleType for a Map (class: "+cls.getName()+")");
+            throw new IllegalArgumentException("Can not construct SimpleType for a Map (class: " + cls.getName() + ")");
         }
         if (Collection.class.isAssignableFrom(cls)) {
-            throw new IllegalArgumentException("Can not construct SimpleType for a Collection (class: "+cls.getName()+")");
+            throw new IllegalArgumentException("Can not construct SimpleType for a Collection (class: " + cls.getName() + ")");
         }
         // ... and while we are at it, not array types either
         if (cls.isArray()) {
-            throw new IllegalArgumentException("Can not construct SimpleType for an array (class: "+cls.getName()+")");
+            throw new IllegalArgumentException("Can not construct SimpleType for an array (class: " + cls.getName() + ")");
         }
         return new SimpleType(cls);
     }
 
-    protected String buildCanonicalName()
-    {
+    protected JavaType _narrow(Class<?> subclass) {
+        // Should we check that there is a sub-class relationship?
+        return new SimpleType(subclass, _typeNames, _typeParameters);
+    }
+
+    public JavaType narrowContentsBy(Class<?> subclass) {
+        // should never get called
+        throw new IllegalArgumentException("Internal error: SimpleType.narrowContentsBy() should never be called");
+    }
+
+    protected String buildCanonicalName() {
         StringBuilder sb = new StringBuilder();
         sb.append(_class.getName());
         if (_typeParameters != null && _typeParameters.length > 0) {
@@ -109,7 +105,9 @@ public final class SimpleType
      */
 
     @Override
-    public boolean isContainerType() { return false; }
+    public boolean isContainerType() {
+        return false;
+    }
 
     @Override
     public int containedTypeCount() {
@@ -117,16 +115,14 @@ public final class SimpleType
     }
 
     @Override
-    public JavaType containedType(int index)
-    {
+    public JavaType containedType(int index) {
         if (index < 0 || _typeParameters == null || index >= _typeParameters.length) {
             return null;
         }
         return _typeParameters[index];
     }
 
-    public String containedTypeName(int index)
-    {
+    public String containedTypeName(int index) {
         if (index < 0 || _typeNames == null || index >= _typeNames.length) {
             return null;
         }
@@ -140,16 +136,14 @@ public final class SimpleType
      */
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder(40);
         sb.append("[simple type, class ").append(buildCanonicalName()).append(']');
         return sb.toString();
     }
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;

@@ -1,7 +1,10 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Simple helper class used to keep track of collection of
@@ -9,19 +12,18 @@ import java.util.*;
  * is usually needed for augmenting and overriding annotations.
  */
 public final class AnnotatedMethodMap
-    implements Iterable<AnnotatedMethod>
-{
-    LinkedHashMap<MemberKey,AnnotatedMethod> _methods;
+        implements Iterable<AnnotatedMethod> {
+    LinkedHashMap<MemberKey, AnnotatedMethod> _methods;
 
-    public AnnotatedMethodMap() { }
+    public AnnotatedMethodMap() {
+    }
 
     /**
      * Method called to add specified annotation in the Map.
      */
-    public void add(AnnotatedMethod am)
-    {
+    public void add(AnnotatedMethod am) {
         if (_methods == null) {
-            _methods = new LinkedHashMap<MemberKey,AnnotatedMethod>();
+            _methods = new LinkedHashMap<MemberKey, AnnotatedMethod>();
         }
         _methods.put(new MemberKey(am.getAnnotated()), am);
     }
@@ -30,13 +32,11 @@ public final class AnnotatedMethodMap
      * Method called to remove specified method, assuming
      * it exists in the Map
      */
-    public AnnotatedMethod remove(AnnotatedMethod am)
-    {
+    public AnnotatedMethod remove(AnnotatedMethod am) {
         return remove(am.getAnnotated());
     }
 
-    public AnnotatedMethod remove(Method m)
-    {
+    public AnnotatedMethod remove(Method m) {
         if (_methods != null) {
             return _methods.remove(new MemberKey(m));
         }
@@ -51,16 +51,14 @@ public final class AnnotatedMethodMap
         return (_methods == null) ? 0 : _methods.size();
     }
 
-    public AnnotatedMethod find(String name, Class<?>[] paramTypes)
-    {
+    public AnnotatedMethod find(String name, Class<?>[] paramTypes) {
         if (_methods == null) {
             return null;
         }
         return _methods.get(new MemberKey(name, paramTypes));
     }
 
-    public AnnotatedMethod find(Method m)
-    {
+    public AnnotatedMethod find(Method m) {
         if (_methods == null) {
             return null;
         }
@@ -73,8 +71,7 @@ public final class AnnotatedMethodMap
     ///////////////////////////////////////////////////////
      */
 
-    public Iterator<AnnotatedMethod> iterator()
-    {
+    public Iterator<AnnotatedMethod> iterator() {
         if (_methods != null) {
             return _methods.values().iterator();
         }

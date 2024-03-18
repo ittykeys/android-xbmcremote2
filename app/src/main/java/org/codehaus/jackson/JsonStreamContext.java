@@ -25,8 +25,7 @@ package org.codehaus.jackson;
  * example, output within Array context can differ from that of
  * Object context.
  */
-public abstract class JsonStreamContext
-{
+public abstract class JsonStreamContext {
     // // // Type constants used internally
 
     protected final static int TYPE_ROOT = 0;
@@ -50,8 +49,7 @@ public abstract class JsonStreamContext
     //////////////////////////////////////////////////
      */
 
-    public JsonStreamContext(int type)
-    {
+    public JsonStreamContext(int type) {
         _type = type;
         _index = -1;
     }
@@ -68,26 +66,35 @@ public abstract class JsonStreamContext
      * Method that returns true if this context is an Array context;
      * that is, content is being read from or written to a Json Array.
      */
-    public final boolean inArray() { return _type == TYPE_ARRAY; }
+    public final boolean inArray() {
+        return _type == TYPE_ARRAY;
+    }
 
     /**
      * Method that returns true if this context is a Root context;
      * that is, content is being read from or written to without
      * enclosing array or object structure.
      */
-    public final boolean inRoot() { return _type == TYPE_ROOT; }
+    public final boolean inRoot() {
+        return _type == TYPE_ROOT;
+    }
 
     /**
      * Method that returns true if this context is an Object context;
      * that is, content is being read from or written to a Json Object.
      */
-    public final boolean inObject() { return _type == TYPE_OBJECT; }
+    public final boolean inObject() {
+        return _type == TYPE_OBJECT;
+    }
 
     public final String getTypeDesc() {
         switch (_type) {
-        case TYPE_ROOT: return "ROOT";
-        case TYPE_ARRAY: return "ARRAY";
-        case TYPE_OBJECT: return "OBJECT";
+            case TYPE_ROOT:
+                return "ROOT";
+            case TYPE_ARRAY:
+                return "ARRAY";
+            case TYPE_OBJECT:
+                return "OBJECT";
         }
         return "?";
     }
@@ -95,16 +102,14 @@ public abstract class JsonStreamContext
     /**
      * @return Number of entries that are complete and started.
      */
-    public final int getEntryCount()
-    {
+    public final int getEntryCount() {
         return _index + 1;
     }
 
     /**
      * @return Index of the currently processed entry, if any
      */
-    public final int getCurrentIndex()
-    {
+    public final int getCurrentIndex() {
         return (_index < 0) ? 0 : _index;
     }
 

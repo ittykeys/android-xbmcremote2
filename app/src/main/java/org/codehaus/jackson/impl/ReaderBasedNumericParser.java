@@ -1,11 +1,11 @@
 package org.codehaus.jackson.impl;
 
-import java.io.IOException;
-import java.io.Reader;
-
-import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.io.IOContext;
+
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * Intermediate class that implements handling of numeric parsing.
@@ -15,16 +15,14 @@ import org.codehaus.jackson.JsonToken;
  * underlying buffers.
  */
 public abstract class ReaderBasedNumericParser
-    extends ReaderBasedParserBase
-{
+        extends ReaderBasedParserBase {
     /*
     ////////////////////////////////////////////////////
     // Life-cycle
     ////////////////////////////////////////////////////
      */
 
-    public ReaderBasedNumericParser(IOContext pc, int features, Reader r)
-    {
+    public ReaderBasedNumericParser(IOContext pc, int features, Reader r) {
         super(pc, features, r);
     }
 
@@ -42,7 +40,7 @@ public abstract class ReaderBasedNumericParser
      * as a floating point number. The basic rule is that if the number
      * has no fractional or exponential part, it is an integer; otherwise
      * a floating point number.
-     *<p>
+     * <p>
      * Because much of input has to be processed in any case, no partial
      * parsing is done: all input text will be stored for further
      * processing. However, actual numeric value conversion will be
@@ -51,8 +49,7 @@ public abstract class ReaderBasedNumericParser
      */
     @Override
     protected final JsonToken parseNumberText(int ch)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         /* Although we will always be complete with respect to textual
          * representation (that is, all characters will be parsed),
          * actual conversion to a number is deferred. Thus, need to
@@ -60,7 +57,7 @@ public abstract class ReaderBasedNumericParser
          */
         boolean negative = (ch == INT_MINUS);
         int ptr = _inputPtr;
-        int startPtr = ptr-1; // to include sign/digit already read
+        int startPtr = ptr - 1; // to include sign/digit already read
         final int inputLen = _inputEnd;
 
         dummy_loop:
@@ -85,11 +82,11 @@ public abstract class ReaderBasedNumericParser
              * and to simplify processing, we will just reparse contents
              * in the alternative case (number split on buffer boundary)
              */
-            
+
             int intLen = 1; // already got one
-            
+
             // First let's get the obligatory integer part:
-            
+
             int_loop:
             while (true) {
                 if (ptr >= _inputEnd) {
@@ -101,14 +98,14 @@ public abstract class ReaderBasedNumericParser
                 }
                 // The only check: no leading zeroes
                 if (++intLen == 2) { // To ensure no leading zeroes
-                    if (_inputBuffer[ptr-2] == '0') {
+                    if (_inputBuffer[ptr - 2] == '0') {
                         reportInvalidNumber("Leading zeroes not allowed");
                     }
                 }
             }
 
             int fractLen = 0;
-            
+
             // And then see if we get other parts
             if (ch == INT_DECIMAL_POINT) { // yes, fraction
                 fract_loop:
@@ -157,12 +154,12 @@ public abstract class ReaderBasedNumericParser
             // Got it all: let's add to text buffer for parsing, access
             --ptr; // need to push back following separator
             _inputPtr = ptr;
-            int len = ptr-startPtr;
+            int len = ptr - startPtr;
             _textBuffer.resetWithShared(_inputBuffer, startPtr, len);
             return reset(negative, intLen, fractLen, expLen);
         } while (false);
 
-        _inputPtr = negative ? (startPtr+1) : startPtr;
+        _inputPtr = negative ? (startPtr + 1) : startPtr;
         return parseNumberText2(negative);
     }
 
@@ -174,8 +171,7 @@ public abstract class ReaderBasedNumericParser
      * instead of just sharing the main input buffer.
      */
     private final JsonToken parseNumberText2(boolean negative)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = 0;
 
@@ -204,7 +200,7 @@ public abstract class ReaderBasedNumericParser
             ++intLen;
             // Quickie check: no leading zeroes allowed
             if (intLen == 2) {
-                if (outBuf[outPtr-1] == '0') {
+                if (outBuf[outPtr - 1] == '0') {
                     reportInvalidNumber("Leading zeroes not allowed");
                 }
             }
@@ -216,7 +212,7 @@ public abstract class ReaderBasedNumericParser
         }
         // Also, integer part is not optional
         if (intLen == 0) {
-            reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
+            reportInvalidNumber("Missing integer part (next char " + _getCharDesc(c) + ")");
         }
 
         int fractLen = 0;
@@ -256,7 +252,7 @@ public abstract class ReaderBasedNumericParser
             outBuf[outPtr++] = c;
             // Not optional, can require that we get one more char
             c = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr++]
-                : getNextChar("expected a digit for number exponent");
+                    : getNextChar("expected a digit for number exponent");
             // Sign indicator?
             if (c == '-' || c == '+') {
                 if (outPtr >= outBuf.length) {
@@ -266,7 +262,7 @@ public abstract class ReaderBasedNumericParser
                 outBuf[outPtr++] = c;
                 // Likewise, non optional:
                 c = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr++]
-                    : getNextChar("expected a digit for number exponent");
+                        : getNextChar("expected a digit for number exponent");
             }
 
             exp_loop:

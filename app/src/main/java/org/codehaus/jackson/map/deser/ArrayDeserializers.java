@@ -1,28 +1,29 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.util.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Container for deserializers used for instantiating "primitive arrays",
  * arrays that contain non-object java primitive types.
  */
-public class ArrayDeserializers
-{
-    HashMap<JavaType,JsonDeserializer<Object>> _allDeserializers;
-
+public class ArrayDeserializers {
     final static ArrayDeserializers instance = new ArrayDeserializers();
+    HashMap<JavaType, JsonDeserializer<Object>> _allDeserializers;
 
-    private ArrayDeserializers()
-    {
-        _allDeserializers = new HashMap<JavaType,JsonDeserializer<Object>>();
+    private ArrayDeserializers() {
+        _allDeserializers = new HashMap<JavaType, JsonDeserializer<Object>>();
         // note: we'll use component type as key, not array type
         add(boolean.class, new BooleanDeser());
 
@@ -45,22 +46,19 @@ public class ArrayDeserializers
         add(char.class, new CharDeser());
     }
 
-    public static HashMap<JavaType,JsonDeserializer<Object>> getAll()
-    {
+    public static HashMap<JavaType, JsonDeserializer<Object>> getAll() {
         return instance._allDeserializers;
     }
 
     @SuppressWarnings("unchecked")
-	private void add(Class<?> cls, JsonDeserializer<?> deser)
-    {
+    private void add(Class<?> cls, JsonDeserializer<?> deser) {
         _allDeserializers.put(TypeFactory.type(cls),
-                              (JsonDeserializer<Object>) deser);
+                (JsonDeserializer<Object>) deser);
     }
 
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
+                                      TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException {
         /* Should there be separate handling for base64 stuff?
          * for now this should be enough:
          */
@@ -72,19 +70,17 @@ public class ArrayDeserializers
     /* Intermediate base class
     /********************************************************
      */
-    
+
     static abstract class ArrayDeser<T>
-        extends StdDeserializer<T>
-    {
+            extends StdDeserializer<T> {
         protected ArrayDeser(Class<T> cls) {
             super(cls);
         }
 
         @Override
         public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-            throws IOException, JsonProcessingException
-        {
+                                          TypeDeserializer typeDeserializer)
+                throws IOException, JsonProcessingException {
             return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
         }
     }
@@ -96,13 +92,13 @@ public class ArrayDeserializers
     */
 
     final static class StringDeser
-        extends ArrayDeser<String[]>
-    {
-        public StringDeser() { super(String[].class); }
+            extends ArrayDeser<String[]> {
+        public StringDeser() {
+            super(String[].class);
+        }
 
         public String[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             // Ok: must point to START_ARRAY
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
@@ -111,7 +107,7 @@ public class ArrayDeserializers
             Object[] chunk = buffer.resetAndStart();
             int ix = 0;
             JsonToken t;
-            
+
             while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
                 // Ok: no need to convert Strings, but must recognize nulls
                 String value = (t == JsonToken.VALUE_NULL) ? null : jp.getText();
@@ -128,13 +124,13 @@ public class ArrayDeserializers
     }
 
     final static class CharDeser
-        extends ArrayDeser<char[]>
-    {
-        public CharDeser() { super(char[].class); }
+            extends ArrayDeser<char[]> {
+        public CharDeser() {
+            super(char[].class);
+        }
 
         public char[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             /* Won't take arrays, must get a String (could also
              * convert other tokens to Strings... but let's not bother
              * yet, doesn't seem to make sense)
@@ -160,13 +156,13 @@ public class ArrayDeserializers
     */
 
     final static class BooleanDeser
-        extends ArrayDeser<boolean[]>
-    {
-        public BooleanDeser() { super(boolean[].class); }
+            extends ArrayDeser<boolean[]> {
+        public BooleanDeser() {
+            super(boolean[].class);
+        }
 
         public boolean[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -192,13 +188,13 @@ public class ArrayDeserializers
      * to int/long/shorts): base64 encoded data.
      */
     final static class ByteDeser
-        extends ArrayDeser<byte[]>
-    {
-        public ByteDeser() { super(byte[].class); }
+            extends ArrayDeser<byte[]> {
+        public ByteDeser() {
+            super(byte[].class);
+        }
 
         public byte[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             JsonToken t = jp.getCurrentToken();
 
             // Most likely case: base64 encoded String?
@@ -212,7 +208,7 @@ public class ArrayDeserializers
                 if (ob instanceof byte[]) {
                     return (byte[]) ob;
                 }
-            }            
+            }
             if (t != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -244,13 +240,13 @@ public class ArrayDeserializers
     }
 
     final static class ShortDeser
-        extends ArrayDeser<short[]>
-    {
-        public ShortDeser() { super(short[].class); }
+            extends ArrayDeser<short[]> {
+        public ShortDeser() {
+            super(short[].class);
+        }
 
         public short[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -271,13 +267,13 @@ public class ArrayDeserializers
     }
 
     final static class IntDeser
-        extends ArrayDeser<int[]>
-    {
-        public IntDeser() { super(int[].class); }
+            extends ArrayDeser<int[]> {
+        public IntDeser() {
+            super(int[].class);
+        }
 
         public int[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -299,13 +295,13 @@ public class ArrayDeserializers
     }
 
     final static class LongDeser
-        extends ArrayDeser<long[]>
-    {
-        public LongDeser() { super(long[].class); }
+            extends ArrayDeser<long[]> {
+        public LongDeser() {
+            super(long[].class);
+        }
 
         public long[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -326,13 +322,13 @@ public class ArrayDeserializers
     }
 
     final static class FloatDeser
-        extends ArrayDeser<float[]>
-    {
-        public FloatDeser() { super(float[].class); }
+            extends ArrayDeser<float[]> {
+        public FloatDeser() {
+            super(float[].class);
+        }
 
         public float[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }
@@ -354,13 +350,13 @@ public class ArrayDeserializers
     }
 
     final static class DoubleDeser
-        extends ArrayDeser<double[]>
-    {
-        public DoubleDeser() { super(double[].class); }
+            extends ArrayDeser<double[]> {
+        public DoubleDeser() {
+            super(double[].class);
+        }
 
         public double[] deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
                 throw ctxt.mappingException(_valueClass);
             }

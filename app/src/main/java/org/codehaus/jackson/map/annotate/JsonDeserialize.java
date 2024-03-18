@@ -1,13 +1,13 @@
 package org.codehaus.jackson.map.annotate;
 
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.KeyDeserializer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.codehaus.jackson.annotate.JacksonAnnotation;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.KeyDeserializer;
 
 /**
  * Annotation use for configuring deserialization aspects, by attaching
@@ -15,16 +15,16 @@ import org.codehaus.jackson.map.KeyDeserializer;
  * When annotating value classes, configuration is used for instances
  * of the value class but can be overridden by more specific annotations
  * (ones that attach to methods or fields).
- *<p>
+ * <p>
  * An example annotation would be:
- *<pre>
+ * <pre>
  *  &#64;JsonDeserialize(using=MySerializer.class,
  *    as=MyHashMap.class,
  *    keyAs=MyHashKey.class,
  *    contentAs=MyHashValue.class
  *  )
- *</pre>
- *<p>
+ * </pre>
+ * <p>
  * NOTE: since version 1.2, annotation has also been applicable
  * to (constructor) parameters
  *
@@ -33,8 +33,7 @@ import org.codehaus.jackson.map.KeyDeserializer;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonDeserialize
-{
+public @interface JsonDeserialize {
     // // // Annotations for explicitly specifying deserializer
 
     /**
@@ -45,7 +44,7 @@ public @interface JsonDeserialize
      * deserializing property access via a setter method.
      */
     public Class<? extends JsonDeserializer<?>> using()
-        default JsonDeserializer.None.class;
+            default JsonDeserializer.None.class;
 
     /**
      * Deserializer class to use for deserializing contents (elements
@@ -56,7 +55,7 @@ public @interface JsonDeserialize
      * @since 1.3
      */
     public Class<? extends JsonDeserializer<?>> contentUsing()
-        default JsonDeserializer.None.class;
+            default JsonDeserializer.None.class;
 
     /**
      * Deserializer class to use for deserializing Map keys
@@ -67,7 +66,7 @@ public @interface JsonDeserialize
      * @since 1.3
      */
     public Class<? extends KeyDeserializer> keyUsing()
-        default KeyDeserializer.None.class;
+            default KeyDeserializer.None.class;
 
     // // // Annotations for explicitly specifying deserialization type
     // // // (which is used for choosing deserializer, if not explicitly
@@ -77,11 +76,11 @@ public @interface JsonDeserialize
      * Concrete type to deserialize values as, instead of type otherwise
      * declared. Must be a subtype of declared type; otherwise an
      * exception may be thrown by deserializer.
-     *<p>
+     * <p>
      * Bogus type {@link NoClass} can be used to indicate that declared
      * type is used as is (i.e. this annotation property has no setting);
      * this since annotation properties are not allowed to have null value.
-     *<p>
+     * <p>
      * Note: if {@link #using} is also used it has precedence
      * (since it directly specified
      * deserializer, whereas this would only be used to locate the
@@ -95,7 +94,7 @@ public @interface JsonDeserialize
      * instead of type otherwise declared.
      * Must be a subtype of declared type; otherwise an exception may be
      * thrown by deserializer.
-     *<p>
+     * <p>
      * When annotating a class, will define default deserializer to
      * use when class instances are used as Map keys; when methods,
      * keys of the associated Map property.
@@ -108,7 +107,7 @@ public @interface JsonDeserialize
      * Deserializer class to use for deserializing associated value
      * when it will used as contents of {@link java.util.Collection},
      * {@link java.util.Map} and array types.
-     *<p>
+     * <p>
      * When annotating a class, will define default deserializer to
      * use when class instances are used as contents of collection/map/array
      * types; when methods,

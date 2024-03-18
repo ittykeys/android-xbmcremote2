@@ -22,13 +22,12 @@
 package org.xbmc.api.data;
 
 
-
 /**
  * This is the interface between the business layer and the presentation layer.
  * All the business layer gets to see is this interface.
- *  
+ *
  * @author Team XBMC
  */
 public interface IPictureClient extends IClient {
-	
+
 }

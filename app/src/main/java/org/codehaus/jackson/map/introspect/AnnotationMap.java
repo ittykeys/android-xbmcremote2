@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.HashMap;
 
 /**
  * Simple helper class used to keep track of collection of
@@ -9,15 +9,14 @@ import java.util.*;
  * (methods, constructors, classes).
  * Note that only Jackson-owned annotations are tracked (for now?).
  */
-public final class AnnotationMap
-{
-    HashMap<Class<? extends Annotation>,Annotation> _annotations;
+public final class AnnotationMap {
+    HashMap<Class<? extends Annotation>, Annotation> _annotations;
 
-    public AnnotationMap() { }
+    public AnnotationMap() {
+    }
 
     @SuppressWarnings("unchecked")
-    public <A extends Annotation> A get(Class<A> cls)
-    {
+    public <A extends Annotation> A get(Class<A> cls) {
         if (_annotations == null) {
             return null;
         }
@@ -32,8 +31,7 @@ public final class AnnotationMap
      * Method called to add specified annotation in the Map, but
      * only if it didn't yet exist.
      */
-    public void addIfNotPresent(Annotation ann)
-    {
+    public void addIfNotPresent(Annotation ann) {
         if (_annotations == null || !_annotations.containsKey(ann.annotationType())) {
             _add(ann);
         }
@@ -42,14 +40,12 @@ public final class AnnotationMap
     /**
      * Method called to add specified annotation in the Map.
      */
-    public void add(Annotation ann)
-    {
+    public void add(Annotation ann) {
         _add(ann);
     }
 
     @Override
-        public String toString()
-    {
+    public String toString() {
         if (_annotations == null) {
             return "[null]";
         }
@@ -62,10 +58,9 @@ public final class AnnotationMap
     ///////////////////////////////////////////////////////
      */
 
-    protected final void _add(Annotation ann)
-    {
+    protected final void _add(Annotation ann) {
         if (_annotations == null) {
-            _annotations = new HashMap<Class<? extends Annotation>,Annotation>();
+            _annotations = new HashMap<Class<? extends Annotation>, Annotation>();
         }
         _annotations.put(ann.annotationType(), ann);
     }

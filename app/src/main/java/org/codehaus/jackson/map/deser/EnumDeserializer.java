@@ -1,12 +1,12 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.annotate.JsonCachable;
+
+import java.io.IOException;
 
 /**
  * Deserializer class that can deserialize instances of
@@ -18,12 +18,10 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
  * absolutely safe to cache them as well (no generic variations etc).
  */
 public class EnumDeserializer
-    extends StdScalarDeserializer<Enum<?>>
-{
+        extends StdScalarDeserializer<Enum<?>> {
     final EnumResolver<?> _resolver;
-    
-    public EnumDeserializer(EnumResolver<?> res)
-    {
+
+    public EnumDeserializer(EnumResolver<?> res) {
         super(Enum.class);
         _resolver = res;
     }
@@ -35,10 +33,9 @@ public class EnumDeserializer
      */
 
     public Enum<?> deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         JsonToken curr = jp.getCurrentToken();
-        
+
         // Usually should just get string value:
         if (curr == JsonToken.VALUE_STRING) {
             String name = jp.getText();
@@ -53,7 +50,7 @@ public class EnumDeserializer
             int index = jp.getIntValue();
             Enum<?> result = _resolver.getEnum(index);
             if (result == null) {
-                throw ctxt.weirdNumberException(_resolver.getEnumClass(), "index value outside legal index range [0.."+_resolver.lastValidIndex()+"]");
+                throw ctxt.weirdNumberException(_resolver.getEnumClass(), "index value outside legal index range [0.." + _resolver.lastValidIndex() + "]");
             }
             return result;
         }

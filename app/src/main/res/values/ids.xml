@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <item type="id" name="slidingtabcontent" />
-  <item type="id" name="slidingtabhost" />
-  <item type="id" name="slidingtabs" />
+    <item name="slidingtabcontent" type="id" />
+    <item name="slidingtabhost" type="id" />
+    <item name="slidingtabs" type="id" />
 </resources>

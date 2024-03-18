@@ -12,13 +12,12 @@ import java.lang.annotation.Target;
  * It is similar to {@link javax.xml.bind.annotation.XmlAnyElement}
  * in behavior; and can only be used to denote a single property
  * per type.
- *<p>
+ * <p>
  * If used, all otherwise unmapped key-value pairs from Json Object
  * structs are added to the property (of type Map or bean).
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonAnySetter
-{
+public @interface JsonAnySetter {
 }

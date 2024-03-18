@@ -9,42 +9,28 @@ import org.codehaus.jackson.type.JavaType;
  * methods and annotations that define configuration of using
  * those methods.
  */
-public abstract class ClassIntrospector<T extends BeanDescription>
-{
+public abstract class ClassIntrospector<T extends BeanDescription> {
     /*
     ///////////////////////////////////////////////////////
     // Helper interfaces
     ///////////////////////////////////////////////////////
      */
 
-    /**
-     * Interface used for decoupling details of how mix-in annotation
-     * definitions are accessed (via this interface), and how
-     * they are stored (defined by classes that implement the interface)
-     */
-    public interface MixInResolver
-    {
-        /**
-         * Method that will check if there are "mix-in" classes (with mix-in
-         * annotations) for given class
-         */
-        public Class<?> findMixInClassFor(Class<?> cls);
+    protected ClassIntrospector() {
     }
 
-    protected ClassIntrospector() { }
-	
-    /*
-    ///////////////////////////////////////////////////////
-    // Public API: factory methods
-    ///////////////////////////////////////////////////////
-     */
-    
     /**
      * Factory method that constructs an introspector that has all
      * information needed for serialization purposes.
      */
     public abstract T forSerialization(SerializationConfig cfg, Class<?> c,
                                        MixInResolver r);
+	
+    /*
+    ///////////////////////////////////////////////////////
+    // Public API: factory methods
+    ///////////////////////////////////////////////////////
+     */
 
     /**
      * Factory method that constructs an introspector that has all
@@ -52,7 +38,7 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      */
     public abstract T forDeserialization(DeserializationConfig cfg, JavaType type,
                                          MixInResolver r);
-    
+
     /**
      * Factory method that constructs an introspector that has
      * information necessary for creating instances of given
@@ -74,11 +60,24 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * Factory method that constructs an introspector that only has
      * information regarding annotations class itself has (but NOT including
      * its supertypes), but nothing on methods or constructors.
-     * 
+     *
      * @since 1.5
      */
     public abstract T forDirectClassAnnotations(MapperConfig<?> cfg, Class<?> c,
-            MixInResolver r);
+                                                MixInResolver r);
+
+    /**
+     * Interface used for decoupling details of how mix-in annotation
+     * definitions are accessed (via this interface), and how
+     * they are stored (defined by classes that implement the interface)
+     */
+    public interface MixInResolver {
+        /**
+         * Method that will check if there are "mix-in" classes (with mix-in
+         * annotations) for given class
+         */
+        public Class<?> findMixInClassFor(Class<?> cls);
+    }
 
 }
 

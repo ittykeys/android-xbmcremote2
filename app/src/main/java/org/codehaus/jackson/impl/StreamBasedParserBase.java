@@ -1,8 +1,9 @@
 package org.codehaus.jackson.impl;
 
-import java.io.*;
-
 import org.codehaus.jackson.io.IOContext;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * This is a simple low-level input reader base class, used by
@@ -15,8 +16,7 @@ import org.codehaus.jackson.io.IOContext;
  * @author Tatu Saloranta
  */
 public abstract class StreamBasedParserBase
-    extends JsonNumericParserBase
-{
+        extends JsonNumericParserBase {
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -58,8 +58,7 @@ public abstract class StreamBasedParserBase
     protected StreamBasedParserBase(IOContext ctxt, int features,
                                     InputStream in,
                                     byte[] inputBuffer, int start, int end,
-                                    boolean bufferRecyclable)
-    {
+                                    boolean bufferRecyclable) {
         super(ctxt, features);
         _inputStream = in;
         _inputBuffer = inputBuffer;
@@ -75,9 +74,8 @@ public abstract class StreamBasedParserBase
      */
 
     @Override
-	protected final boolean loadMore()
-        throws IOException
-    {
+    protected final boolean loadMore()
+            throws IOException {
         _currInputProcessed += _inputEnd;
         _currInputRowStart -= _inputEnd;
 
@@ -92,15 +90,14 @@ public abstract class StreamBasedParserBase
             _closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
-                throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
+                throw new IOException("Reader returned 0 characters when trying to read " + _inputEnd);
             }
         }
         return false;
     }
 
     @Override
-    protected void _closeInput() throws IOException
-    {
+    protected void _closeInput() throws IOException {
         /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
          *   on the underlying Reader, unless we "own" it, or auto-closing
          *   feature is enabled.
@@ -120,8 +117,7 @@ public abstract class StreamBasedParserBase
      * separately (if need be).
      */
     @Override
-    protected void _releaseBuffers() throws IOException
-    {
+    protected void _releaseBuffers() throws IOException {
         super._releaseBuffers();
         if (_bufferRecyclable) {
             byte[] buf = _inputBuffer;

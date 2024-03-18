@@ -1,8 +1,9 @@
 package org.codehaus.jackson.impl;
 
-import java.io.IOException;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 
-import org.codehaus.jackson.*;
+import java.io.IOException;
 
 /**
  * Interface that defines objects that can produce indentation used
@@ -10,14 +11,13 @@ import org.codehaus.jackson.*;
  * context just means insertion of white space, independent of whether
  * linefeeds are output.
  */
-public interface Indenter
-{
+public interface Indenter {
     public void writeIndentation(JsonGenerator jg, int level)
-        throws IOException, JsonGenerationException;
+            throws IOException, JsonGenerationException;
 
     /**
      * @return True if indenter is considered inline (does not add linefeeds),
-     *   false otherwise
+     * false otherwise
      */
     public boolean isInline();
 }

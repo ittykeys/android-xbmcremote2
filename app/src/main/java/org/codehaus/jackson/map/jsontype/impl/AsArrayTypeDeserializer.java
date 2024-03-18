@@ -1,12 +1,15 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
 
 /**
  * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_ARRAY}
@@ -14,13 +17,11 @@ import org.codehaus.jackson.type.JavaType;
  * the same, regardless of structure used for actual value: wrapping
  * is done using a 2-element JSON Array where type id is the first
  * element, and actual object data as second element.
- * 
+ *
  * @author tatus
  */
-public class AsArrayTypeDeserializer extends TypeDeserializerBase
-{
-    public AsArrayTypeDeserializer(JavaType bt, TypeIdResolver idRes)
-    {
+public class AsArrayTypeDeserializer extends TypeDeserializerBase {
+    public AsArrayTypeDeserializer(JavaType bt, TypeIdResolver idRes) {
         super(bt, idRes);
     }
 
@@ -34,8 +35,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
      */
     @Override
     public Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }
 
@@ -44,22 +44,19 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
      */
     @Override
     public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }
-    
+
     @Override
     public Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
-    }    
+    }
 
     @Override
     public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }    
     
@@ -75,8 +72,7 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
      * deserialization.
      */
     private final Object _deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         JsonDeserializer<Object> deser = _findDeserializer(ctxt, _locateTypeId(jp, ctxt));
         Object value = deser.deserialize(jp, ctxt);
         // And then need the closing END_ARRAY
@@ -85,19 +81,18 @@ public class AsArrayTypeDeserializer extends TypeDeserializerBase
                     "expected closing END_ARRAY after type information and deserialized value");
         }
         return value;
-    }    
-    
+    }
+
     protected final String _locateTypeId(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY,
-                    "need JSON Array to contain As.WRAPPER_ARRAY type information for class "+baseTypeName());
+                    "need JSON Array to contain As.WRAPPER_ARRAY type information for class " + baseTypeName());
         }
         // And then type id as a String
         if (jp.nextToken() != JsonToken.VALUE_STRING) {
             throw ctxt.wrongTokenException(jp, JsonToken.VALUE_STRING,
-                    "need JSON String that contains type id (for subtype of "+baseTypeName()+")");
+                    "need JSON String that contains type id (for subtype of " + baseTypeName() + ")");
         }
         String result = jp.getText();
         jp.nextToken();

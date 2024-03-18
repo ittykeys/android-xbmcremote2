@@ -1,8 +1,8 @@
 package org.codehaus.jackson.map.type;
 
-import java.lang.reflect.Array;
-
 import org.codehaus.jackson.type.JavaType;
+
+import java.lang.reflect.Array;
 
 /**
  * Array types represent Java arrays, both primitive and object valued.
@@ -10,8 +10,7 @@ import org.codehaus.jackson.type.JavaType;
  * legal {@link JavaType}.
  */
 public final class ArrayType
-    extends TypeBase
-{
+        extends TypeBase {
     /**
      * Type of elements in the array.
      */
@@ -23,17 +22,15 @@ public final class ArrayType
      * it is essentially immutable and thus can be shared.
      */
     final Object _emptyArray;
-    
-    private ArrayType(JavaType componentType, Object emptyInstance)
-    {
+
+    private ArrayType(JavaType componentType, Object emptyInstance) {
         super(emptyInstance.getClass());
         _componentType = componentType;
         _emptyArray = emptyInstance;
         _hashCode += componentType.hashCode();
     }
 
-    public static ArrayType construct(JavaType componentType)
-    {
+    public static ArrayType construct(JavaType componentType) {
         /* This is bit messy: there is apparently no other way to
          * reconstruct actual concrete/raw array class from component
          * type, than to construct an instance, get class (same is
@@ -42,7 +39,7 @@ public final class ArrayType
          */
         Object emptyInstance = Array.newInstance(componentType.getRawClass(), 0);
         return new ArrayType(componentType, emptyInstance);
-    }                                   
+    }
 
     protected String buildCanonicalName() {
         return _class.getName();
@@ -58,13 +55,12 @@ public final class ArrayType
      * Handling of narrowing conversions for arrays is trickier: for now,
      * it is not even allowed.
      */
-    protected JavaType _narrow(Class<?> subclass)
-    {
+    protected JavaType _narrow(Class<?> subclass) {
         /* Ok: need a bit of indirection here. First, must replace component
          * type (and check that it is compatible), then re-construct.
          */
         if (!subclass.isArray()) { // sanity check, should never occur
-            throw new IllegalArgumentException("Incompatible narrowing operation: trying to narrow "+toString()+" to class "+subclass.getName());
+            throw new IllegalArgumentException("Incompatible narrowing operation: trying to narrow " + toString() + " to class " + subclass.getName());
         }
         /* Hmmh. This is an awkward back reference... but seems like the
          * only simple way to do it.
@@ -78,8 +74,7 @@ public final class ArrayType
      * For array types, both main type and content type can be modified;
      * but ultimately they are interchangeable.
      */
-    public JavaType narrowContentsBy(Class<?> contentClass)
-    {
+    public JavaType narrowContentsBy(Class<?> contentClass) {
         // Can do a quick check first:
         if (contentClass == _componentType.getRawClass()) {
             return this;
@@ -95,15 +90,9 @@ public final class ArrayType
      */
 
     @Override
-    public boolean isArrayType() { return true; }
-    
-    /**
-     * For some odd reason, modifiers for array classes would
-     * claim they are abstract types. Not so, at least for our
-     * purposes.
-     */
-    @Override
-    public boolean isAbstract() { return false; }
+    public boolean isArrayType() {
+        return true;
+    }
 
     /**
      * For some odd reason, modifiers for array classes would
@@ -111,7 +100,19 @@ public final class ArrayType
      * purposes.
      */
     @Override
-    public boolean isConcrete() { return true; }
+    public boolean isAbstract() {
+        return false;
+    }
+
+    /**
+     * For some odd reason, modifiers for array classes would
+     * claim they are abstract types. Not so, at least for our
+     * purposes.
+     */
+    @Override
+    public boolean isConcrete() {
+        return true;
+    }
 
     /**
      * Not sure what symbolic name is used internally, if any;
@@ -130,14 +131,21 @@ public final class ArrayType
     //////////////////////////////////////////////////////////
      */
 
-    public boolean isContainerType() { return true; }
+    public boolean isContainerType() {
+        return true;
+    }
 
     @Override
-    public JavaType getContentType() { return  _componentType; }
+    public JavaType getContentType() {
+        return _componentType;
+    }
 
-    public int containedTypeCount() { return 1; }
+    public int containedTypeCount() {
+        return 1;
+    }
+
     public JavaType containedType(int index) {
-            return (index == 0) ? _componentType : null;
+        return (index == 0) ? _componentType : null;
     }
     
     /*
@@ -147,13 +155,11 @@ public final class ArrayType
      */
 
     @Override
-    public String toString()
-    {
-        return "[array type, component type: "+_componentType+"]";
+    public String toString() {
+        return "[array type, component type: " + _componentType + "]";
     }
 
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;

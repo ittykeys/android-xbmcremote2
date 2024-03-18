@@ -1,19 +1,23 @@
 package org.codehaus.jackson.map.ser;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.schema.JsonSchema;
+import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.schema.SchemaAware;
-import org.codehaus.jackson.schema.JsonSchema;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Serializer class that can serialize Object that have a
@@ -28,29 +32,26 @@ import org.codehaus.jackson.type.JavaType;
  * otherwise we could end up with an infinite loop.
  */
 public final class JsonValueSerializer
-    extends SerializerBase<Object>
-    implements ResolvableSerializer, SchemaAware
-{
+        extends SerializerBase<Object>
+        implements ResolvableSerializer, SchemaAware {
     final Method _accessorMethod;
 
     protected JsonSerializer<Object> _valueSerializer;
-    
+
     /**
      * @param ser Explicit serializer to use, if caller knows it (which
      *            occurs if and only if the "value method" was annotated with
      *            {@link org.codehaus.jackson.map.annotate.JsonSerialize#using}), otherwise
      *            null
      */
-    public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser)
-    {
+    public JsonValueSerializer(Method valueMethod, JsonSerializer<Object> ser) {
         super(Object.class);
         _accessorMethod = valueMethod;
         _valueSerializer = ser;
     }
 
     public void serialize(Object bean, JsonGenerator jgen, SerializerProvider prov)
-        throws IOException, JsonGenerationException
-    {
+            throws IOException, JsonGenerationException {
         try {
             Object value = _accessorMethod.invoke(bean);
             JsonSerializer<Object> ser;
@@ -63,7 +64,7 @@ public final class JsonValueSerializer
                     Class<?> c = value.getClass();
                     /* 10-Mar-2010, tatu: Ideally we would actually separate out type
                      *   serializer from value serializer; but, alas, there's no access
-                     *   to serializer factory at this point... 
+                     *   to serializer factory at this point...
                      */
                     // let's cache it, may be needed soon again
                     ser = prov.findTypedValueSerializer(c, true);
@@ -89,8 +90,7 @@ public final class JsonValueSerializer
 
     //@Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         return (_valueSerializer instanceof SchemaAware) ?
                 ((SchemaAware) _valueSerializer).getSchema(provider, null) :
                 JsonSchema.getDefaultSchemaNode();
@@ -107,8 +107,7 @@ public final class JsonValueSerializer
      * statically figure out what the result type must be.
      */
     public void resolve(SerializerProvider provider)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         if (_valueSerializer == null) {
             /* Note: we can only assign serializer statically if the
              * declared type is final -- if not, we don't really know
@@ -121,7 +120,7 @@ public final class JsonValueSerializer
                 // false -> no need to cache
                 /* 10-Mar-2010, tatu: Ideally we would actually separate out type
                  *   serializer from value serializer; but, alas, there's no access
-                 *   to serializer factory at this point... 
+                 *   to serializer factory at this point...
                  */
                 _valueSerializer = provider.findTypedValueSerializer(t, false);
             }
@@ -135,8 +134,7 @@ public final class JsonValueSerializer
      */
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "(@JsonValue serializer for method " + _accessorMethod.getDeclaringClass() + "#" + _accessorMethod.getName() + ")";
     }
 }

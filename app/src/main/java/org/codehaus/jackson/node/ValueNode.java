@@ -9,12 +9,14 @@ import org.codehaus.jackson.JsonToken;
  * "missing node".
  */
 public abstract class ValueNode
-    extends BaseJsonNode
-{
-    protected ValueNode() { }
+        extends BaseJsonNode {
+    protected ValueNode() {
+    }
 
     @Override
-    public boolean isValueNode() { return true; }
+    public boolean isValueNode() {
+        return true;
+    }
 
     @Override
     public abstract JsonToken asToken();
@@ -26,10 +28,14 @@ public abstract class ValueNode
      */
 
     @Override
-    public JsonNode path(String fieldName) { return MissingNode.getInstance(); }
+    public JsonNode path(String fieldName) {
+        return MissingNode.getInstance();
+    }
 
     @Override
-    public JsonNode path(int index) { return MissingNode.getInstance(); }
+    public JsonNode path(int index) {
+        return MissingNode.getInstance();
+    }
 
     /*
     ////////////////////////////////////////////////////
@@ -38,5 +44,7 @@ public abstract class ValueNode
      */
 
     @Override
-    public String toString() { return getValueAsText(); }
+    public String toString() {
+        return getValueAsText();
+    }
 }

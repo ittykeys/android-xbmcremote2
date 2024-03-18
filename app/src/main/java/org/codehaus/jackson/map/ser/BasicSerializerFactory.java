@@ -1,10 +1,12 @@
 package org.codehaus.jackson.map.ser;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.AnnotationIntrospector;
+import org.codehaus.jackson.map.JsonSerializable;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.SerializerFactory;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
@@ -19,11 +21,34 @@ import org.codehaus.jackson.map.util.SubTypeHelper;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.RandomAccess;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
+
 /**
  * Factory class that can provide serializers for standard JDK classes,
  * as well as custom classes that extend standard classes or implement
  * one of "well-known" interfaces (such as {@link java.util.Collection}).
- *<p>
+ * <p>
  * Since all the serializers are eagerly instantiated, and there is
  * no additional introspection or customizability of these types,
  * this factory is stateless. This means that other delegating
@@ -31,8 +56,7 @@ import org.codehaus.jackson.util.TokenBuffer;
  * shared singleton instance via static {@link #instance} field.
  */
 public class BasicSerializerFactory
-    extends SerializerFactory
-{
+        extends SerializerFactory {
     /*
     /**********************************************************
     /* Configuration, lookup tables/maps
@@ -40,19 +64,25 @@ public class BasicSerializerFactory
      */
 
     /**
+     * Stateless global singleton instance that should be used
+     * for factories that want to use delegation to access
+     * standard serializers.
+     */
+    public final static BasicSerializerFactory instance = new BasicSerializerFactory();
+    /**
      * Since these are all JDK classes, we shouldn't have to worry
      * about ClassLoader used to load them. Rather, we can just
      * use the class name, and keep things simple and efficient.
      */
     final static HashMap<String, JsonSerializer<?>> _concrete =
-        new HashMap<String, JsonSerializer<?>>();
+            new HashMap<String, JsonSerializer<?>>();
     /**
      * There are also standard interfaces and abstract classes
      * that we need to support without knowing conrecte implementation
      * classes.
      */
     final static ArrayList<SerializerMapping> _abstractSerializers =
-        new ArrayList<SerializerMapping>();
+            new ArrayList<SerializerMapping>();
 
     static {
         /* String and string-like types (note: date types explicitly
@@ -134,7 +164,7 @@ public class BasicSerializerFactory
         _concrete.put(TreeSet.class.getName(), collectionS);
 
         // And then other standard non-structured JDK types
-        for (Map.Entry<Class<?>,JsonSerializer<?>> en : new JdkSerializers().provide()) {
+        for (Map.Entry<Class<?>, JsonSerializer<?>> en : new JdkSerializers().provide()) {
             _concrete.put(en.getKey().getName(), en.getValue());
         }
 
@@ -143,27 +173,34 @@ public class BasicSerializerFactory
         _concrete.put(TokenBuffer.class.getName(), new StdSerializers.TokenBufferSerializer());
     }
 
+    /*
+    /***********************************************************
+    /* Life cycle
+    /***********************************************************
+     */
+
     static {
         /* 21-Nov-2009, tatu: Also, explicit support for basic Joda DateTime;
          *    and can use same mechanism for javax.xml.datatype types as well.
          */
-        for (String provStr : new String[] {
-            "org.codehaus.jackson.map.ext.CoreXMLSerializers"
-            ,"org.codehaus.jackson.map.ext.JodaSerializers"
+        for (String provStr : new String[]{
+                "org.codehaus.jackson.map.ext.CoreXMLSerializers"
+                , "org.codehaus.jackson.map.ext.JodaSerializers"
         }) {
             Object ob = null;
             try {
                 ob = Class.forName(provStr).newInstance();
+            } catch (LinkageError e) {
             }
-            catch (LinkageError e) { }
             // too many different kinds to enumerate here:
-            catch (Exception e) { }
+            catch (Exception e) {
+            }
 
             if (ob != null) {
                 @SuppressWarnings("unchecked")
-                    Provider<Map.Entry<Class<?>,JsonSerializer<?>>> prov =
-                    (Provider<Map.Entry<Class<?>,JsonSerializer<?>>>) ob;
-                for (Map.Entry<Class<?>,JsonSerializer<?>> en : prov.provide()) {
+                Provider<Map.Entry<Class<?>, JsonSerializer<?>>> prov =
+                        (Provider<Map.Entry<Class<?>, JsonSerializer<?>>>) ob;
+                for (Map.Entry<Class<?>, JsonSerializer<?>> en : prov.provide()) {
                     /* 22-Nov-2009, tatu: For now this check suffices... may need
                      *   to use other methods in future
                      */
@@ -178,25 +215,13 @@ public class BasicSerializerFactory
         }
     }
 
-    /*
-    /***********************************************************
-    /* Life cycle
-    /***********************************************************
-     */
-    
-    /**
-     * Stateless global singleton instance that should be used
-     * for factories that want to use delegation to access
-     * standard serializers.
-     */
-    public final static BasicSerializerFactory instance = new BasicSerializerFactory();
-
     /**
      * We will provide default constructor to allow sub-classing,
      * but make it protected so that no non-singleton instances of
      * the class will be instantiated.
      */
-    protected BasicSerializerFactory() { }
+    protected BasicSerializerFactory() {
+    }
 
     /*
     /***********************************************************
@@ -213,15 +238,13 @@ public class BasicSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config)
-    {
+    public <T> JsonSerializer<T> createSerializer(Class<T> type, SerializationConfig config) {
         return (JsonSerializer<T>) createSerializer(TypeFactory.type(type), config);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config)
-    {
+    public JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
@@ -241,7 +264,7 @@ public class BasicSerializerFactory
                 }
             }
         }
-        return (JsonSerializer<Object>)ser;
+        return (JsonSerializer<Object>) ser;
     }
 
     /**
@@ -250,8 +273,7 @@ public class BasicSerializerFactory
      * types.
      */
     @Override
-    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config)
-    {
+    public TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
         BasicBeanDescription bean = config.introspectClassAnnotations(baseType.getRawClass());
         AnnotatedClass ac = bean.getClassInfo();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
@@ -291,15 +313,14 @@ public class BasicSerializerFactory
      * interfaces.
      */
     public final JsonSerializer<?> findSerializerByLookup(JavaType type, SerializationConfig config,
-                                                          BasicBeanDescription beanDesc)
-    {
+                                                          BasicBeanDescription beanDesc) {
         JsonSerializer<?> ser = _concrete.get(type.getRawClass().getName());
         /* 08-Nov-2009, tatus: Some standard types may need customization;
          *    for now that just means Maps, but in future probably other
          *    collections as well. For strictly standard types this is
          *    currently only needed due to mix-in annotations.
          */
-        if (ser != null ) {
+        if (ser != null) {
             if (ser == MapSerializer.instance) {
                 return buildMapSerializer(type, config, beanDesc);
             }
@@ -324,8 +345,7 @@ public class BasicSerializerFactory
      */
     @SuppressWarnings("deprecation")
     public final JsonSerializer<?> findSerializerByPrimaryType(JavaType type, SerializationConfig config,
-                                                          BasicBeanDescription beanDesc)
-    {
+                                                               BasicBeanDescription beanDesc) {
         Class<?> cls = type.getRawClass();
 
         /* Some types are final, and hence not checked here (will
@@ -387,7 +407,7 @@ public class BasicSerializerFactory
         }
         return null;
     }
-        
+
     /**
      * Reflection-based serialized find method, which checks if
      * given class implements one of recognized "add-on" interfaces.
@@ -397,8 +417,7 @@ public class BasicSerializerFactory
      * function is usually something else. The reason for
      */
     public final JsonSerializer<?> findSerializerByAddonType(JavaType javaType, SerializationConfig config,
-                                                             BasicBeanDescription beanDesc)
-    {
+                                                             BasicBeanDescription beanDesc) {
         Class<?> type = javaType.getRawClass();
 
         // These need to be in decreasing order of specificity...
@@ -422,8 +441,7 @@ public class BasicSerializerFactory
      * Returns null if no such annotation found.
      */
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
-    {
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a) {
         Object serDef = config.getAnnotationIntrospector().findSerializer(a);
         if (serDef != null) {
             if (serDef instanceof JsonSerializer) {
@@ -433,11 +451,11 @@ public class BasicSerializerFactory
              * X or Y" -- need to throw an exception after the fact
              */
             if (!(serDef instanceof Class)) {
-                throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
+                throw new IllegalStateException("AnnotationIntrospector returned value of type " + serDef.getClass().getName() + "; expected type JsonSerializer or Class<JsonSerializer> instead");
             }
             Class<?> cls = (Class<?>) serDef;
             if (!JsonSerializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
+                throw new IllegalStateException("AnnotationIntrospector returned Class " + cls.getName() + "; expected Class<JsonSerializer>");
             }
             return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
         }
@@ -449,8 +467,7 @@ public class BasicSerializerFactory
      * {@link java.util.Map} types.
      */
     protected JsonSerializer<?> buildMapSerializer(JavaType type, SerializationConfig config,
-                                                   BasicBeanDescription beanDesc)
-    {
+                                                   BasicBeanDescription beanDesc) {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean staticTyping = usesStaticTyping(config, beanDesc);
         JavaType valueType = type.getContentType();
@@ -460,8 +477,7 @@ public class BasicSerializerFactory
     }
 
     protected JsonSerializer<?> buildEnumMapSerializer(JavaType type, SerializationConfig config,
-                                                   BasicBeanDescription beanDesc)
-    {
+                                                       BasicBeanDescription beanDesc) {
         JavaType keyType = type.getKeyType();
         JavaType valueType = type.getContentType();
         // Need to find key enum values...
@@ -481,32 +497,28 @@ public class BasicSerializerFactory
      * <code>Object[]</code> (and subtypes).
      */
     protected JsonSerializer<?> buildObjectArraySerializer(JavaType type, SerializationConfig config,
-                                                   BasicBeanDescription beanDesc)
-    {
+                                                           BasicBeanDescription beanDesc) {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
         return ArraySerializers.objectArraySerializer(valueType, usesStaticTyping(config, beanDesc), vts);
     }
 
     protected JsonSerializer<?> buildIndexedListSerializer(JavaType type, SerializationConfig config,
-            BasicBeanDescription beanDesc)
-    {
+                                                           BasicBeanDescription beanDesc) {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
         return ContainerSerializers.indexedListSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
     }
 
     protected JsonSerializer<?> buildCollectionSerializer(JavaType type, SerializationConfig config,
-            BasicBeanDescription beanDesc)
-    {
+                                                          BasicBeanDescription beanDesc) {
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(valueType, config);
         return ContainerSerializers.collectionSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
     }
 
     protected JsonSerializer<?> buildIteratorSerializer(JavaType type, SerializationConfig config,
-            BasicBeanDescription beanDesc)
-    {
+                                                        BasicBeanDescription beanDesc) {
         // if there's generic type, it'll be the first contained type
         JavaType valueType = type.containedType(0);
         if (valueType == null) {
@@ -515,10 +527,9 @@ public class BasicSerializerFactory
         TypeSerializer vts = createTypeSerializer(valueType, config);
         return ContainerSerializers.iteratorSerializer(valueType, usesStaticTyping(config, beanDesc), vts);
     }
-    
+
     protected JsonSerializer<?> buildIterableSerializer(JavaType type, SerializationConfig config,
-            BasicBeanDescription beanDesc)
-    {
+                                                        BasicBeanDescription beanDesc) {
         // if there's generic type, it'll be the first contained type
         JavaType valueType = type.containedType(0);
         if (valueType == null) {
@@ -529,8 +540,7 @@ public class BasicSerializerFactory
     }
 
     protected JsonSerializer<?> buildEnumSetSerializer(JavaType type, SerializationConfig config,
-                                                   BasicBeanDescription beanDesc)
-    {
+                                                       BasicBeanDescription beanDesc) {
         // this may or may not be available (Class doesn't; type of field/method does)
         JavaType enumType = type.getContentType();
         // and even if nominally there is something, only use if it really is enum
@@ -539,7 +549,7 @@ public class BasicSerializerFactory
         }
         return ContainerSerializers.enumSetSerializer(enumType);
     }
-    
+
     /**
      * Helper method to check whether global settings and/or class
      * annotations for the bean class indicate that static typing
@@ -547,8 +557,7 @@ public class BasicSerializerFactory
      * (instead of dynamic runtime types).
      */
     protected boolean usesStaticTyping(SerializationConfig config,
-                                       BasicBeanDescription beanDesc)
-    {
+                                       BasicBeanDescription beanDesc) {
         JsonSerialize.Typing t = config.getAnnotationIntrospector().findSerializationTyping(beanDesc.getClassInfo());
         if (t != null) {
             return (t == JsonSerialize.Typing.STATIC);
@@ -562,8 +571,7 @@ public class BasicSerializerFactory
     /////////////////////////////////////////////////////////////////
      */
 
-    private final static class SerializerMapping
-    {
+    private final static class SerializerMapping {
         final Class<?> _class;
         final JsonSerializer<?> _serializer;
 
@@ -576,6 +584,8 @@ public class BasicSerializerFactory
             return _class.isAssignableFrom(c);
         }
 
-        public JsonSerializer<?> getSerializer() { return _serializer; }
+        public JsonSerializer<?> getSerializer() {
+            return _serializer;
+        }
     }
 }

@@ -26,51 +26,51 @@ import org.xbmc.api.type.MediaType;
 
 /**
  * Actor is (for now) a rip-off of artist. It's the same thing named differently for movies.
- * 
+ *
  * @author Team XBMC
  */
 public class Actor extends Artist {
-	
-	public final static String THUMB_PREFIX = "special://profile/Thumbnails/";
 
-	public Actor(int id, String name, String artUrl) {
-		super(id, name, artUrl);
-	}
-	
-	public Actor(int id, String name, String artUrl, String role) {
-		super(id, name, artUrl);
-		this.role = role;
-	}
-	
-	/**
-	 * Composes the complete path to the artist's thumbnail
-	 * @return Path to thumbnail
-	 */
-	public String getThumbUri() {
-		return getThumbUri(this);
-	}
-	
-	public static String getThumbUri(ICoverArt cover) {
-		final String hex = Crc32.formatAsHexLowerCase(cover.getCrc());
-		return THUMB_PREFIX + hex.charAt(0) + "/" + hex + ".tbn";
-	}
-	
-	public int getMediaType() {
-		return MediaType.VIDEO;
-	}
-	
-	/**
-	 * Returns the CRC of the artist on which the thumb name is based upon.
-	 * @return 8-char CRC32
-	 */
-	public long getCrc() {
-		if (thumbID == 0 && arturl != null && arturl.compareTo("") != 0) {
-			thumbID = Crc32.computeLowerCase(arturl);
-		}
-		return thumbID;
-	}
-	
-	public String role = null;
+    public final static String THUMB_PREFIX = "special://profile/Thumbnails/";
+    private static final long serialVersionUID = -7026393902334967838L;
+    public String role = null;
 
-	private static final long serialVersionUID = -7026393902334967838L;
+    public Actor(int id, String name, String artUrl) {
+        super(id, name, artUrl);
+    }
+
+    public Actor(int id, String name, String artUrl, String role) {
+        super(id, name, artUrl);
+        this.role = role;
+    }
+
+    public static String getThumbUri(ICoverArt cover) {
+        final String hex = Crc32.formatAsHexLowerCase(cover.getCrc());
+        return THUMB_PREFIX + hex.charAt(0) + "/" + hex + ".tbn";
+    }
+
+    /**
+     * Composes the complete path to the artist's thumbnail
+     *
+     * @return Path to thumbnail
+     */
+    public String getThumbUri() {
+        return getThumbUri(this);
+    }
+
+    public int getMediaType() {
+        return MediaType.VIDEO;
+    }
+
+    /**
+     * Returns the CRC of the artist on which the thumb name is based upon.
+     *
+     * @return 8-char CRC32
+     */
+    public long getCrc() {
+        if (thumbID == 0 && arturl != null && arturl.compareTo("") != 0) {
+            thumbID = Crc32.computeLowerCase(arturl);
+        }
+        return thumbID;
+    }
 }

@@ -12,14 +12,14 @@ import java.lang.annotation.Target;
  * This is usually done if the declared type is abstract or too generic;
  * annotation can denote actual concrete type to instantiate when
  * deserializing the property.
- *<p>
+ * <p>
  * The indicated type must be compatible with the declared
  * type. For deserialization (setters) this means that
  * it has to be a sub-type or implementation of
  * the declared type.
  * If this constraint is violated, an exception (usually
  * {@link IllegalArgumentException}) can be thrown by runtime.
- *<p>
+ * <p>
  * Note that for container types (arrays, Lists/Collections/Maps) this
  * indicates the type of container itself; for contained Objects, use
  * {@link JsonContentClass} instead (or for Map keys,
@@ -30,8 +30,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonClass
-{
+public @interface JsonClass {
     /**
      * Class that is the type to use for deserializating value of
      * the property associated

@@ -21,71 +21,69 @@
 
 package org.xbmc.api.object;
 
-import java.io.Serializable;
-import java.util.List;
-
 import org.xbmc.android.util.Crc32;
 import org.xbmc.api.type.MediaType;
 
+import java.io.Serializable;
+import java.util.List;
+
 public class Season implements Serializable, ICoverArt {
 
-	public final int number;
-	public final boolean watched;
-	public final TvShow show;
-	public final String artUrl;
+    private static final long serialVersionUID = -7652780720536304140L;
+    public final int number;
+    public final boolean watched;
+    public final TvShow show;
+    public final String artUrl;
+    public List<Episode> episodes = null;
 
-	public List<Episode> episodes = null;
+    public Season(int number, boolean watched, TvShow show, String artUrl) {
+        this.number = number;
+        this.watched = watched;
+        this.show = show;
+        this.artUrl = artUrl;
+    }
 
-	public Season(int number, boolean watched, TvShow show, String artUrl) {
-		this.number = number;
-		this.watched = watched;
-		this.show = show;
-		this.artUrl = artUrl;
-	}
+    public String getThumbUrl() {
+        return artUrl;
+    }
 
-	private static final long serialVersionUID = -7652780720536304140L;
-	
-	public String getThumbUrl(){
-		return artUrl;
-	}
+    public long getCrc() {
+        // FileItem.cpp(1185)
+        // BGetCachedThumb("season"+seasonPath+GetLabel(),g_settings.GetVideoThumbFolder(),true);
+        return Crc32.computeLowerCase(artUrl);
+    }
 
-	public long getCrc() {
-		// FileItem.cpp(1185)
-		// BGetCachedThumb("season"+seasonPath+GetLabel(),g_settings.GetVideoThumbFolder(),true);
-			return Crc32.computeLowerCase(artUrl);
-	}
+    public int getFallbackCrc() {
+        return 0;
+    }
 
-	public int getFallbackCrc() {
-		return 0;
-	}
+    public int getId() {
+        // TODO Auto-generated method stub
+        return show.getId() * 10000 + number;
+    }
 
-	public int getId() {
-		// TODO Auto-generated method stub
-		return show.getId() * 10000 + number;
-	}
+    public int getMediaType() {
+        return MediaType.VIDEO_TVSEASON;
+    }
 
-	public int getMediaType() {
-		return MediaType.VIDEO_TVSEASON;
-	}
+    public String getShortName() {
+        if (number > 0) {
+            return "Season " + number;
+        } else {
+            return "Specials";
+        }
+    }
 
-	public String getShortName() {
-		if (number > 0) {
-			return "Season " + number;
-		} else {
-			return "Specials";
-		}
-	}
+    public String getName() {
+        return show.getName() + " " + getShortName();
+    }
 
-	public String getName() {
-		return show.getName() + " " + getShortName();
-	}
+    public String getPath() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	public String getPath() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String toString() {
-		return getName();
-	}
+    public String toString() {
+        return getName();
+    }
 }

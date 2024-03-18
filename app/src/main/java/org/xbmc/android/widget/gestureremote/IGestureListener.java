@@ -22,16 +22,27 @@
 package org.xbmc.android.widget.gestureremote;
 
 public interface IGestureListener {
-	public void onVerticalMove(int zoneIndex);
-	public void onHorizontalMove(int zoneIndex);
-	public void onSelect();
-	public void onScrollUp(double amount);
-	public void onScrollDown(double amount);
-	public void onScrollUp();
-	public void onScrollDown();
-	public void onMenu();
-	public void onTitle();
-	public void onInfo();
-	public void onBack();
-	public double[] getZones();
+    public void onVerticalMove(int zoneIndex);
+
+    public void onHorizontalMove(int zoneIndex);
+
+    public void onSelect();
+
+    public void onScrollUp(double amount);
+
+    public void onScrollDown(double amount);
+
+    public void onScrollUp();
+
+    public void onScrollDown();
+
+    public void onMenu();
+
+    public void onTitle();
+
+    public void onInfo();
+
+    public void onBack();
+
+    public double[] getZones();
 }

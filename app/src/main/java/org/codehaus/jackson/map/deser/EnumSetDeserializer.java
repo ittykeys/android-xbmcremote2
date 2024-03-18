@@ -1,43 +1,39 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.util.*;
-
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.TypeDeserializer;
 
+import java.io.IOException;
+import java.util.EnumSet;
+
 /**
- * 
  * <p>
  * Note: casting within this class is all messed up -- just could not figure out a way
  * to properly deal with recursive definition of "EnumSet<K extends Enum<K>, V>
- * 
+ *
  * @author tsaloranta
  */
 public final class EnumSetDeserializer
-    extends StdDeserializer<EnumSet<?>>
-{
+        extends StdDeserializer<EnumSet<?>> {
     @SuppressWarnings("unchecked")
-	final Class<Enum> _enumClass;
+    final Class<Enum> _enumClass;
 
     final EnumDeserializer _enumDeserializer;
 
     @SuppressWarnings("unchecked")
-	public EnumSetDeserializer(EnumResolver enumRes)
-    {
+    public EnumSetDeserializer(EnumResolver enumRes) {
         super(EnumSet.class);
         _enumDeserializer = new EnumDeserializer(enumRes);
         // this is fugly, but not sure of a better way...
         _enumClass = (Class<Enum>) ((Class<?>) enumRes.getEnumClass());
     }
 
-    @SuppressWarnings("unchecked") 
+    @SuppressWarnings("unchecked")
     public EnumSet<?> deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // Ok: must point to START_ARRAY
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
             throw ctxt.mappingException(EnumSet.class);
@@ -62,16 +58,14 @@ public final class EnumSetDeserializer
 
     @Override
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
+                                      TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException {
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
-    
-    @SuppressWarnings("unchecked") 
-    private EnumSet constructSet()
-    {
-    	// superbly ugly... but apparently necessary
-    	return EnumSet.noneOf(_enumClass);
+
+    @SuppressWarnings("unchecked")
+    private EnumSet constructSet() {
+        // superbly ugly... but apparently necessary
+        return EnumSet.noneOf(_enumClass);
     }
 }

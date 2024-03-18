@@ -41,7 +41,7 @@ import java.util.HashMap;
 
 public class HostProvider extends ContentProvider {
 
-    public static final String AUTHORITY = "org.xbmc.android.provider.remote";
+    public static final String AUTHORITY = "org.xbmc.android.provider.remote2";
     private static final String TAG = "HostProvider";
     private static final int DATABASE_VERSION = 4;
     private static final String DATABASE_NAME = "xbmc_hosts.db";

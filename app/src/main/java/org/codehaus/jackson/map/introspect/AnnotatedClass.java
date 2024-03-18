@@ -1,17 +1,26 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.util.*;
-
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector.MixInResolver;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class AnnotatedClass
-    extends Annotated
-{
+        extends Annotated {
     /*
     /******************************************************
     /* Configuration
@@ -82,7 +91,7 @@ public final class AnnotatedClass
      * Member methods of interest; for now ones with 0 or 1 arguments
      * (just optimization, since others won't be used now)
      */
-    AnnotatedMethodMap  _memberMethods;
+    AnnotatedMethodMap _memberMethods;
 
     /**
      * Member fields of interest: ones that are either public,
@@ -97,7 +106,7 @@ public final class AnnotatedClass
      * excluded from applicable methods due to explicit ignore annotation
      */
     List<AnnotatedMethod> _ignoredMethods;
-    
+
     /**
      * Optionally populated list that contains fields that were
      * excluded from applicable fields due to explicit ignore annotation
@@ -116,14 +125,13 @@ public final class AnnotatedClass
      */
     private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
                            AnnotationIntrospector aintr,
-                           MixInResolver mir)
-    {
+                           MixInResolver mir) {
         _class = cls;
         _superTypes = superTypes;
         _annotationIntrospector = aintr;
         _mixInResolver = mir;
         _primaryMixIn = (_mixInResolver == null) ? null
-            : _mixInResolver.findMixInClassFor(_class);
+                : _mixInResolver.findMixInClassFor(_class);
     }
 
     /**
@@ -133,8 +141,7 @@ public final class AnnotatedClass
      */
     public static AnnotatedClass construct(Class<?> cls,
                                            AnnotationIntrospector aintr,
-                                           MixInResolver mir)
-    {
+                                           MixInResolver mir) {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
         AnnotatedClass ac = new AnnotatedClass(cls, st, aintr, mir);
         ac.resolveClassAnnotations();
@@ -147,9 +154,8 @@ public final class AnnotatedClass
      * mix-ins it may have.
      */
     public static AnnotatedClass constructWithoutSuperTypes(Class<?> cls,
-            AnnotationIntrospector aintr,
-            MixInResolver mir)
-    {
+                                                            AnnotationIntrospector aintr,
+                                                            MixInResolver mir) {
         List<Class<?>> empty = Collections.emptyList();
         AnnotatedClass ac = new AnnotatedClass(cls, empty, aintr, mir);
         ac.resolveClassAnnotations();
@@ -162,14 +168,19 @@ public final class AnnotatedClass
     /******************************************************
      */
 
-    public Class<?> getAnnotated() { return _class; }
+    public Class<?> getAnnotated() {
+        return _class;
+    }
 
-    public int getModifiers() { return _class.getModifiers(); }
+    public int getModifiers() {
+        return _class.getModifiers();
+    }
 
-    public String getName() { return _class.getName(); }
+    public String getName() {
+        return _class.getName();
+    }
 
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
+    public <A extends Annotation> A getAnnotation(Class<A> acls) {
         if (_classAnnotations == null) {
             return null;
         }
@@ -190,47 +201,45 @@ public final class AnnotatedClass
     /******************************************************
      */
 
-    public boolean hasAnnotations() { return _classAnnotations.size() > 0; }
+    public boolean hasAnnotations() {
+        return _classAnnotations.size() > 0;
+    }
 
-    public AnnotatedConstructor getDefaultConstructor() { return _defaultConstructor; }
+    public AnnotatedConstructor getDefaultConstructor() {
+        return _defaultConstructor;
+    }
 
-    public List<AnnotatedConstructor> getConstructors()
-    {
+    public List<AnnotatedConstructor> getConstructors() {
         if (_constructors == null) {
             return Collections.emptyList();
         }
         return _constructors;
     }
 
-    public List<AnnotatedMethod> getStaticMethods()
-    {
+    public List<AnnotatedMethod> getStaticMethods() {
         if (_creatorMethods == null) {
             return Collections.emptyList();
         }
         return _creatorMethods;
     }
 
-    public Iterable<AnnotatedMethod> memberMethods()
-    {
+    public Iterable<AnnotatedMethod> memberMethods() {
         return _memberMethods;
     }
- 
-    public Iterable<AnnotatedMethod> ignoredMemberMethods()
-    {
+
+    public Iterable<AnnotatedMethod> ignoredMemberMethods() {
         if (_ignoredMethods == null) {
             List<AnnotatedMethod> l = Collections.emptyList();
             return l;
         }
         return _ignoredMethods;
     }
- 
-    public int getMemberMethodCount()
-    {
+
+    public int getMemberMethodCount() {
         return _memberMethods.size();
     }
 
-    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
-    {
+    public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes) {
         return _memberMethods.find(name, paramTypes);
     }
 
@@ -238,8 +247,7 @@ public final class AnnotatedClass
         return (_fields == null) ? 0 : _fields.size();
     }
 
-    public Iterable<AnnotatedField> fields()
-    {
+    public Iterable<AnnotatedField> fields() {
         if (_fields == null) {
             List<AnnotatedField> l = Collections.emptyList();
             return l;
@@ -247,8 +255,7 @@ public final class AnnotatedClass
         return _fields;
     }
 
-    public Iterable<AnnotatedField> ignoredFields()
-    {
+    public Iterable<AnnotatedField> ignoredFields() {
         if (_ignoredFields == null) {
             List<AnnotatedField> l = Collections.emptyList();
             return l;
@@ -268,12 +275,11 @@ public final class AnnotatedClass
      * Initialization method that will recursively collect Jackson
      * annotations for this class and all super classes and
      * interfaces.
-     *<p>
+     * <p>
      * Starting with 1.2, it will also apply mix-in annotations,
      * as per [JACKSON-76]
      */
-    protected void resolveClassAnnotations()
-    {
+    protected void resolveClassAnnotations() {
         _classAnnotations = new AnnotationMap();
         // add mix-in annotations first (overrides)
         if (_primaryMixIn != null) {
@@ -312,16 +318,14 @@ public final class AnnotatedClass
      * Helper method for adding any mix-in annotations specified
      * class might have.
      */
-    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask)
-    {
+    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask) {
         if (_mixInResolver != null) {
             _addClassMixIns(annotations, toMask, _mixInResolver.findMixInClassFor(toMask));
         }
     }
 
     protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask,
-                                   Class<?> mixin)
-    {
+                                   Class<?> mixin) {
         if (mixin == null) {
             return;
         }
@@ -356,29 +360,28 @@ public final class AnnotatedClass
     /**
      * Initialization method that will find out all constructors
      * and potential static factory methods the class has.
-     *<p>
+     * <p>
      * Starting with 1.2, it will also apply mix-in annotations,
      * as per [JACKSON-76]
      *
      * @param includeAll If true, includes all creator methods; if false,
-     *   will only include the no-arguments "default" constructor
+     *                   will only include the no-arguments "default" constructor
      */
-    public void resolveCreators(boolean includeAll)
-    {
+    public void resolveCreators(boolean includeAll) {
         // Then see which constructors we have
         _constructors = null;
         for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
-            case 0:
-                _defaultConstructor = _constructConstructor(ctor, true);
-                break;
-            default:
-                if (includeAll) {
-                    if (_constructors == null) {
-                        _constructors = new ArrayList<AnnotatedConstructor>();
+                case 0:
+                    _defaultConstructor = _constructConstructor(ctor, true);
+                    break;
+                default:
+                    if (includeAll) {
+                        if (_constructors == null) {
+                            _constructors = new ArrayList<AnnotatedConstructor>();
+                        }
+                        _constructors.add(_constructConstructor(ctor, false));
                     }
-                    _constructors.add(_constructConstructor(ctor, false));
-                }
             }
         }
         // and if need be, augment with mix-ins
@@ -408,7 +411,7 @@ public final class AnnotatedClass
         }
 
         _creatorMethods = null;
-        
+
         if (includeAll) {
             /* Then static methods which are potential factory
              * methods
@@ -443,39 +446,37 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addConstructorMixIns(Class<?> mixin)
-    {
+    protected void _addConstructorMixIns(Class<?> mixin) {
         MemberKey[] ctorKeys = null;
         int ctorCount = (_constructors == null) ? 0 : _constructors.size();
         for (Constructor<?> ctor : mixin.getDeclaredConstructors()) {
             switch (ctor.getParameterTypes().length) {
-            case 0:
-                if (_defaultConstructor != null) {
-                    _addMixOvers(ctor, _defaultConstructor, false);
-                }
-                break;
-            default:
-                if (ctorKeys == null) {
-                    ctorKeys = new MemberKey[ctorCount];
-                    for (int i = 0; i < ctorCount; ++i) {
-                        ctorKeys[i] = new MemberKey(_constructors.get(i).getAnnotated());
+                case 0:
+                    if (_defaultConstructor != null) {
+                        _addMixOvers(ctor, _defaultConstructor, false);
                     }
-                }
-                MemberKey key = new MemberKey(ctor);
-
-                for (int i = 0; i < ctorCount; ++i) {
-                    if (!key.equals(ctorKeys[i])) {
-                        continue;
-                    }
-                    _addMixOvers(ctor, _constructors.get(i), true);
                     break;
-                }
+                default:
+                    if (ctorKeys == null) {
+                        ctorKeys = new MemberKey[ctorCount];
+                        for (int i = 0; i < ctorCount; ++i) {
+                            ctorKeys[i] = new MemberKey(_constructors.get(i).getAnnotated());
+                        }
+                    }
+                    MemberKey key = new MemberKey(ctor);
+
+                    for (int i = 0; i < ctorCount; ++i) {
+                        if (!key.equals(ctorKeys[i])) {
+                            continue;
+                        }
+                        _addMixOvers(ctor, _constructors.get(i), true);
+                        break;
+                    }
             }
         }
     }
 
-    protected void _addFactoryMixIns(Class<?> mixin)
-    {
+    protected void _addFactoryMixIns(Class<?> mixin) {
         MemberKey[] methodKeys = null;
         int methodCount = _creatorMethods.size();
 
@@ -512,8 +513,7 @@ public final class AnnotatedClass
     /**
      * @param collectIgnored Whether to collect list of ignored methods for later retrieval
      */
-    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
-    {
+    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored) {
         _memberMethods = new AnnotatedMethodMap();
         AnnotatedMethodMap mixins = new AnnotatedMethodMap();
         // first: methods from the class itself
@@ -548,7 +548,8 @@ public final class AnnotatedClass
                         _addMixOvers(mixIn.getAnnotated(), am, false);
                         _memberMethods.add(am);
                     }
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                }
             }
         }
 
@@ -569,10 +570,9 @@ public final class AnnotatedClass
     }
 
     protected void _addMemberMethods(Class<?> cls,
-                                     MethodFilter methodFilter, 
+                                     MethodFilter methodFilter,
                                      AnnotatedMethodMap methods,
-                                     Class<?> mixInCls, AnnotatedMethodMap mixIns)
-    {
+                                     Class<?> mixInCls, AnnotatedMethodMap mixIns) {
         // first, mixIns, since they have higher priority then class methods
         if (mixInCls != null) {
             _addMethodMixIns(methodFilter, methods, mixInCls, mixIns);
@@ -604,10 +604,9 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addMethodMixIns(MethodFilter methodFilter, 
+    protected void _addMethodMixIns(MethodFilter methodFilter,
                                     AnnotatedMethodMap methods,
-                                    Class<?> mixInCls, AnnotatedMethodMap mixIns)
-    {
+                                    Class<?> mixInCls, AnnotatedMethodMap mixIns) {
         for (Method m : mixInCls.getDeclaredMethods()) {
             if (!_isIncludableMethod(m, methodFilter)) {
                 continue;
@@ -642,16 +641,15 @@ public final class AnnotatedClass
      *
      * @param collectIgnored Whether to collect list of ignored methods for later retrieval
      */
-    public void resolveFields(boolean collectIgnored)
-    {
-        LinkedHashMap<String,AnnotatedField> foundFields = new LinkedHashMap<String,AnnotatedField>();
+    public void resolveFields(boolean collectIgnored) {
+        LinkedHashMap<String, AnnotatedField> foundFields = new LinkedHashMap<String, AnnotatedField>();
         _addFields(foundFields, _class);
 
         /* And last but not least: let's remove all fields that are
          * deemed to be ignorable after all annotations have been
          * properly collapsed.
          */
-        Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
+        Iterator<Map.Entry<String, AnnotatedField>> it = foundFields.entrySet().iterator();
         while (it.hasNext()) {
             AnnotatedField f = it.next().getValue();
             if (_annotationIntrospector.isIgnorableField(f)) {
@@ -660,7 +658,7 @@ public final class AnnotatedClass
                     _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
                 }
             } else {
-                
+
             }
         }
         if (foundFields.isEmpty()) {
@@ -671,8 +669,7 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addFields(Map<String,AnnotatedField> fields, Class<?> c)
-    {
+    protected void _addFields(Map<String, AnnotatedField> fields, Class<?> c) {
         /* First, a quick test: we only care for regular classes (not
          * interfaces, primitive types etc), except for Object.class.
          * A simple check to rule out other cases is to see if there
@@ -712,8 +709,7 @@ public final class AnnotatedClass
      * into already collected actual fields (from introspected classes and their
      * super-classes)
      */
-    protected void _addFieldMixIns(Class<?> mixin, Map<String,AnnotatedField> fields)
-    {
+    protected void _addFieldMixIns(Class<?> mixin, Map<String, AnnotatedField> fields) {
         for (Field mixinField : mixin.getDeclaredFields()) {
             /* there are some dummy things (static, synthetic); better
              * ignore
@@ -740,33 +736,28 @@ public final class AnnotatedClass
     /**************************************************************
      */
 
-    protected AnnotatedMethod _constructMethod(Method m)
-    {
+    protected AnnotatedMethod _constructMethod(Method m) {
         /* note: parameter annotations not used for regular (getter, setter)
          * methods; only for creator methods (static factory methods)
          */
         return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()), null);
     }
 
-    protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor, boolean defaultCtor)
-    {
+    protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor, boolean defaultCtor) {
         return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()),
-                                        defaultCtor ? null :  _collectRelevantAnnotations(ctor.getParameterAnnotations()));
+                defaultCtor ? null : _collectRelevantAnnotations(ctor.getParameterAnnotations()));
     }
 
-    protected AnnotatedMethod _constructCreatorMethod(Method m)
-    {
+    protected AnnotatedMethod _constructCreatorMethod(Method m) {
         return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()),
-                                   _collectRelevantAnnotations(m.getParameterAnnotations()));
+                _collectRelevantAnnotations(m.getParameterAnnotations()));
     }
 
-    protected AnnotatedField _constructField(Field f)
-    {
+    protected AnnotatedField _constructField(Field f) {
         return new AnnotatedField(f, _collectRelevantAnnotations(f.getDeclaredAnnotations()));
     }
 
-    protected AnnotationMap[] _collectRelevantAnnotations(Annotation[][] anns)
-    {
+    protected AnnotationMap[] _collectRelevantAnnotations(Annotation[][] anns) {
         int len = anns.length;
         AnnotationMap[] result = new AnnotationMap[len];
         for (int i = 0; i < len; ++i) {
@@ -775,8 +766,7 @@ public final class AnnotatedClass
         return result;
     }
 
-    protected AnnotationMap _collectRelevantAnnotations(Annotation[] anns)
-    {
+    protected AnnotationMap _collectRelevantAnnotations(Annotation[] anns) {
         AnnotationMap annMap = new AnnotationMap();
         if (anns != null) {
             for (Annotation a : anns) {
@@ -794,8 +784,7 @@ public final class AnnotatedClass
     /**************************************************************
      */
 
-    protected boolean _isIncludableMethod(Method m, MethodFilter filter)
-    {
+    protected boolean _isIncludableMethod(Method m, MethodFilter filter) {
         if (filter != null && !filter.includeMethod(m)) {
             return false;
         }
@@ -809,8 +798,7 @@ public final class AnnotatedClass
         return true;
     }
 
-    private boolean _isIncludableField(Field f)
-    {
+    private boolean _isIncludableField(Field f) {
         /* I'm pretty sure synthetic fields are to be skipped...
          * (methods definitely are)
          */
@@ -833,11 +821,10 @@ public final class AnnotatedClass
 
     /**
      * @param addParamAnnotations Whether parameter annotations are to be
-     *   added as well
+     *                            added as well
      */
     protected void _addMixOvers(Constructor<?> mixin, AnnotatedConstructor target,
-                                boolean addParamAnnotations)
-    {
+                                boolean addParamAnnotations) {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addOrOverride(a);
@@ -855,11 +842,10 @@ public final class AnnotatedClass
 
     /**
      * @param addParamAnnotations Whether parameter annotations are to be
-     *   added as well
+     *                            added as well
      */
     protected void _addMixOvers(Method mixin, AnnotatedMethod target,
-                                boolean addParamAnnotations)
-    {
+                                boolean addParamAnnotations) {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addOrOverride(a);
@@ -875,8 +861,7 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addMixUnders(Method mixin, AnnotatedMethod target)
-    {
+    protected void _addMixUnders(Method mixin, AnnotatedMethod target) {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addIfNotPresent(a);
@@ -891,9 +876,8 @@ public final class AnnotatedClass
      */
 
     @Override
-    public String toString()
-    {
-        return "[AnnotedClass "+_class.getName()+"]";
+    public String toString() {
+        return "[AnnotedClass " + _class.getName() + "]";
     }
 }
 

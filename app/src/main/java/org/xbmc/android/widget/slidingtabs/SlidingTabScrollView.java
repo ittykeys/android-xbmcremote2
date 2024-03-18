@@ -21,41 +21,41 @@
 
 package org.xbmc.android.widget.slidingtabs;
 
-import org.xbmc.android.remote.R;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import org.xbmc.android.remote2.R;
+
 /**
  * This is roughly taken from Android's HorizontalScrollView code. The idea
  * is to have a view that can be as large as its content but doesn't scroll
- * 
+ *
  * @author Team XBMC
  */
 public class SlidingTabScrollView extends FrameLayout {
 
-	public SlidingTabScrollView(Context context) {
-		this(context, null);
-	}
+    public SlidingTabScrollView(Context context) {
+        this(context, null);
+    }
 
-	public SlidingTabScrollView(Context context, AttributeSet attrs) {
-		this(context, attrs, R.attr.slidingTabScrollViewStyle);
-	}
+    public SlidingTabScrollView(Context context, AttributeSet attrs) {
+        this(context, attrs, R.attr.slidingTabScrollViewStyle);
+    }
 
-	public SlidingTabScrollView(Context context, AttributeSet attrs, int defStyle) {
-		super(context, attrs, defStyle);
-	}
+    public SlidingTabScrollView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+    }
 
-	@Override
-	protected void measureChildWithMargins(View child, int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
-		final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+    @Override
+    protected void measureChildWithMargins(View child, int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
+        final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
 
-		final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec, getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin
-				+ heightUsed, lp.height);
-		final int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(lp.leftMargin + lp.rightMargin, MeasureSpec.UNSPECIFIED);
+        final int childHeightMeasureSpec = getChildMeasureSpec(parentHeightMeasureSpec, getPaddingTop() + getPaddingBottom() + lp.topMargin + lp.bottomMargin
+                + heightUsed, lp.height);
+        final int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(lp.leftMargin + lp.rightMargin, MeasureSpec.UNSPECIFIED);
 
-		child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
-	}
+        child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+    }
 }

@@ -1,11 +1,11 @@
 package org.codehaus.jackson.map;
 
-import java.util.Map;
-
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.type.JavaType;
+
+import java.util.Map;
 
 /**
  * Interface that defines functionality accessible through both
@@ -16,8 +16,7 @@ import org.codehaus.jackson.type.JavaType;
  * @since 1.2
  */
 public interface MapperConfig<T extends MapperConfig<T>>
-    extends ClassIntrospector.MixInResolver
-{
+        extends ClassIntrospector.MixInResolver {
     // // // Accessors
 
     // // // Life-cycle methods
@@ -68,11 +67,10 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * <code>mixinSource</code> are taken to override annotations
      * that <code>target</code> (or its supertypes) has.
      *
-     * @since 1.2
-     *
-     * @param target Class (or interface) whose annotations to effectively override
+     * @param target      Class (or interface) whose annotations to effectively override
      * @param mixinSource Class (or interface) whose annotations are to
-     *   be "added" to target's annotations, overriding as necessary
+     *                    be "added" to target's annotations, overriding as necessary
+     * @since 1.2
      */
     public void addMixInAnnotations(Class<?> target, Class<?> mixinSource);
 
@@ -89,7 +87,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * one explicitly declared via annotations (or other configuration).
      * If such default handler is configured, it is returned; otherwise
      * null is returned.
-     * 
+     *
      * @since 1.5
      */
     public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType);
@@ -102,8 +100,8 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * that this is the global handler; individual types (classes)
      * can further override active checker used (using
      * {@link JsonAutoDetect} annotation)
-     * 
+     *
      * @since 1.5
-     */    
+     */
     public VisibilityChecker<?> getDefaultVisibilityChecker();
 }

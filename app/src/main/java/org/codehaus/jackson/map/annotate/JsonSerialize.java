@@ -1,12 +1,12 @@
 package org.codehaus.jackson.map.annotate;
 
+import org.codehaus.jackson.annotate.JacksonAnnotation;
+import org.codehaus.jackson.map.JsonSerializer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.codehaus.jackson.annotate.JacksonAnnotation;
-import org.codehaus.jackson.map.JsonSerializer;
 
 /**
  * Annotation used for configuring serialization aspects, by attaching
@@ -14,19 +14,19 @@ import org.codehaus.jackson.map.JsonSerializer;
  * When annotating value classes, configuration is used for instances
  * of the value class but can be overridden by more specific annotations
  * (ones that attach to methods or fields).
- *<p>
+ * <p>
  * An example annotation would be:
- *<pre>
+ * <pre>
  *  &#64;JsonSerialize(using=MySerializer.class,
  *    as=MySubClass.class,
  *    include=JsonSerialize.Inclusion.NON_NULL,
  *    typing=JsonSerialize.Typing.STATIC
  *  )
- *</pre>
+ * </pre>
  * (which would be redundant, since some properties block others:
  * specifically, 'using' has precedence over 'as', which has precedence
  * over 'typing' setting)
- *<p>
+ * <p>
  * NOTE: since version 1.2, annotation has also been applicable
  * to (constructor) parameters
  *
@@ -35,8 +35,7 @@ import org.codehaus.jackson.map.JsonSerializer;
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonSerialize
-{
+public @interface JsonSerialize {
     // // // Annotations for explicitly specifying deserializer
 
     /**
@@ -55,11 +54,11 @@ public @interface JsonSerialize
     /**
      * Subtype (of declared type, which itself is subtype of runtime type)
      * to use as type when locating serializer to use.
-     *<p>
+     * <p>
      * Bogus type {@link NoClass} can be used to indicate that declared
      * type is used as is (i.e. this annotation property has no setting);
      * this since annotation properties are not allowed to have null value.
-     *<p>
+     * <p>
      * Note: if {@link #using} is also used it has precedence
      * (since it directly specified
      * serializer, whereas this would only be used to locate the
@@ -87,7 +86,6 @@ public @interface JsonSerialize
      * and "properties that have non-default value" (i.e. default value
      * being property setting for a Bean constructed with default no-arg
      * constructor, often null).
-     *
      */
     public Inclusion include() default Inclusion.ALWAYS;
 
@@ -102,8 +100,7 @@ public @interface JsonSerialize
      * to define which properties
      * of Java Beans are to be included in serialization
      */
-    public enum Inclusion
-    {
+    public enum Inclusion {
         /**
          * Value that indicates that properties are to be always included,
          * independent of value
@@ -132,8 +129,7 @@ public @interface JsonSerialize
      * to define whether type detection is based on dynamic runtime
      * type (DYNAMIC) or declared type (STATIC).
      */
-    public enum Typing
-    {
+    public enum Typing {
         /**
          * Value that indicates that the actual dynamic runtime type is to
          * be used.
@@ -144,7 +140,6 @@ public @interface JsonSerialize
          * Value that indicates that the static declared type is to
          * be used.
          */
-            STATIC
-            ;
+        STATIC;
     }
 }

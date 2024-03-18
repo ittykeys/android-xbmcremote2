@@ -5,8 +5,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 public final class AnnotatedConstructor
-    extends AnnotatedWithParams
-{
+        extends AnnotatedWithParams {
     final Constructor<?> _constructor;
 
     /*
@@ -16,8 +15,7 @@ public final class AnnotatedConstructor
      */
 
     public AnnotatedConstructor(Constructor<?> constructor,
-                                AnnotationMap classAnn, AnnotationMap[] paramAnn)
-    {
+                                AnnotationMap classAnn, AnnotationMap[] paramAnn) {
         super(classAnn, paramAnn);
         if (constructor == null) {
             throw new IllegalArgumentException("Null constructor not allowed");
@@ -31,11 +29,17 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public Constructor<?> getAnnotated() { return _constructor; }
+    public Constructor<?> getAnnotated() {
+        return _constructor;
+    }
 
-    public int getModifiers() { return _constructor.getModifiers(); }
+    public int getModifiers() {
+        return _constructor.getModifiers();
+    }
 
-    public String getName() { return _constructor.getName(); }
+    public String getName() {
+        return _constructor.getName();
+    }
 
     public Type getGenericType() {
         return getRawType();
@@ -59,14 +63,12 @@ public final class AnnotatedConstructor
         return _constructor.getParameterTypes().length;
     }
 
-    public Class<?> getParameterClass(int index)
-    {
+    public Class<?> getParameterClass(int index) {
         Class<?>[] types = _constructor.getParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 
-    public Type getParameterType(int index)
-    {
+    public Type getParameterType(int index) {
         Type[] types = _constructor.getGenericParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
@@ -77,9 +79,13 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public Class<?> getDeclaringClass() { return _constructor.getDeclaringClass(); }
+    public Class<?> getDeclaringClass() {
+        return _constructor.getDeclaringClass();
+    }
 
-    public Member getMember() { return _constructor; }
+    public Member getMember() {
+        return _constructor;
+    }
 
     /*
     //////////////////////////////////////////////////////
@@ -87,9 +93,8 @@ public final class AnnotatedConstructor
     //////////////////////////////////////////////////////
      */
 
-    public String toString()
-    {
-        return "[constructor for "+getName()+", annotations: "+_annotations+"]";
+    public String toString() {
+        return "[constructor for " + getName() + ", annotations: " + _annotations + "]";
     }
 }
 

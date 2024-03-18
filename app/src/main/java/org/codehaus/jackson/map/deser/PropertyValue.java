@@ -1,23 +1,22 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
 import org.codehaus.jackson.JsonProcessingException;
+
+import java.io.IOException;
 
 /**
  * Base class for property values that need to be buffered during
  * deserialization.
  */
-abstract class PropertyValue
-{
+abstract class PropertyValue {
     public final PropertyValue next;
 
     /**
      * Value to assign when POJO has been instantiated.
      */
     public final Object value;
-    
-    protected PropertyValue(PropertyValue next, Object value)
-    {
+
+    protected PropertyValue(PropertyValue next, Object value) {
         this.next = next;
         this.value = value;
     }
@@ -27,7 +26,7 @@ abstract class PropertyValue
      * bean isntance
      */
     public abstract void assign(Object bean)
-        throws IOException, JsonProcessingException;
+            throws IOException, JsonProcessingException;
 
     /*
     /////////////////////////////////////////////////////
@@ -40,24 +39,21 @@ abstract class PropertyValue
      * a setter method or direct field access.
      */
     final static class Regular
-        extends PropertyValue
-    {
+            extends PropertyValue {
         final SettableBeanProperty _property;
-        
+
         public Regular(PropertyValue next, Object value,
-                       SettableBeanProperty prop)
-        {
+                       SettableBeanProperty prop) {
             super(next, value);
             _property = prop;
         }
 
         public void assign(Object bean)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             _property.set(bean, value);
         }
     }
-    
+
     /**
      * Property value type used when storing entries to be added
      * to a POJO using "any setter" (method that takes name and
@@ -65,23 +61,20 @@ abstract class PropertyValue
      * properties using single method).
      */
     final static class Any
-        extends PropertyValue
-    {
+            extends PropertyValue {
         final SettableAnyProperty _property;
         final String _propertyName;
-        
+
         public Any(PropertyValue next, Object value,
                    SettableAnyProperty prop,
-                   String propName)
-        {
+                   String propName) {
             super(next, value);
             _property = prop;
             _propertyName = propName;
         }
 
         public void assign(Object bean)
-            throws IOException, JsonProcessingException
-        {
+                throws IOException, JsonProcessingException {
             _property.set(bean, _propertyName, value);
         }
     }
@@ -91,21 +84,18 @@ abstract class PropertyValue
      * to a Map.
      */
     final static class Map
-        extends PropertyValue
-    {
+            extends PropertyValue {
         final Object _key;
-        
-        public Map(PropertyValue next, Object value, Object key)
-        {
+
+        public Map(PropertyValue next, Object value, Object key) {
             super(next, value);
             _key = key;
         }
 
-        @SuppressWarnings("unchecked") 
+        @SuppressWarnings("unchecked")
         public void assign(Object bean)
-            throws IOException, JsonProcessingException
-        {
-            ((java.util.Map<Object,Object>) bean).put(_key, value);
+                throws IOException, JsonProcessingException {
+            ((java.util.Map<Object, Object>) bean).put(_key, value);
         }
     }
 }

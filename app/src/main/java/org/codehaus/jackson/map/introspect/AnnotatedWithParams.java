@@ -8,8 +8,7 @@ import java.lang.reflect.Type;
  * constructors and methods share.
  */
 public abstract class AnnotatedWithParams
-    extends AnnotatedMember
-{
+        extends AnnotatedMember {
     /**
      * Annotations directly associated with the annotated
      * entity.
@@ -28,8 +27,7 @@ public abstract class AnnotatedWithParams
     //////////////////////////////////////////////////////
      */
 
-    protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnn)
-    {
+    protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnn) {
         _annotations = classAnn;
         _paramAnnotations = paramAnn;
     }
@@ -38,8 +36,7 @@ public abstract class AnnotatedWithParams
      * Method called to override a class annotation, usually due to a mix-in
      * annotation masking or overriding an annotation 'real' class
      */
-    public final void addOrOverride(Annotation a)
-    {
+    public final void addOrOverride(Annotation a) {
         _annotations.add(a);
     }
 
@@ -49,8 +46,7 @@ public abstract class AnnotatedWithParams
      * annotation masking or overriding an annotation 'real' method
      * has.
      */
-    public final void addOrOverrideParam(int paramIndex, Annotation a)
-    {
+    public final void addOrOverrideParam(int paramIndex, Annotation a) {
         AnnotationMap old = _paramAnnotations[paramIndex];
         if (old == null) {
             old = new AnnotationMap();
@@ -64,8 +60,7 @@ public abstract class AnnotatedWithParams
      * annotation if and only if it is not yet present in the
      * annotation map we have.
      */
-    public final void addIfNotPresent(Annotation a)
-    {
+    public final void addIfNotPresent(Annotation a) {
         _annotations.addIfNotPresent(a);
     }
 
@@ -75,8 +70,7 @@ public abstract class AnnotatedWithParams
     //////////////////////////////////////////////////////
      */
 
-    public final <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
+    public final <A extends Annotation> A getAnnotation(Class<A> acls) {
         return _annotations.get(acls);
     }
 
@@ -86,8 +80,7 @@ public abstract class AnnotatedWithParams
     //////////////////////////////////////////////////////
      */
 
-    public final AnnotationMap getParameterAnnotations(int index)
-    {
+    public final AnnotationMap getParameterAnnotations(int index) {
         if (_paramAnnotations != null) {
             if (index >= 0 && index <= _paramAnnotations.length) {
                 return _paramAnnotations[index];
@@ -104,5 +97,7 @@ public abstract class AnnotatedWithParams
 
     public abstract Type getParameterType(int index);
 
-    public final int getAnnotationCount() { return _annotations.size(); }
+    public final int getAnnotationCount() {
+        return _annotations.size();
+    }
 }

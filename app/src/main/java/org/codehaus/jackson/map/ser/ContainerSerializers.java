@@ -1,67 +1,70 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
-
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.type.JavaType;
 
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Dummy container class to group standard container serializers: serializers
  * that can serialize things like {@link java.util.List}s,
  * {@link java.util.Map}s and such.
- *<p>
+ * <p>
  * TODO: as per [JACKSON-55], should try to add path info for all serializers;
  * is still missing those for some container types.
  */
-public final class ContainerSerializers
-{
-    private ContainerSerializers() { }
+public final class ContainerSerializers {
+    private ContainerSerializers() {
+    }
 
     /*
      ****************************************************************
      * Factory methods
      ****************************************************************
      */
-    
+
     public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
-    {
+                                                                   boolean staticTyping, TypeSerializer vts) {
         return new IndexedListSerializer(elemType, staticTyping, vts);
     }
 
     public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
-    {
+                                                                  boolean staticTyping, TypeSerializer vts) {
         return new CollectionSerializer(elemType, staticTyping, vts);
     }
 
     public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
-    {
+                                                                boolean staticTyping, TypeSerializer vts) {
         return new IteratorSerializer(elemType, staticTyping, vts);
     }
 
     public static ContainerSerializerBase<?> iterableSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts)
-    {
+                                                                boolean staticTyping, TypeSerializer vts) {
         return new IterableSerializer(elemType, staticTyping, vts);
     }
 
-    public static JsonSerializer<?> enumSetSerializer(JavaType enumType)
-    {
+    public static JsonSerializer<?> enumSetSerializer(JavaType enumType) {
         return new EnumSetSerializer(enumType);
     }
-    
+
     /*
      ****************************************************************
      * Base classes
@@ -72,10 +75,9 @@ public final class ContainerSerializers
      * Base class for serializers that will output contents as JSON
      * arrays.
      */
-     private abstract static class AsArraySerializer<T>
-        extends ContainerSerializerBase<T>
-        implements ResolvableSerializer
-    {
+    private abstract static class AsArraySerializer<T>
+            extends ContainerSerializerBase<T>
+            implements ResolvableSerializer {
         protected final boolean _staticTyping;
 
         protected final JavaType _elementType;
@@ -84,17 +86,16 @@ public final class ContainerSerializers
          * Type serializer used for values, if any.
          */
         protected final TypeSerializer _valueTypeSerializer;
-        
+
         /**
          * Value serializer to use, if it can be statically determined
-         * 
+         *
          * @since 1.5
          */
         protected JsonSerializer<Object> _elementSerializer;
 
         protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
-                TypeSerializer vts)
-        {
+                                    TypeSerializer vts) {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
             _elementType = et;
@@ -105,30 +106,27 @@ public final class ContainerSerializers
 
         @Override
         public final void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             jgen.writeStartArray();
             serializeContents(value, jgen, provider);
             jgen.writeEndArray();
         }
-        
+
         @Override
         public final void serializeWithType(T value, JsonGenerator jgen, SerializerProvider provider,
-                TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
+                                            TypeSerializer typeSer)
+                throws IOException, JsonGenerationException {
             typeSer.writeTypePrefixForArray(value, jgen);
             serializeContents(value, jgen, provider);
             typeSer.writeTypeSuffixForArray(value, jgen);
         }
 
         protected abstract void serializeContents(T value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException;
+                throws IOException, JsonGenerationException;
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
-        {
+                throws JsonMappingException {
             /* 15-Jan-2010, tatu: This should probably be rewritten, given that
              *    more information about content type is actually being explicitly
              *    passed. So there should be less need to try to re-process that
@@ -167,18 +165,17 @@ public final class ContainerSerializers
          */
         //@Override
         public void resolve(SerializerProvider provider)
-            throws JsonMappingException
-        {
+                throws JsonMappingException {
             if (_staticTyping && _elementType != null) {
                 _elementSerializer = provider.findValueSerializer(_elementType);
             }
         }
     }
-    
+
     /*
-    ************************************************************
-    * Concrete serializers, Lists/collections
-    ************************************************************
+     ************************************************************
+     * Concrete serializers, Lists/collections
+     ************************************************************
      */
 
     /**
@@ -187,12 +184,10 @@ public final class ContainerSerializers
      * that can not}.
      */
     public static class IndexedListSerializer
-        extends AsArraySerializer<List<?>>
-    {
+            extends AsArraySerializer<List<?>> {
         public final static IndexedListSerializer instance = new IndexedListSerializer(null, false, null);
 
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
-        {
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts) {
             super(List.class, elemType, staticTyping, vts);
         }
 
@@ -200,11 +195,10 @@ public final class ContainerSerializers
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return new IndexedListSerializer(_elementType, _staticTyping, vts);
         }
-        
+
         @Override
         public void serializeContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             if (_elementSerializer != null) {
                 serializeContentsUsing(value, jgen, provider, _elementSerializer);
                 return;
@@ -240,13 +234,12 @@ public final class ContainerSerializers
                         wrapAndThrow(e, value, i);
                     }
                 }
-             }
+            }
         }
 
         public void serializeContentsUsing(List<?> value, JsonGenerator jgen, SerializerProvider provider,
-                JsonSerializer<Object> ser)
-            throws IOException, JsonGenerationException
-        {
+                                           JsonSerializer<Object> ser)
+                throws IOException, JsonGenerationException {
             final int len = value.size();
             if (len > 0) {
                 final TypeSerializer typeSer = _valueTypeSerializer;
@@ -265,12 +258,11 @@ public final class ContainerSerializers
                         wrapAndThrow(e, value, i);
                     }
                 }
-             }
+            }
         }
 
         public void serializeTypedContents(List<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             final int len = value.size();
             if (len > 0) {
                 JsonSerializer<Object> prevSerializer = null;
@@ -298,7 +290,7 @@ public final class ContainerSerializers
                         wrapAndThrow(e, value, i);
                     }
                 }
-             }
+            }
         }
     }
 
@@ -310,13 +302,11 @@ public final class ContainerSerializers
      * to iterate over elements.
      */
     public static class CollectionSerializer
-        extends AsArraySerializer<Collection<?>>
-    {
+            extends AsArraySerializer<Collection<?>> {
         public final static CollectionSerializer instance = new CollectionSerializer(null, false, null);
 
         public CollectionSerializer(JavaType elemType, boolean staticTyping,
-                TypeSerializer vts)
-        {
+                                    TypeSerializer vts) {
             super(Collection.class, elemType, staticTyping, vts);
         }
 
@@ -324,11 +314,10 @@ public final class ContainerSerializers
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return new CollectionSerializer(_elementType, _staticTyping, vts);
         }
-        
+
         @Override
         public void serializeContents(Collection<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             if (_elementSerializer != null) {
                 serializeContentsUsing(value, jgen, provider, _elementSerializer);
                 return;
@@ -338,7 +327,7 @@ public final class ContainerSerializers
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
                 TypeSerializer typeSer = _valueTypeSerializer;
-    
+
                 int i = 0;
                 do {
                     Object elem = it.next();
@@ -372,9 +361,8 @@ public final class ContainerSerializers
         }
 
         public void serializeContentsUsing(Collection<?> value, JsonGenerator jgen, SerializerProvider provider,
-                JsonSerializer<Object> ser)
-            throws IOException, JsonGenerationException
-        {
+                                           JsonSerializer<Object> ser)
+                throws IOException, JsonGenerationException {
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
                 TypeSerializer typeSer = _valueTypeSerializer;
@@ -402,12 +390,10 @@ public final class ContainerSerializers
     }
 
     public static class IteratorSerializer
-        extends AsArraySerializer<Iterator<?>>
-    {
+            extends AsArraySerializer<Iterator<?>> {
         public final static IteratorSerializer instance = new IteratorSerializer(null, false, null);
 
-        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
-        {
+        public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts) {
             super(Iterator.class, elemType, staticTyping, vts);
         }
 
@@ -415,11 +401,10 @@ public final class ContainerSerializers
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return new IteratorSerializer(_elementType, _staticTyping, vts);
         }
-        
+
         @Override
         public void serializeContents(Iterator<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             if (value.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
@@ -446,12 +431,10 @@ public final class ContainerSerializers
     }
 
     public static class IterableSerializer
-        extends AsArraySerializer<Iterable<?>>
-    {
+            extends AsArraySerializer<Iterable<?>> {
         public final static IterableSerializer instance = new IterableSerializer(null, false, null);
 
-        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts)
-        {
+        public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts) {
             super(Iterable.class, elemType, staticTyping, vts);
         }
 
@@ -459,16 +442,15 @@ public final class ContainerSerializers
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return new IterableSerializer(_elementType, _staticTyping, vts);
         }
-        
+
         @Override
         public void serializeContents(Iterable<?> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             Iterator<?> it = value.iterator();
             if (it.hasNext()) {
                 JsonSerializer<Object> prevSerializer = null;
                 Class<?> prevClass = null;
-                
+
                 do {
                     Object elem = it.next();
                     if (elem == null) {
@@ -492,10 +474,8 @@ public final class ContainerSerializers
     }
 
     public static class EnumSetSerializer
-        extends AsArraySerializer<EnumSet<? extends Enum<?>>>
-    {
-        public EnumSetSerializer(JavaType elemType)
-        {
+            extends AsArraySerializer<EnumSet<? extends Enum<?>>> {
+        public EnumSetSerializer(JavaType elemType) {
             super(EnumSet.class, elemType, true, null);
         }
 
@@ -504,11 +484,10 @@ public final class ContainerSerializers
             // no typing for enums (always "hard" type)
             return this;
         }
-        
+
         @Override
         public void serializeContents(EnumSet<? extends Enum<?>> value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+                throws IOException, JsonGenerationException {
             JsonSerializer<Object> enumSer = _elementSerializer;
             /* Need to dynamically find instance serializer; unfortunately
              * that seems to be the only way to figure out type (no accessors

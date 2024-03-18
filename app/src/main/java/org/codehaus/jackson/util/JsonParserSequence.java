@@ -1,42 +1,43 @@
 package org.codehaus.jackson.util;
 
-import java.io.IOException;
-import java.util.*;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 
-import org.codehaus.jackson.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Helper class that can be used to sequence multiple physical
  * {@link JsonParser}s to create a single logical sequence of
  * tokens, as a single {@link JsonParser}.
- *<p>
+ * <p>
  * Fairly simple use of {@link JsonParserDelegate}: only need
  * to override {@link #nextToken} to handle transition
- * 
+ *
  * @author tatu
  * @since 1.5
  */
-public class JsonParserSequence extends JsonParserDelegate
-{
+public class JsonParserSequence extends JsonParserDelegate {
     /**
      * Parsers other than the first one (which is initially assigned
      * as delegate)
      */
     protected final JsonParser[] _parsers;
-    
+
     /**
      * Index of the next parser in {@link #_parsers}.
      */
     protected int _nextParser;
-    
+
     /*
      *******************************************************
      * Construction
      *******************************************************
      */
 
-    protected JsonParserSequence(JsonParser[] parsers)
-    {
+    protected JsonParserSequence(JsonParser[] parsers) {
         super(parsers[0]);
         _parsers = parsers;
         _nextParser = 1;
@@ -51,11 +52,10 @@ public class JsonParserSequence extends JsonParserDelegate
      * within sequences. This is done to minimize delegation depth,
      * ideally only having just a single level of delegation.
      */
-    public static JsonParserSequence createFlattened(JsonParser first, JsonParser second)
-    {
+    public static JsonParserSequence createFlattened(JsonParser first, JsonParser second) {
         if (!(first instanceof JsonParserSequence || second instanceof JsonParserSequence)) {
             // simple:
-            return new JsonParserSequence(new JsonParser[] { first, second });
+            return new JsonParserSequence(new JsonParser[]{first, second});
         }
         ArrayList<JsonParser> p = new ArrayList<JsonParser>();
         if (first instanceof JsonParserSequence) {
@@ -71,9 +71,8 @@ public class JsonParserSequence extends JsonParserDelegate
         return new JsonParserSequence(p.toArray(new JsonParser[p.size()]));
     }
 
-    protected void addFlattenedActiveParsers(List<JsonParser> result)
-    {
-        for (int i = _nextParser-1, len = _parsers.length; i < len; ++i) {
+    protected void addFlattenedActiveParsers(List<JsonParser> result) {
+        for (int i = _nextParser - 1, len = _parsers.length; i < len; ++i) {
             JsonParser p = _parsers[i];
             if (p instanceof JsonParserSequence) {
                 ((JsonParserSequence) p).addFlattenedActiveParsers(result);
@@ -82,25 +81,23 @@ public class JsonParserSequence extends JsonParserDelegate
             }
         }
     }
-    
+
     /*
      *******************************************************
      * Overridden methods, needed: cases where default
      * delegation does not work
      *******************************************************
      */
-    
+
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         do {
             delegate.close();
         } while (switchToNext());
     }
 
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException
-    {
+    public JsonToken nextToken() throws IOException, JsonParseException {
         JsonToken t = delegate.nextToken();
         if (t != null) return t;
         while (switchToNext()) {
@@ -136,11 +133,10 @@ public class JsonParserSequence extends JsonParserDelegate
      * to next parser in sequence, if there is another parser left,
      * making this the new delegate. Old delegate is returned if
      * switch succeeds.
-     * 
+     *
      * @return True if switch succeeded; false otherwise
      */
-    protected boolean switchToNext()
-    {
+    protected boolean switchToNext() {
         if (_nextParser >= _parsers.length) {
             return false;
         }

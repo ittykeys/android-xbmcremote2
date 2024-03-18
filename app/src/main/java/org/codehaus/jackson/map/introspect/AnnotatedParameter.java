@@ -9,8 +9,7 @@ import java.lang.reflect.Type;
  * annotations can be processed conveniently.
  */
 public final class AnnotatedParameter
-    extends Annotated
-{
+        extends Annotated {
     final Type _type;
 
     final AnnotationMap _annotations;
@@ -21,14 +20,12 @@ public final class AnnotatedParameter
     //////////////////////////////////////////////////////
      */
 
-    public AnnotatedParameter(Type type,  AnnotationMap ann)
-    {
+    public AnnotatedParameter(Type type, AnnotationMap ann) {
         _type = type;
         _annotations = ann;
     }
 
-    public void addOrOverride(Annotation a)
-    {
+    public void addOrOverride(Annotation a) {
         _annotations.add(a);
     }
 
@@ -39,15 +36,20 @@ public final class AnnotatedParameter
      */
 
     /// Unfortunately, there is no matching JDK type...
-    public AnnotatedElement getAnnotated() { return null; }
+    public AnnotatedElement getAnnotated() {
+        return null;
+    }
 
     /// Unfortunately, there is no matching JDK type...
-    public int getModifiers() { return 0; }
+    public int getModifiers() {
+        return 0;
+    }
 
-    public String getName() { return ""; }
+    public String getName() {
+        return "";
+    }
 
-    public <A extends Annotation> A getAnnotation(Class<A> acls)
-    {
+    public <A extends Annotation> A getAnnotation(Class<A> acls) {
         return _annotations.get(acls);
     }
 
@@ -69,6 +71,8 @@ public final class AnnotatedParameter
     //////////////////////////////////////////////////////
      */
 
-    public Type getParameterType() { return _type; }
+    public Type getParameterType() {
+        return _type;
+    }
 }
 

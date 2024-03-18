@@ -1,19 +1,26 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
-import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Specialized serializer for {@link EnumMap}s. Somewhat tricky to
@@ -21,9 +28,8 @@ import org.codehaus.jackson.schema.SchemaAware;
  * and if not, it can only be gotten from actual instance.
  */
 public class EnumMapSerializer
-    extends ContainerSerializerBase<EnumMap<? extends Enum<?>, ?>>
-    implements ResolvableSerializer
-{
+        extends ContainerSerializerBase<EnumMap<? extends Enum<?>, ?>>
+        implements ResolvableSerializer {
     protected final boolean _staticTyping;
 
     /**
@@ -33,22 +39,19 @@ public class EnumMapSerializer
     protected final EnumValues _keyEnums;
 
     protected final JavaType _valueType;
-
-    /**
-     * Value serializer to use, if it can be statically determined
-     * 
-     * @since 1.5
-     */
-    protected JsonSerializer<Object> _valueSerializer;
-
     /**
      * Type serializer used for values, if any.
      */
     protected final TypeSerializer _valueTypeSerializer;
-    
+    /**
+     * Value serializer to use, if it can be statically determined
+     *
+     * @since 1.5
+     */
+    protected JsonSerializer<Object> _valueSerializer;
+
     public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums,
-            TypeSerializer vts)
-    {
+                             TypeSerializer vts) {
         super(EnumMap.class, false);
         _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
         _valueType = valueType;
@@ -57,37 +60,33 @@ public class EnumMapSerializer
     }
 
     @Override
-    public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
-    {
+    public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
         return new EnumMapSerializer(_valueType, _staticTyping, _keyEnums, vts);
     }
-    
+
     @Override
-    public void serialize(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException, JsonGenerationException
-    {
+    public void serialize(EnumMap<? extends Enum<?>, ?> value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException {
         jgen.writeStartObject();
         if (!value.isEmpty()) {
             serializeContents(value, jgen, provider);
-        }        
+        }
         jgen.writeEndObject();
     }
 
     @Override
-    public void serializeWithType(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
-            TypeSerializer typeSer)
-        throws IOException, JsonGenerationException
-    {
+    public void serializeWithType(EnumMap<? extends Enum<?>, ?> value, JsonGenerator jgen, SerializerProvider provider,
+                                  TypeSerializer typeSer)
+            throws IOException, JsonGenerationException {
         typeSer.writeTypePrefixForObject(value, jgen);
         if (!value.isEmpty()) {
             serializeContents(value, jgen, provider);
         }
         typeSer.writeTypeSuffixForObject(value, jgen);
     }
-    
-    protected void serializeContents(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException, JsonGenerationException
-    {
+
+    protected void serializeContents(EnumMap<? extends Enum<?>, ?> value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonGenerationException {
         if (_valueSerializer != null) {
             serializeContentsUsing(value, jgen, provider, _valueSerializer);
             return;
@@ -96,7 +95,7 @@ public class EnumMapSerializer
         Class<?> prevClass = null;
         EnumValues keyEnums = _keyEnums;
 
-        for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
+        for (Map.Entry<? extends Enum<?>, ?> entry : value.entrySet()) {
             // First, serialize key
             Enum<?> key = entry.getKey();
             if (keyEnums == null) {
@@ -133,12 +132,11 @@ public class EnumMapSerializer
         }
     }
 
-    protected void serializeContentsUsing(EnumMap<? extends Enum<?>,?> value, JsonGenerator jgen, SerializerProvider provider,
-            JsonSerializer<Object> valueSer)
-        throws IOException, JsonGenerationException
-    {
+    protected void serializeContentsUsing(EnumMap<? extends Enum<?>, ?> value, JsonGenerator jgen, SerializerProvider provider,
+                                          JsonSerializer<Object> valueSer)
+            throws IOException, JsonGenerationException {
         EnumValues keyEnums = _keyEnums;
-        for (Map.Entry<? extends Enum<?>,?> entry : value.entrySet()) {
+        for (Map.Entry<? extends Enum<?>, ?> entry : value.entrySet()) {
             Enum<?> key = entry.getKey();
             if (keyEnums == null) {
                 // clumsy, but has to do for now:
@@ -161,18 +159,16 @@ public class EnumMapSerializer
 
     //@Override
     public void resolve(SerializerProvider provider)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         if (_staticTyping) {
             _valueSerializer = provider.findValueSerializer(_valueType);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         ObjectNode o = createSchemaNode("object", true);
         if (typeHint instanceof ParameterizedType) {
             Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
@@ -186,7 +182,7 @@ public class EnumMapSerializer
                     JsonNode schemaNode = (ser instanceof SchemaAware) ?
                             ((SchemaAware) ser).getSchema(provider, null) :
                             JsonSchema.getDefaultSchemaNode();
-                    propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum<?>)enumValue), schemaNode);
+                    propsNode.put(provider.getConfig().getAnnotationIntrospector().findEnumValue((Enum<?>) enumValue), schemaNode);
                 }
                 o.put("properties", propsNode);
             }

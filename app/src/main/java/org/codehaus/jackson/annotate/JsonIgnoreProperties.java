@@ -9,29 +9,28 @@ import java.lang.annotation.Target;
  * Annotation that can be used to either suppress serialization of
  * properties (during serialization), or ignore processing of
  * JSON properties read (during deserialization).
- *<p>
+ * <p>
  * Example:
- *<pre>
+ * <pre>
  * // to prevent specified fields from being serialized or deserialized
  * // (i.e. not include in JSON output; or being set even if they were included)
  * \@JsonIgnoreProperties({ "internalId", "secretKey" })
  * // To ignore any unknown properties in JSON input without exception:
  * \@JsonIgnoreProperties(ignoreUnknown=true)
- *</pre>
- *<p>
+ * </pre>
+ * <p>
  * Only applicable to classes, not for properties (getters, setters, fields).
- * 
+ *
  * @since 1.4
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonIgnoreProperties
-{
+public @interface JsonIgnoreProperties {
     /**
      * Names of properties to ignore.
      */
-    public String[] value() default { };
+    public String[] value() default {};
 
     /**
      * Property that defines whether it is ok to just ignore any
@@ -41,7 +40,7 @@ public @interface JsonIgnoreProperties
      * ignored without warnings (although handlers for unknown
      * properties, if any, will still be called) without
      * exception.
-     *<p>
+     * <p>
      * Does not have any effect on serialization.
      */
     public boolean ignoreUnknown() default false;

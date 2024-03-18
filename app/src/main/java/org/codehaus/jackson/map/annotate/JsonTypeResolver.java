@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
  * used for handling serialization and deserialization of type information,
  * needed for handling of polymorphic types (or sometimes just for linking
  * abstract types to concrete types)
- * 
+ *
  * @since 1.5
  */
 public @interface JsonTypeResolver {

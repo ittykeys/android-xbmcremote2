@@ -3,8 +3,7 @@ package org.codehaus.jackson.map.util;
 /**
  * Base class for specialized primitive array builders.
  */
-public abstract class PrimitiveArrayBuilder<T>
-{
+public abstract class PrimitiveArrayBuilder<T> {
     /**
      * Let's start with small chunks; typical usage is for small arrays anyway.
      */
@@ -42,7 +41,8 @@ public abstract class PrimitiveArrayBuilder<T>
 
     // // // Life-cycle
 
-    protected PrimitiveArrayBuilder() { }
+    protected PrimitiveArrayBuilder() {
+    }
 
     /*
     ////////////////////////////////////////////////////////////////////////
@@ -50,18 +50,16 @@ public abstract class PrimitiveArrayBuilder<T>
     ////////////////////////////////////////////////////////////////////////
      */
 
-    public T resetAndStart()
-    {
+    public T resetAndStart() {
         _reset();
         return (_freeBuffer == null) ?
-            _constructArray(INITIAL_CHUNK_SIZE) : _freeBuffer;
+                _constructArray(INITIAL_CHUNK_SIZE) : _freeBuffer;
     }
 
     /**
      * @return Length of the next chunk to allocate
      */
-    public final T appendCompletedChunk(T fullChunk, int fullChunkLength)
-    {
+    public final T appendCompletedChunk(T fullChunk, int fullChunkLength) {
         Node<T> next = new Node<T>(fullChunk, fullChunkLength);
         if (_bufferHead == null) { // first chunk
             _bufferHead = _bufferTail = next;
@@ -80,8 +78,7 @@ public abstract class PrimitiveArrayBuilder<T>
         return _constructArray(nextLen);
     }
 
-    public T completeAndClearBuffer(T lastChunk, int lastChunkEntries)
-    {
+    public T completeAndClearBuffer(T lastChunk, int lastChunkEntries) {
         int totalSize = lastChunkEntries + _bufferedEntryCount;
         T resultArray = _constructArray(totalSize);
 
@@ -95,7 +92,7 @@ public abstract class PrimitiveArrayBuilder<T>
 
         // sanity check (could have failed earlier due to out-of-bounds, too)
         if (ptr != totalSize) {
-            throw new IllegalStateException("Should have gotten "+totalSize+" entries, got "+ptr);
+            throw new IllegalStateException("Should have gotten " + totalSize + " entries, got " + ptr);
         }
         return resultArray;
     }
@@ -114,8 +111,7 @@ public abstract class PrimitiveArrayBuilder<T>
     ////////////////////////////////////////////////////////////////////////
      */
 
-    protected void _reset()
-    {
+    protected void _reset() {
         // can we reuse the last (and thereby biggest) array for next time?
         if (_bufferTail != null) {
             _freeBuffer = _bufferTail.getData();
@@ -138,8 +134,7 @@ public abstract class PrimitiveArrayBuilder<T>
      * take type; hence we can implement some aspects of primitive data
      * handling in generic fashion.
      */
-    final static class Node<T>
-    {
+    final static class Node<T> {
         /**
          * Data stored in this node.
          */
@@ -152,25 +147,26 @@ public abstract class PrimitiveArrayBuilder<T>
 
         Node<T> _next;
 
-        public Node(T data, int dataLen)
-        {
+        public Node(T data, int dataLen) {
             _data = data;
             _dataLength = dataLen;
         }
 
-        public T getData() { return _data; }
+        public T getData() {
+            return _data;
+        }
 
-        public int copyData(T dst, int ptr)
-        {
+        public int copyData(T dst, int ptr) {
             System.arraycopy(_data, 0, dst, ptr, _dataLength);
             ptr += _dataLength;
             return ptr;
         }
 
-        public Node<T> next() { return _next; }
+        public Node<T> next() {
+            return _next;
+        }
 
-        public void linkNext(Node<T> next)
-        {
+        public void linkNext(Node<T> next) {
             if (_next != null) { // sanity check
                 throw new IllegalStateException();
             }

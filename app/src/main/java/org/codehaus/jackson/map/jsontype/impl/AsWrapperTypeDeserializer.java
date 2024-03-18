@@ -1,12 +1,15 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
 
 /**
  * Type deserializer used with {@link JsonTypeInfo.As#WRAPPER_OBJECT}
@@ -14,13 +17,11 @@ import org.codehaus.jackson.type.JavaType;
  * the same, regardless of structure used for actual value: wrapping
  * is done using a single-element JSON Object where type id is the key,
  * and actual object data as the value.
- * 
+ *
  * @author tatus
  */
-public class AsWrapperTypeDeserializer extends TypeDeserializerBase
-{
-    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes)
-    {
+public class AsWrapperTypeDeserializer extends TypeDeserializerBase {
+    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes) {
         super(bt, idRes);
     }
 
@@ -34,29 +35,25 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
      */
     @Override
     public Object deserializeTypedFromObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
-    }    
+    }
 
     @Override
     public Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }
 
     @Override
     public Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }
 
     @Override
     public Object deserializeTypedFromAny(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         return _deserialize(jp, ctxt);
     }
     
@@ -72,17 +69,16 @@ public class AsWrapperTypeDeserializer extends TypeDeserializerBase
      * deserialization.
      */
     private final Object _deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // first, sanity checks
         if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
             throw ctxt.wrongTokenException(jp, JsonToken.START_OBJECT,
-                    "need JSON Object to contain As.WRAPPER_OBJECT type information for class "+baseTypeName());
+                    "need JSON Object to contain As.WRAPPER_OBJECT type information for class " + baseTypeName());
         }
         // should always get field name, but just in case...
         if (jp.nextToken() != JsonToken.FIELD_NAME) {
             throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
-                    "need JSON String that contains type id (for subtype of "+baseTypeName()+")");
+                    "need JSON String that contains type id (for subtype of " + baseTypeName() + ")");
         }
         JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
         jp.nextToken();

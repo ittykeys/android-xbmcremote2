@@ -14,7 +14,8 @@
  */
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.ObjectCodec;
 
 /**
  * Sub-class of {@link JsonFactory} that will create a proper
@@ -25,15 +26,12 @@ import org.codehaus.jackson.*;
  * the codec to use.
  */
 public class MappingJsonFactory
-    extends JsonFactory
-{
-    public MappingJsonFactory()
-    {
+        extends JsonFactory {
+    public MappingJsonFactory() {
         this(null);
     }
 
-    public MappingJsonFactory(ObjectMapper mapper)
-    {
+    public MappingJsonFactory(ObjectMapper mapper) {
         super(mapper);
         if (mapper == null) {
             setCodec(new ObjectMapper(this));
@@ -45,5 +43,7 @@ public class MappingJsonFactory
      * helps here
      */
     @Override
-    public final ObjectMapper getCodec() { return (ObjectMapper) _objectCodec; }
+    public final ObjectMapper getCodec() {
+        return (ObjectMapper) _objectCodec;
+    }
 }

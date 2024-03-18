@@ -1,26 +1,27 @@
 package org.codehaus.jackson.node;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.SerializerProvider;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
 /**
  * Node class that represents Arrays mapped from Json content.
  */
 public final class ArrayNode
-    extends ContainerNode
-{
+        extends ContainerNode {
     ArrayList<JsonNode> _children;
 
-    public ArrayNode(JsonNodeFactory nc) { super(nc); }
+    public ArrayNode(JsonNodeFactory nc) {
+        super(nc);
+    }
 
     /*
     ///////////////////////////////////////////////////////////
@@ -28,26 +29,28 @@ public final class ArrayNode
     ///////////////////////////////////////////////////////////
      */
 
-    @Override public JsonToken asToken() { return JsonToken.START_ARRAY; }
+    @Override
+    public JsonToken asToken() {
+        return JsonToken.START_ARRAY;
+    }
 
     @Override
-    public boolean isArray() { return true; }
+    public boolean isArray() {
+        return true;
+    }
 
     @Override
-    public int size()
-    {
+    public int size() {
         return (_children == null) ? 0 : _children.size();
     }
 
     @Override
-    public Iterator<JsonNode> getElements()
-    {
+    public Iterator<JsonNode> getElements() {
         return (_children == null) ? NoNodesIterator.instance() : _children.iterator();
     }
 
     @Override
-        public JsonNode get(int index)
-    {
+    public JsonNode get(int index) {
         if (index >= 0 && (_children != null) && index < _children.size()) {
             return _children.get(index);
         }
@@ -55,14 +58,17 @@ public final class ArrayNode
     }
 
     @Override
-        public JsonNode get(String fieldName) { return null; }
+    public JsonNode get(String fieldName) {
+        return null;
+    }
 
     @Override
-        public JsonNode path(String fieldName) { return MissingNode.getInstance(); }
+    public JsonNode path(String fieldName) {
+        return MissingNode.getInstance();
+    }
 
     @Override
-    public JsonNode path(int index)
-    {
+    public JsonNode path(int index) {
         if (index >= 0 && (_children != null) && index < _children.size()) {
             return _children.get(index);
         }
@@ -77,8 +83,7 @@ public final class ArrayNode
 
     @Override
     public final void serialize(JsonGenerator jg, SerializerProvider provider)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         jg.writeStartArray();
         if (_children != null) {
             for (JsonNode n : _children) {
@@ -87,7 +92,7 @@ public final class ArrayNode
                  *   JsonSerializable? Let's start with former, change if
                  *   we must.
                  */
-                ((BaseJsonNode)n).writeTo(jg);
+                ((BaseJsonNode) n).writeTo(jg);
             }
         }
         jg.writeEndArray();
@@ -104,22 +109,19 @@ public final class ArrayNode
      * if any.
      *
      * @param value to set field to; if null, will be converted
-     *   to a {@link NullNode} first  (to remove field entry, call
-     *   {@link #remove} instead)
-     *
+     *              to a {@link NullNode} first  (to remove field entry, call
+     *              {@link #remove} instead)
      * @return Old value of the field, if any; null if there was no
-     *   old value.
+     * old value.
      */
-    public JsonNode set(int index, JsonNode value)
-    {
+    public JsonNode set(int index, JsonNode value) {
         if (value == null) { // let's not store 'raw' nulls but nodes
             value = nullNode();
         }
         return _set(index, value);
     }
 
-    public void add(JsonNode value)
-    {
+    public void add(JsonNode value) {
         if (value == null) { // let's not store 'raw' nulls but nodes
             value = nullNode();
         }
@@ -129,15 +131,12 @@ public final class ArrayNode
     /**
      * Method for adding all child nodes of given Array, appending to
      * child nodes this array contains
-     * 
+     *
      * @param other Array to add contents from
-     * 
      * @return This node (to allow chaining)
-     * 
      * @since 1.3
      */
-    public JsonNode addAll(ArrayNode other)
-    {
+    public JsonNode addAll(ArrayNode other) {
         ArrayList<JsonNode> contents = other._children;
         if (contents != null) {
             for (int i = 0, len = contents.size(); i < len; ++i) {
@@ -149,15 +148,12 @@ public final class ArrayNode
 
     /**
      * Method for adding given nodes as child nodes of this array node.
-     * 
+     *
      * @param nodes Nodes to add
-     * 
      * @return This node (to allow chaining)
-     * 
      * @since 1.3
      */
-    public JsonNode addAll(Collection<JsonNode> nodes)
-    {
+    public JsonNode addAll(Collection<JsonNode> nodes) {
         for (JsonNode n : nodes) {
             if (n == null) {
                 n = nullNode();
@@ -166,7 +162,7 @@ public final class ArrayNode
         }
         return this;
     }
-    
+
     /**
      * Method for inserting specified child node as an element
      * of this Array. If index is 0 or less, it will be inserted as
@@ -174,8 +170,7 @@ public final class ArrayNode
      * inserted before existing element in specified index.
      * No exceptions are thrown for any index.
      */
-    public void insert(int index, JsonNode value)
-    {
+    public void insert(int index, JsonNode value) {
         if (value == null) {
             value = nullNode();
         }
@@ -187,16 +182,14 @@ public final class ArrayNode
      * Will return value of the entry at specified index, if entry existed;
      * null if not.
      */
-    public JsonNode remove(int index)
-    {
+    public JsonNode remove(int index) {
         if (index >= 0 && (_children != null) && index < _children.size()) {
             return _children.remove(index);
         }
         return null;
     }
 
-    public ArrayNode removeAll()
-    {
+    public ArrayNode removeAll() {
         _children = null;
         return this;
     }
@@ -213,9 +206,8 @@ public final class ArrayNode
      *
      * @return Newly constructed ArrayNode
      */
-    public ArrayNode addArray()
-    {
-        ArrayNode n  = arrayNode();
+    public ArrayNode addArray() {
+        ArrayNode n = arrayNode();
         _add(n);
         return n;
     }
@@ -226,9 +218,8 @@ public final class ArrayNode
      *
      * @return Newly constructed ObjectNode
      */
-    public ObjectNode addObject()
-    {
-        ObjectNode n  = objectNode();
+    public ObjectNode addObject() {
+        ObjectNode n = objectNode();
         _add(n);
         return n;
     }
@@ -237,8 +228,7 @@ public final class ArrayNode
      * Method that will construct a POJONode and add it at the end
      * of this array node.
      */
-    public void addPOJO(Object value)
-    {
+    public void addPOJO(Object value) {
         if (value == null) {
             addNull();
         } else {
@@ -246,30 +236,37 @@ public final class ArrayNode
         }
     }
 
-    public void addNull()
-    {
+    public void addNull() {
         _add(nullNode());
     }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(int v) { _add(numberNode(v)); }
+    public void add(int v) {
+        _add(numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(long v) { _add(numberNode(v)); }
+    public void add(long v) {
+        _add(numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(float v) { _add(numberNode(v)); }
+    public void add(float v) {
+        _add(numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void add(double v) { _add(numberNode(v)); }
+    public void add(double v) {
+        _add(numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
@@ -297,7 +294,9 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void add(boolean v) { _add(booleanNode(v)); }
+    public void add(boolean v) {
+        _add(booleanNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified binary value
@@ -310,9 +309,8 @@ public final class ArrayNode
         }
     }
 
-    public ArrayNode insertArray(int index)
-    {
-        ArrayNode n  = arrayNode();
+    public ArrayNode insertArray(int index) {
+        ArrayNode n = arrayNode();
         _insert(index, n);
         return n;
     }
@@ -323,9 +321,8 @@ public final class ArrayNode
      *
      * @return Newly constructed ObjectNode
      */
-    public ObjectNode insertObject(int index)
-    {
-        ObjectNode n  = objectNode();
+    public ObjectNode insertObject(int index) {
+        ObjectNode n = objectNode();
         _insert(index, n);
         return n;
     }
@@ -334,8 +331,7 @@ public final class ArrayNode
      * Method that will construct a POJONode and add it at the end
      * of this array node.
      */
-    public void insertPOJO(int index, Object value)
-    {
+    public void insertPOJO(int index, Object value) {
         if (value == null) {
             insertNull(index);
         } else {
@@ -343,30 +339,37 @@ public final class ArrayNode
         }
     }
 
-    public void insertNull(int index)
-    {
+    public void insertNull(int index) {
         _insert(index, nullNode());
     }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void insert(int index, int v) { _insert(index, numberNode(v)); }
+    public void insert(int index, int v) {
+        _insert(index, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void insert(int index, long v) { _insert(index, numberNode(v)); }
+    public void insert(int index, long v) {
+        _insert(index, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void insert(int index, float v) { _insert(index, numberNode(v)); }
+    public void insert(int index, float v) {
+        _insert(index, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
      */
-    public void insert(int index, double v) { _insert(index, numberNode(v)); }
+    public void insert(int index, double v) {
+        _insert(index, numberNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
@@ -393,7 +396,9 @@ public final class ArrayNode
     /**
      * Method for setting value of a field to specified String value.
      */
-    public void insert(int index, boolean v) { _insert(index, booleanNode(v)); }
+    public void insert(int index, boolean v) {
+        _insert(index, booleanNode(v));
+    }
 
     /**
      * Method for setting value of a field to specified binary value
@@ -413,8 +418,7 @@ public final class ArrayNode
      */
 
     @Override
-    public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         if (o == this) return true;
         if (o == null) return false;
         if (o.getClass() != getClass()) { // final class, can do this
@@ -428,8 +432,7 @@ public final class ArrayNode
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         int hash;
         if (_children == null) {
             hash = 1;
@@ -446,8 +449,7 @@ public final class ArrayNode
 
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder(16 + (size() << 4));
         sb.append('[');
         if (_children != null) {
@@ -468,24 +470,21 @@ public final class ArrayNode
     ////////////////////////////////////////////////////////
      */
 
-    public JsonNode _set(int index, JsonNode value)
-    {
+    public JsonNode _set(int index, JsonNode value) {
         if (_children == null || index < 0 || index >= _children.size()) {
-            throw new IndexOutOfBoundsException("Illegal index "+index+", array size "+size());
+            throw new IndexOutOfBoundsException("Illegal index " + index + ", array size " + size());
         }
         return _children.set(index, value);
     }
 
-    private void _add(JsonNode node)
-    {
+    private void _add(JsonNode node) {
         if (_children == null) {
             _children = new ArrayList<JsonNode>();
         }
         _children.add(node);
     }
 
-    private void _insert(int index, JsonNode node)
-    {
+    private void _insert(int index, JsonNode node) {
         if (_children == null) {
             _children = new ArrayList<JsonNode>();
             _children.add(node);
@@ -504,8 +503,7 @@ public final class ArrayNode
      * Note: this method gets called iff <code>otherChildren</code>
      * is non-empty
      */
-    private boolean _sameChildren(ArrayList<JsonNode> otherChildren)
-    {
+    private boolean _sameChildren(ArrayList<JsonNode> otherChildren) {
         int len = otherChildren.size();
         if (this.size() != len) { // important: call size() to handle case of null list...
             return false;

@@ -1,8 +1,8 @@
 package org.codehaus.jackson.schema;
 
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.SerializerProvider;
 
 import java.lang.reflect.Type;
 
@@ -11,8 +11,7 @@ import java.lang.reflect.Type;
  *
  * @author Ryan Heaton
  */
-public interface SchemaAware
-{
+public interface SchemaAware {
     /**
      * Get the representation of the schema to which this serializer will conform.
      *

@@ -1,29 +1,28 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.util.*;
-
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.util.ClassUtil;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.Collection;
 
 /**
  * Basic serializer that can take Json "Array" structure and
  * construct a {@link java.util.Collection} instance, with typed contents.
- *<p>
+ * <p>
  * Note: for untyped content (one indicated by passing Object.class
  * as the type), {@link UntypedObjectDeserializer} is used instead.
  * It can also construct {@link java.util.List}s, but not with specific
  * POJO types, only other containers and primitives/wrappers.
  */
 public class CollectionDeserializer
-    extends StdDeserializer<Collection<Object>>
-{
+        extends StdDeserializer<Collection<Object>> {
     // // Configuration
 
     final Class<Collection<Object>> _collectionClass;
@@ -44,26 +43,23 @@ public class CollectionDeserializer
      * instantiation
      */
     final Constructor<Collection<Object>> _defaultCtor;
-    
+
     @Deprecated
-    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser)
-    {
+    public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser) {
         this(collectionClass, valueDeser, null);
     }
 
     @SuppressWarnings("unchecked")
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
-            TypeDeserializer valueTypeDeser)
-    {
+                                  TypeDeserializer valueTypeDeser) {
         this(collectionClass, valueDeser, valueTypeDeser,
-             ClassUtil.findConstructor((Class<Collection<Object>>) collectionClass, true));
+                ClassUtil.findConstructor((Class<Collection<Object>>) collectionClass, true));
     }
 
     @SuppressWarnings("unchecked")
     public CollectionDeserializer(Class<?> collectionClass, JsonDeserializer<Object> valueDeser,
                                   TypeDeserializer valueTypeDeser,
-                                  Constructor<Collection<Object>> ctor)
-    {
+                                  Constructor<Collection<Object>> ctor) {
         super(collectionClass);
         _collectionClass = (Class<Collection<Object>>) collectionClass;
         _valueDeserializer = valueDeser;
@@ -73,8 +69,7 @@ public class CollectionDeserializer
 
     @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         Collection<Object> result;
         try {
             result = _defaultCtor.newInstance();
@@ -87,8 +82,7 @@ public class CollectionDeserializer
     @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt,
                                           Collection<Object> result)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         // Ok: must point to START_ARRAY
         if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
             throw ctxt.mappingException(_collectionClass);
@@ -100,7 +94,7 @@ public class CollectionDeserializer
 
         while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
             Object value;
-            
+
             if (t == JsonToken.VALUE_NULL) {
                 value = null;
             } else if (typeDeser == null) {
@@ -115,9 +109,8 @@ public class CollectionDeserializer
 
     @Override
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
+                                      TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException {
         // In future could check current token... for now this should be enough:
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }

@@ -1,21 +1,27 @@
 package org.codehaus.jackson.node;
 
+import org.codehaus.jackson.Base64Variant;
+import org.codehaus.jackson.JsonLocation;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonStreamContext;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.ObjectCodec;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import org.codehaus.jackson.*;
 
 /**
  * Facade over {@link JsonNode} that implements {@link JsonParser} to allow
  * accessing contents of JSON tree in alternate form (stream of tokens).
  * Useful when a streaming source is expected by code, such as data binding
  * functionality.
- * 
+ *
  * @author tatu
  */
-public class TreeTraversingParser extends JsonParser
-{
+public class TreeTraversingParser extends JsonParser {
     /*
      *********************************************
      * Configuration
@@ -37,7 +43,7 @@ public class TreeTraversingParser extends JsonParser
 
     /**
      * Sometimes parser needs to buffer a single look-ahead token; if so,
-     * it'll be stored here. This is currently used for handling 
+     * it'll be stored here. This is currently used for handling
      */
     protected JsonToken _nextToken;
 
@@ -46,7 +52,7 @@ public class TreeTraversingParser extends JsonParser
      * Array/Object nodes.
      */
     protected boolean _startContainer;
-    
+
     /**
      * Flag that indicates whether parser is closed or not. Gets
      * set when parser is either closed by explicit call
@@ -60,10 +66,11 @@ public class TreeTraversingParser extends JsonParser
      *********************************************
      */
 
-    public TreeTraversingParser(JsonNode n) { this(n, null); }
+    public TreeTraversingParser(JsonNode n) {
+        this(n, null);
+    }
 
-    public TreeTraversingParser(JsonNode n, ObjectCodec codec)
-    {
+    public TreeTraversingParser(JsonNode n, ObjectCodec codec) {
         _objectCodec = codec;
         if (n.isArray()) {
             _nextToken = JsonToken.START_ARRAY;
@@ -76,12 +83,12 @@ public class TreeTraversingParser extends JsonParser
         }
     }
 
-    public void setCodec(ObjectCodec c) {
-        _objectCodec = c;
-    }
-
     public ObjectCodec getCodec() {
         return _objectCodec;
+    }
+
+    public void setCodec(ObjectCodec c) {
+        _objectCodec = c;
     }
 
     /*
@@ -91,8 +98,7 @@ public class TreeTraversingParser extends JsonParser
      */
 
     @Override
-    public void close() throws IOException
-    {
+    public void close() throws IOException {
         if (!_closed) {
             _closed = true;
             _nodeCursor = null;
@@ -107,8 +113,7 @@ public class TreeTraversingParser extends JsonParser
      */
 
     @Override
-    public JsonToken nextToken() throws IOException, JsonParseException
-    {
+    public JsonToken nextToken() throws IOException, JsonParseException {
         if (_nextToken != null) {
             _currToken = _nextToken;
             _nextToken = null;
@@ -120,7 +125,7 @@ public class TreeTraversingParser extends JsonParser
             // minor optimization: empty containers can be skipped
             if (!_nodeCursor.currentHasChildren()) {
                 _currToken = (_currToken == JsonToken.START_OBJECT) ?
-                    JsonToken.END_OBJECT : JsonToken.END_ARRAY;
+                        JsonToken.END_OBJECT : JsonToken.END_ARRAY;
                 return _currToken;
             }
             _nodeCursor = _nodeCursor.iterateChildren();
@@ -149,8 +154,7 @@ public class TreeTraversingParser extends JsonParser
     //public JsonToken nextValue() throws IOException, JsonParseException
 
     @Override
-    public JsonParser skipChildren() throws IOException, JsonParseException
-    {
+    public JsonParser skipChildren() throws IOException, JsonParseException {
         if (_currToken == JsonToken.START_OBJECT) {
             _currToken = JsonToken.END_OBJECT;
         } else if (_currToken == JsonToken.START_ARRAY) {
@@ -197,26 +201,25 @@ public class TreeTraversingParser extends JsonParser
      */
 
     @Override
-    public String getText()
-    {
+    public String getText() {
         if (_closed) {
             return null;
         }
         // need to separate handling a bit...
         switch (_currToken) {
-        case FIELD_NAME:
-            return _nodeCursor.getCurrentName();
-        case VALUE_STRING:
-            return currentNode().getTextValue();
-        case VALUE_NUMBER_INT:
-        case VALUE_NUMBER_FLOAT:
-            return String.valueOf(currentNode().getNumberValue());
-        case VALUE_EMBEDDED_OBJECT:
-            JsonNode n = currentNode();
-            if (n != null && n.isBinary()) {
-                // this will convert it to base64
-                return n.getValueAsText();
-            }
+            case FIELD_NAME:
+                return _nodeCursor.getCurrentName();
+            case VALUE_STRING:
+                return currentNode().getTextValue();
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                return String.valueOf(currentNode().getNumberValue());
+            case VALUE_EMBEDDED_OBJECT:
+                JsonNode n = currentNode();
+                if (n != null && n.isBinary()) {
+                    // this will convert it to base64
+                    return n.getValueAsText();
+                }
         }
 
         return (_currToken == null) ? null : _currToken.asString();
@@ -253,8 +256,7 @@ public class TreeTraversingParser extends JsonParser
     }
 
     @Override
-    public BigInteger getBigIntegerValue() throws IOException, JsonParseException
-    {
+    public BigInteger getBigIntegerValue() throws IOException, JsonParseException {
         return currentNumericNode().getBigIntegerValue();
     }
 
@@ -307,8 +309,7 @@ public class TreeTraversingParser extends JsonParser
 
     @Override
     public byte[] getBinaryValue(Base64Variant b64variant)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         // Multiple possibilities...
         JsonNode n = currentNode();
         if (n != null) { // binary node?
@@ -343,12 +344,11 @@ public class TreeTraversingParser extends JsonParser
     }
 
     protected JsonNode currentNumericNode()
-        throws JsonParseException
-    {
+            throws JsonParseException {
         JsonNode n = currentNode();
         if (n == null || !n.isNumber()) {
             JsonToken t = (n == null) ? null : n.asToken();
-            throw _constructError("Current token ("+t+") not numeric, can not use numeric value accessors");
+            throw _constructError("Current token (" + t + ") not numeric, can not use numeric value accessors");
         }
         return n;
     }

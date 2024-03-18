@@ -13,7 +13,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
-public @interface JsonCreator
-{
+public @interface JsonCreator {
     // no values, since there's no property
 }

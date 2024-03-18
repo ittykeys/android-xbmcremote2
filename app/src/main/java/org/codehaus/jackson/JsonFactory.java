@@ -14,30 +14,40 @@
  */
 package org.codehaus.jackson;
 
-import java.io.*;
-import java.lang.ref.SoftReference;
-import java.net.URL;
-
-import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
 import org.codehaus.jackson.impl.WriterBasedGenerator;
+import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.UTF8Writer;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.util.BufferRecycler;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
+import java.lang.ref.SoftReference;
+import java.net.URL;
 
 /**
  * The main factory class of Jackson package, used to configure and
  * construct reader (aka parser, {@link JsonParser})
  * and writer (aka generator, {@link JsonGenerator})
  * instances.
- *<p>
+ * <p>
  * Factory instances are thread-safe and reusable after configuration
  * (if any). Typically applications and services use only a single
  * globally shared factory instance, unless they need differently
  * configured factories. Factory reuse is important if efficiency matters;
  * most recycling of expensive construct is done on per-factory basis.
- *<p>
+ * <p>
  * Creation of a factory instance is a light-weight operation,
  * and since there is no need for pluggable alternative implementations
  * (as there is no "standard" json processor API to implement),
@@ -46,8 +56,7 @@ import org.codehaus.jackson.util.BufferRecycler;
  *
  * @author Tatu Saloranta
  */
-public class JsonFactory
-{
+public class JsonFactory {
     /**
      * Bitfield (set of flags) of all parser features that are enabled
      * by default.
@@ -83,7 +92,7 @@ public class JsonFactory
     /**
      * Alternative to the basic symbol table, some stream-based
      * parsers use different name canonicalization method.
-     *<p>
+     * <p>
      * TODO: should clean up this; looks messy having 2 alternatives
      * with not very clear differences.
      */
@@ -118,9 +127,13 @@ public class JsonFactory
      * and this reuse only works within context of a single
      * factory instance.
      */
-    public JsonFactory() { this(null); }
+    public JsonFactory() {
+        this(null);
+    }
 
-    public JsonFactory(ObjectCodec oc) { _objectCodec = oc; }
+    public JsonFactory(ObjectCodec oc) {
+        _objectCodec = oc;
+    }
 
     /*
     /******************************************************
@@ -134,8 +147,7 @@ public class JsonFactory
      *
      * @since 1.2
      */
-    public final JsonFactory configure(JsonParser.Feature f, boolean state)
-    {
+    public final JsonFactory configure(JsonParser.Feature f, boolean state) {
         if (state) {
             enable(f);
         } else {
@@ -294,12 +306,14 @@ public class JsonFactory
     //////////////////////////////////////////////////////
      */
 
+    public ObjectCodec getCodec() {
+        return _objectCodec;
+    }
+
     public JsonFactory setCodec(ObjectCodec oc) {
         _objectCodec = oc;
         return this;
     }
-
-    public ObjectCodec getCodec() { return _objectCodec; }
 
     /*
     //////////////////////////////////////////////////////
@@ -312,7 +326,7 @@ public class JsonFactory
      * contents of specified file. Encoding is auto-detected
      * from contents according to json specification recommended
      * mechanism.
-     *<p>
+     * <p>
      * Underlying input stream (needed for reading contents)
      * will be <b>owned</b> (and managed, i.e. closed as need be) by
      * the parser, since caller has no access to it.
@@ -320,8 +334,7 @@ public class JsonFactory
      * @param f File that contains JSON content to parse
      */
     public JsonParser createJsonParser(File f)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return _createJsonParser(new FileInputStream(f), _createContext(f, true));
     }
 
@@ -331,7 +344,7 @@ public class JsonFactory
      * Encoding is auto-detected
      * from contents according to json specification recommended
      * mechanism.
-     *<p>
+     * <p>
      * Underlying input stream (needed for reading contents)
      * will be <b>owned</b> (and managed, i.e. closed as need be) by
      * the parser, since caller has no access to it.
@@ -339,69 +352,63 @@ public class JsonFactory
      * @param url URL pointing to resource that contains JSON content to parse
      */
     public JsonParser createJsonParser(URL url)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
     }
 
     /**
      * Method for constructing json parser instance to parse
      * the contents accessed via specified input stream.
-     *<p>
+     * <p>
      * The input stream will <b>not be owned</b> by
      * the parser, it will still be managed (i.e. closed if
      * end-of-stream is reacher, or parser close method called)
      * if (and only if) {@link org.codehaus.jackson.JsonParser.Feature#AUTO_CLOSE_SOURCE}
      * is enabled.
-     *<p>
+     * <p>
      * Note: no encoding argument is taken since it can always be
      * auto-detected as suggested by Json RFC.
      *
      * @param in InputStream to use for reading JSON content to parse
      */
     public JsonParser createJsonParser(InputStream in)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return _createJsonParser(in, _createContext(in, false));
     }
 
     /**
      * Method for constructing json parser instance to parse
      * the contents accessed via specified Reader.
-     <p>
+     * <p>
      * The read stream will <b>not be owned</b> by
      * the parser, it will still be managed (i.e. closed if
      * end-of-stream is reacher, or parser close method called)
      * if (and only if) {@link org.codehaus.jackson.JsonParser.Feature#AUTO_CLOSE_SOURCE}
      * is enabled.
-     *<p>
+     * <p>
      *
      * @param r Reader to use for reading JSON content to parse
      */
     public JsonParser createJsonParser(Reader r)
-        throws IOException, JsonParseException
-    {
-	return _createJsonParser(r, _createContext(r, false));
+            throws IOException, JsonParseException {
+        return _createJsonParser(r, _createContext(r, false));
     }
 
     public JsonParser createJsonParser(byte[] data)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return _createJsonParser(data, 0, data.length, _createContext(data, true));
     }
 
     public JsonParser createJsonParser(byte[] data, int offset, int len)
-        throws IOException, JsonParseException
-    {
-	return _createJsonParser(data, offset, len, _createContext(data, true));
+            throws IOException, JsonParseException {
+        return _createJsonParser(data, offset, len, _createContext(data, true));
     }
 
     public JsonParser createJsonParser(String content)
-        throws IOException, JsonParseException
-    {
-	// true -> we own the Reader (and must close); not a big deal
-	Reader r = new StringReader(content);
-	return _createJsonParser(r, _createContext(r, true));
+            throws IOException, JsonParseException {
+        // true -> we own the Reader (and must close); not a big deal
+        Reader r = new StringReader(content);
+        return _createJsonParser(r, _createContext(r, true));
     }
 
     /*
@@ -415,7 +422,7 @@ public class JsonFactory
      * using specified output stream.
      * Encoding to use must be specified, and needs to be one of available
      * types (as per JSON specification).
-     *<p>
+     * <p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the output stream when
      * {@link JsonGenerator#close} is called (unless auto-closing
@@ -424,22 +431,21 @@ public class JsonFactory
      * is enabled).
      * Using application needs to close it explicitly if this is the case.
      *
-     * @param out OutputStream to use for writing json content 
+     * @param out OutputStream to use for writing json content
      * @param enc Character encoding to use
      */
     public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc)
-        throws IOException
-    {
-	// false -> we won't manage the stream unless explicitly directed to
+            throws IOException {
+        // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
-	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
+        return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
     /**
      * Method for constructing json generator for writing json content
      * using specified Writer.
-     *<p>
+     * <p>
      * Underlying stream <b>is NOT owned</b> by the generator constructed,
      * so that generator will NOT close the Reader when
      * {@link JsonGenerator#close} is called (unless auto-closing
@@ -447,13 +453,12 @@ public class JsonFactory
      * {@link org.codehaus.jackson.JsonGenerator.Feature#AUTO_CLOSE_TARGET} is enabled).
      * Using application needs to close it explicitly.
      *
-     * @param out Writer to use for writing json content 
+     * @param out Writer to use for writing json content
      */
     public JsonGenerator createJsonGenerator(Writer out)
-        throws IOException
-    {
+            throws IOException {
         IOContext ctxt = _createContext(out, false);
-	return _createJsonGenerator(out, ctxt);
+        return _createJsonGenerator(out, ctxt);
     }
 
     /**
@@ -462,22 +467,21 @@ public class JsonFactory
      * it if such file does not yet exist).
      * Encoding to use must be specified, and needs to be one of available
      * types (as per JSON specification).
-     *<p>
+     * <p>
      * Underlying stream <b>is owned</b> by the generator constructed,
      * i.e. generator will handle closing of file when
      * {@link JsonGenerator#close} is called.
      *
-     * @param f File to write contents to
+     * @param f   File to write contents to
      * @param enc Character encoding to use
      */
     public JsonGenerator createJsonGenerator(File f, JsonEncoding enc)
-        throws IOException
-    {
-	OutputStream out = new FileOutputStream(f);
-	// true -> yes, we have to manage the stream since we created it
+            throws IOException {
+        OutputStream out = new FileOutputStream(f);
+        // true -> yes, we have to manage the stream since we created it
         IOContext ctxt = _createContext(out, true);
         ctxt.setEncoding(enc);
-	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
+        return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
     /*
@@ -489,8 +493,7 @@ public class JsonFactory
     /**
      * Overridable construction method that actually instantiates desired generator.
      */
-    protected IOContext _createContext(Object srcRef, boolean resourceManaged)
-    {
+    protected IOContext _createContext(Object srcRef, boolean resourceManaged) {
         return new IOContext(_getBufferRecycler(), srcRef, resourceManaged);
     }
 
@@ -498,22 +501,19 @@ public class JsonFactory
      * Overridable construction method that actually instantiates desired parser.
      */
     protected JsonParser _createJsonParser(InputStream in, IOContext ctxt)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
 
     protected JsonParser _createJsonParser(Reader r, IOContext ctxt)
-	throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         return new ReaderBasedParser(ctxt, _parserFeatures, r, _objectCodec,
                 _rootCharSymbols.makeChild(isEnabled(JsonParser.Feature.CANONICALIZE_FIELD_NAMES),
-                    isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
-        }
+                        isEnabled(JsonParser.Feature.INTERN_FIELD_NAMES)));
+    }
 
     protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         // true -> managed (doesn't really matter; we have no stream!)
         return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
@@ -522,19 +522,17 @@ public class JsonFactory
      * Overridable construction method that actually instantiates desired generator
      */
     protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
-        throws IOException
-    {
+            throws IOException {
         return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
     }
 
     /**
      * Method used by factory to create buffer recycler instances
      * for parsers and generators.
-     *<p>
+     * <p>
      * Note: only public to give access for <code>ObjectMapper</code>
      */
-    public BufferRecycler _getBufferRecycler()
-    {
+    public BufferRecycler _getBufferRecycler() {
         SoftReference<BufferRecycler> ref = _recyclerRef.get();
         BufferRecycler br = (ref == null) ? null : ref.get();
 
@@ -553,8 +551,7 @@ public class JsonFactory
      * This helps when reading file content via URL.
      */
     protected InputStream _optimizedStreamFromURL(URL url)
-        throws IOException
-    {
+            throws IOException {
         if ("file".equals(url.getProtocol())) {
             /* Can not do this if the path refers
              * to a network drive on windows. This fixes the problem;
@@ -570,12 +567,11 @@ public class JsonFactory
         return url.openStream();
     }
 
-    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
-    {
+    protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException {
         if (enc == JsonEncoding.UTF8) { // We have optimized writer for UTF-8
-	    return new UTF8Writer(ctxt, out);
-	}
-	// not optimal, but should do unless we really care about UTF-16/32 encoding speed
-	return new OutputStreamWriter(out, enc.getJavaName());
+            return new UTF8Writer(ctxt, out);
+        }
+        // not optimal, but should do unless we really care about UTF-16/32 encoding speed
+        return new OutputStreamWriter(out, enc.getJavaName());
     }
 }

@@ -1,14 +1,15 @@
 package org.codehaus.jackson.io;
 
-import java.io.*;
-
 import org.codehaus.jackson.util.BufferRecycler;
 import org.codehaus.jackson.util.TextBuffer;
+
+import java.io.StringWriter;
+import java.io.Writer;
 
 /**
  * Efficient alternative to {@link StringWriter}, based on using segmented
  * internal buffer. Initial input buffer is also recyclable.
- *<p>
+ * <p>
  * This class is most useful when serializing JSON content as a String:
  * if so, instance of this class can be given as the writer to
  * <code>JsonGenerator</code>.
@@ -16,12 +17,10 @@ import org.codehaus.jackson.util.TextBuffer;
  * @since 1.3
  */
 public final class SegmentedStringWriter
-    extends Writer
-{
+        extends Writer {
     final TextBuffer _buffer;
 
-    public SegmentedStringWriter(BufferRecycler br)
-    {
+    public SegmentedStringWriter(BufferRecycler br) {
         super();
         _buffer = new TextBuffer(br);
     }
@@ -33,31 +32,32 @@ public final class SegmentedStringWriter
      */
 
     @Override
-    public Writer append(char c)
-    {
+    public Writer append(char c) {
         write(c);
         return this;
     }
 
     @Override
-    public Writer append(CharSequence csq)
-    {
-	String str = csq.toString();
-	_buffer.append(str, 0, str.length());
+    public Writer append(CharSequence csq) {
+        String str = csq.toString();
+        _buffer.append(str, 0, str.length());
         return this;
     }
 
     @Override
-    public Writer append(CharSequence csq, int start, int end)
-    {
-	String str = csq.subSequence(start, end).toString();
-	_buffer.append(str, 0, str.length());
+    public Writer append(CharSequence csq, int start, int end) {
+        String str = csq.subSequence(start, end).toString();
+        _buffer.append(str, 0, str.length());
         return this;
     }
 
-    @Override public void close() { } // NOP
+    @Override
+    public void close() {
+    } // NOP
 
-    @Override public void flush() { } // NOP
+    @Override
+    public void flush() {
+    } // NOP
 
     @Override
     public void write(char[] cbuf) {
@@ -75,7 +75,9 @@ public final class SegmentedStringWriter
     }
 
     @Override
-    public void write(String str) { _buffer.append(str, 0, str.length()); }
+    public void write(String str) {
+        _buffer.append(str, 0, str.length());
+    }
 
     @Override
     public void write(String str, int off, int len) {
@@ -95,8 +97,7 @@ public final class SegmentedStringWriter
      * Note that the method is not idempotent -- if called second time,
      * will just return an empty String.
      */
-    public String getAndClear()
-    {
+    public String getAndClear() {
         String result = _buffer.contentsAsString();
         _buffer.releaseBuffers();
         return result;

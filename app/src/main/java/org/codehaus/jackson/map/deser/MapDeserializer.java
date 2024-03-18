@@ -1,29 +1,37 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.util.*;
-
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.DeserializerProvider;
+import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.ResolvableDeserializer;
+import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Basic serializer that can take Json "Object" structure and
  * construct a {@link java.util.Map} instance, with typed contents.
- *<p>
+ * <p>
  * Note: for untyped content (one indicated by passing Object.class
  * as the type), {@link UntypedObjectDeserializer} is used instead.
  * It can also construct {@link java.util.Map}s, but not with specific
  * POJO types, only other containers and primitives/wrappers.
  */
 public class MapDeserializer
-    extends StdDeserializer<Map<Object,Object>>
-    implements ResolvableDeserializer
-{
+        extends StdDeserializer<Map<Object, Object>>
+        implements ResolvableDeserializer {
     // // Configuration: typing, deserializers
 
     final JavaType _mapType;
@@ -44,10 +52,10 @@ public class MapDeserializer
      * is the type deserializer that can handle it
      */
     final TypeDeserializer _valueTypeDeserializer;
-    
+
     // // Instance construction settings:
 
-    final Constructor<Map<Object,Object>> _defaultCtor;
+    final Constructor<Map<Object, Object>> _defaultCtor;
 
     /**
      * If the Map is to be instantiated using non-default constructor
@@ -58,7 +66,7 @@ public class MapDeserializer
     protected Creator.PropertyBased _propertyBasedCreator;
 
     // // Any properties to ignore if seen?
-    
+
     protected HashSet<String> _ignorableProperties;
     
     /*
@@ -67,10 +75,9 @@ public class MapDeserializer
     ////////////////////////////////////////////////////////////
      */
 
-    public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
+    public MapDeserializer(JavaType mapType, Constructor<Map<Object, Object>> defCtor,
                            KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
-                           TypeDeserializer valueTypeDeser)
-    {
+                           TypeDeserializer valueTypeDeser) {
         super(Map.class);
         _mapType = mapType;
         _defaultCtor = defCtor;
@@ -83,15 +90,13 @@ public class MapDeserializer
      * Method called to add constructor and/or factory method based
      * creators to be used with Map, instead of default constructor.
      */
-    public void setCreators(CreatorContainer creators)
-    {
+    public void setCreators(CreatorContainer creators) {
         _propertyBasedCreator = creators.propertyBasedCreator();
     }
 
-    public void setIgnorableProperties(String[] ignorable)
-    {
+    public void setIgnorableProperties(String[] ignorable) {
         _ignorableProperties = (ignorable == null || ignorable.length == 0) ?
-            null : ArrayBuilders.arrayToSet(ignorable);
+                null : ArrayBuilders.arrayToSet(ignorable);
     }
 
     /*
@@ -106,8 +111,7 @@ public class MapDeserializer
      * is needed to handle recursive and transitive dependencies.
      */
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
-        throws JsonMappingException
-    {
+            throws JsonMappingException {
         // just need to worry about property-based one
         if (_propertyBasedCreator != null) {
             // Need to / should not create separate
@@ -125,9 +129,8 @@ public class MapDeserializer
      */
 
     @Override
-    public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+    public Map<Object, Object> deserialize(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException {
         // Ok: must point to START_OBJECT, or FIELD_NAME
         JsonToken t = jp.getCurrentToken();
         if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME) {
@@ -136,7 +139,7 @@ public class MapDeserializer
         if (_propertyBasedCreator != null) {
             return _deserializeUsingCreator(jp, ctxt);
         }
-        Map<Object,Object> result;
+        Map<Object, Object> result;
         if (_defaultCtor == null) {
             throw ctxt.instantiationException(getMapClass(), "No default constructor found");
         }
@@ -150,10 +153,9 @@ public class MapDeserializer
     }
 
     @Override
-    public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt,
-                                          Map<Object,Object> result)
-        throws IOException, JsonProcessingException
-    {
+    public Map<Object, Object> deserialize(JsonParser jp, DeserializationContext ctxt,
+                                           Map<Object, Object> result)
+            throws IOException, JsonProcessingException {
         // Ok: must point to START_OBJECT or FIELD_NAME
         JsonToken t = jp.getCurrentToken();
         if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME) {
@@ -165,9 +167,8 @@ public class MapDeserializer
 
     @Override
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-            TypeDeserializer typeDeserializer)
-        throws IOException, JsonProcessingException
-    {
+                                      TypeDeserializer typeDeserializer)
+            throws IOException, JsonProcessingException {
         // In future could check current token... for now this should be enough:
         return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
     }
@@ -179,20 +180,24 @@ public class MapDeserializer
      */
 
     @SuppressWarnings("unchecked")
-    public final Class<?> getMapClass() { return (Class<Map<Object,Object>>) _mapType.getRawClass(); }
+    public final Class<?> getMapClass() {
+        return (Class<Map<Object, Object>>) _mapType.getRawClass();
+    }
 
-    @Override public JavaType getValueType() { return _mapType; }
+    @Override
+    public JavaType getValueType() {
+        return _mapType;
+    }
 
     /*
-    *************************************************
-    * Internal methods
-    *************************************************
-    */
+     *************************************************
+     * Internal methods
+     *************************************************
+     */
 
     protected final void _readAndBind(JsonParser jp, DeserializationContext ctxt,
-                                      Map<Object,Object> result)
-        throws IOException, JsonProcessingException
-    {
+                                      Map<Object, Object> result)
+            throws IOException, JsonProcessingException {
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
@@ -211,7 +216,7 @@ public class MapDeserializer
                 continue;
             }
             // Note: must handle null explicitly here; value deserializers won't
-            Object value;            
+            Object value;
             if (t == JsonToken.VALUE_NULL) {
                 value = null;
             } else if (typeDeser == null) {
@@ -227,10 +232,9 @@ public class MapDeserializer
         }
     }
 
-    @SuppressWarnings("unchecked") 
-    public Map<Object,Object> _deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+    @SuppressWarnings("unchecked")
+    public Map<Object, Object> _deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
+            throws IOException, JsonProcessingException {
         final Creator.PropertyBased creator = _propertyBasedCreator;
         PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
@@ -254,7 +258,7 @@ public class MapDeserializer
                 Object value = prop.deserialize(jp, ctxt);
                 if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
                     jp.nextToken();
-                    Map<Object,Object> result = (Map<Object,Object>)creator.build(buffer);
+                    Map<Object, Object> result = (Map<Object, Object>) creator.build(buffer);
                     _readAndBind(jp, ctxt, result);
                     return result;
                 }
@@ -263,7 +267,7 @@ public class MapDeserializer
             // other property? needs buffering
             String fieldName = jp.getCurrentName();
             Object key = (_keyDeserializer == null) ? fieldName : _keyDeserializer.deserializeKey(fieldName, ctxt);
-            Object value;            
+            Object value;
             if (t == JsonToken.VALUE_NULL) {
                 value = null;
             } else if (typeDeser == null) {
@@ -275,6 +279,6 @@ public class MapDeserializer
         }
         // end of JSON object?
         // if so, can just construct and leave...
-        return (Map<Object,Object>)creator.build(buffer);
+        return (Map<Object, Object>) creator.build(buffer);
     }
 }

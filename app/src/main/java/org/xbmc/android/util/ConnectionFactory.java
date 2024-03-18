@@ -21,155 +21,156 @@
 
 package org.xbmc.android.util;
 
-import org.xbmc.android.remote.business.NowPlayingPollerThread;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
 
+import org.xbmc.android.remote2.business.NowPlayingPollerThread;
+
 /**
- * Globally returns the control objects. 
- * 
+ * Globally returns the control objects.
+ * <p>
  * This class will soon retire once the event client is properly moved to the
  * data layer
  */
 public class ConnectionFactory {
-	
-//	private static Collection<ServiceInfo> sServiceInfo = new HashSet<ServiceInfo>();
-	private static volatile NowPlayingPollerThread sNowPlayingPoller;
-	
-	/**
-	 * Performs zeroconf lookup for the hostname and XBMC's services.
-	 * Stores a static collection of all previously looked up services,
-	 * and returns from that cache if it exists.
-	 * 
-	 * @param type The zeroconf connection type
-	 * @param host The hostname to lookup
-	 * @return {@link ServiceInfo} The details of the first matching host
-	 *
-	public static ServiceInfo getZeroconfServiceInfo(String type, String host) {
-		
-		// Zeroconf addresses always end with .local.
-		// So, if it ends just with ".local", add a period to it.
-		if (host.endsWith(".local")) {
-			host = host.concat(".");
-		}
 
-		// If it doesn't have the ".local" suffix at all, add it,
-		// assuming the user typed just the hostname.
-		if (!host.endsWith(".local.")) {
-			host = host.concat("local.");
-		}
+    //	private static Collection<ServiceInfo> sServiceInfo = new HashSet<ServiceInfo>();
+    private static volatile NowPlayingPollerThread sNowPlayingPoller;
 
-		// See if we already looked that specific service and type up
-		if (!sServiceInfo.isEmpty()) {
-			for (ServiceInfo si: sServiceInfo) {
-				if (si.getType() == type && 
-						si.getServer().compareToIgnoreCase(host) == 0) {
-					return si;
-				}
-			}
-		}
+    /**
+     * Performs zeroconf lookup for the hostname and XBMC's services.
+     * Stores a static collection of all previously looked up services,
+     * and returns from that cache if it exists.
+     *
+     * @param type The zeroconf connection type
+     * @param host The hostname to lookup
+     * @return {@link ServiceInfo} The details of the first matching host
+     *
+    public static ServiceInfo getZeroconfServiceInfo(String type, String host) {
 
-		// If this is the first lookup, try to find something that matches\
-		// the query, and save it in the collection for future use.
-		ServiceInfo hostInfo = null;
-		try {
-			JmDNS jmdns = JmDNS.create();
-			int iAttempt = 0;
+    // Zeroconf addresses always end with .local.
+    // So, if it ends just with ".local", add a period to it.
+    if (host.endsWith(".local")) {
+    host = host.concat(".");
+    }
 
-			while (hostInfo == null && iAttempt < 60) {
-				ServiceInfo[] infos = jmdns.list(type);
-				for (int i=0; i < infos.length; i++) {
-					if (infos[i].getServer().compareToIgnoreCase(host) == 0) {
-						hostInfo = infos[i];
-						break;
-					}
-				}
+    // If it doesn't have the ".local" suffix at all, add it,
+    // assuming the user typed just the hostname.
+    if (!host.endsWith(".local.")) {
+    host = host.concat("local.");
+    }
 
-				if (hostInfo == null) {               
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
-						Log.e("ConnectionManager", Log.getStackTraceString(e));
-						break;
-					}
-					iAttempt++;
-				}
-			}
-		} catch (IOException e) {
-			//e.printStackTrace();
-			Log.e("ConnectionManager", Log.getStackTraceString(e));
-		}
+    // See if we already looked that specific service and type up
+    if (!sServiceInfo.isEmpty()) {
+    for (ServiceInfo si: sServiceInfo) {
+    if (si.getType() == type &&
+    si.getServer().compareToIgnoreCase(host) == 0) {
+    return si;
+    }
+    }
+    }
 
-		// Add the host information to the collection, for future reference
-		sServiceInfo.add(hostInfo);
-		return hostInfo;
-	}*/
-	
-	/**
-	 * Returns an instance of the NowPlaying Poller . Instantiation takes place only
-	 * once, otherwise the first instance is returned. 
-	 * 
-	 * Doesnt start the thread
-	 * 
-	 * @param context
-	 * @param mNowPlayingHandler handler which is going to be registered
-	 * @return A reference to the NowPlaying Poller
-	 */
-	
-	public static synchronized NowPlayingPollerThread getNowPlayingPoller(Context context) {
-		if (sNowPlayingPoller == null) {
-			sNowPlayingPoller = new NowPlayingPollerThread(context);
-		}
-		if (!sNowPlayingPoller.isAlive()){
-			sNowPlayingPoller = new NowPlayingPollerThread(context);
-		}
-		
-		return sNowPlayingPoller;
-		
-	}
-	
-	public static synchronized NowPlayingPollerThread subscribeNowPlayingPollerThread(Context context, 
-			Handler mNowPlayingHandler) {
-		
-		if (sNowPlayingPoller == null) {
-			sNowPlayingPoller = new NowPlayingPollerThread(context);
-			sNowPlayingPoller.subscribe(mNowPlayingHandler);
-			sNowPlayingPoller.start();
-		} else {
-		}
-		if (!sNowPlayingPoller.isAlive()){
-			sNowPlayingPoller = new NowPlayingPollerThread(context);
-			sNowPlayingPoller.subscribe(mNowPlayingHandler);
-			sNowPlayingPoller.start();			
-		} else {
-			sNowPlayingPoller.subscribe(mNowPlayingHandler);
-		}
-		
-		return sNowPlayingPoller;
-				
-	}
-	
-	public static synchronized NowPlayingPollerThread unSubscribeNowPlayingPollerThread(Context context,
-			Handler mNowPlayingHandler, boolean stop) {
-		if (sNowPlayingPoller != null){
-			sNowPlayingPoller.unSubscribe(mNowPlayingHandler);		
-			}
-		return sNowPlayingPoller;
-		
-	}
-	
-	
-	/**
-	 * Checks whether the device is able to connect to the network
-	 * @param context
-	 * @return
-	 */
-	public static boolean isNetworkAvailable(Context context) {
-		ConnectivityManager connMgr = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo info = connMgr.getActiveNetworkInfo();
-		return info != null && info.isConnected();
-	}
+    // If this is the first lookup, try to find something that matches\
+    // the query, and save it in the collection for future use.
+    ServiceInfo hostInfo = null;
+    try {
+    JmDNS jmdns = JmDNS.create();
+    int iAttempt = 0;
+
+    while (hostInfo == null && iAttempt < 60) {
+    ServiceInfo[] infos = jmdns.list(type);
+    for (int i=0; i < infos.length; i++) {
+    if (infos[i].getServer().compareToIgnoreCase(host) == 0) {
+    hostInfo = infos[i];
+    break;
+    }
+    }
+
+    if (hostInfo == null) {
+    try {
+    Thread.sleep(500);
+    } catch (InterruptedException e) {
+    Log.e("ConnectionManager", Log.getStackTraceString(e));
+    break;
+    }
+    iAttempt++;
+    }
+    }
+    } catch (IOException e) {
+    //e.printStackTrace();
+    Log.e("ConnectionManager", Log.getStackTraceString(e));
+    }
+
+    // Add the host information to the collection, for future reference
+    sServiceInfo.add(hostInfo);
+    return hostInfo;
+    }*/
+
+    /**
+     * Returns an instance of the NowPlaying Poller . Instantiation takes place only
+     * once, otherwise the first instance is returned.
+     * <p>
+     * Doesnt start the thread
+     *
+     * @param context
+     * @param mNowPlayingHandler handler which is going to be registered
+     * @return A reference to the NowPlaying Poller
+     */
+
+    public static synchronized NowPlayingPollerThread getNowPlayingPoller(Context context) {
+        if (sNowPlayingPoller == null) {
+            sNowPlayingPoller = new NowPlayingPollerThread(context);
+        }
+        if (!sNowPlayingPoller.isAlive()) {
+            sNowPlayingPoller = new NowPlayingPollerThread(context);
+        }
+
+        return sNowPlayingPoller;
+
+    }
+
+    public static synchronized NowPlayingPollerThread subscribeNowPlayingPollerThread(Context context,
+                                                                                      Handler mNowPlayingHandler) {
+
+        if (sNowPlayingPoller == null) {
+            sNowPlayingPoller = new NowPlayingPollerThread(context);
+            sNowPlayingPoller.subscribe(mNowPlayingHandler);
+            sNowPlayingPoller.start();
+        } else {
+        }
+        if (!sNowPlayingPoller.isAlive()) {
+            sNowPlayingPoller = new NowPlayingPollerThread(context);
+            sNowPlayingPoller.subscribe(mNowPlayingHandler);
+            sNowPlayingPoller.start();
+        } else {
+            sNowPlayingPoller.subscribe(mNowPlayingHandler);
+        }
+
+        return sNowPlayingPoller;
+
+    }
+
+    public static synchronized NowPlayingPollerThread unSubscribeNowPlayingPollerThread(Context context,
+                                                                                        Handler mNowPlayingHandler, boolean stop) {
+        if (sNowPlayingPoller != null) {
+            sNowPlayingPoller.unSubscribe(mNowPlayingHandler);
+        }
+        return sNowPlayingPoller;
+
+    }
+
+
+    /**
+     * Checks whether the device is able to connect to the network
+     *
+     * @param context
+     * @return
+     */
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = connMgr.getActiveNetworkInfo();
+        return info != null && info.isConnected();
+    }
 }

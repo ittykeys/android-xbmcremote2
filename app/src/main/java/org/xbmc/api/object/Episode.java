@@ -21,134 +21,125 @@
 
 package org.xbmc.api.object;
 
-import java.util.ArrayList;
-
 import org.xbmc.android.util.Crc32;
 import org.xbmc.api.type.MediaType;
 
+import java.util.ArrayList;
+
 public class Episode implements ICoverArt {
-	
-	public final static String TAG = "Episode";
-	
-	/**
-	 * Database primary key
-	 */
-	public int id;
 
-	/**
-	 * Local path of this episode (without file name)
-	 */
-	public String localPath;
-	
-	/**
-	 * File name of this episode
-	 */
-	public String fileName;
-	
-	/**
-	 * Title of this episode
-	 */
-	public String title;
-	/**
-	 * Plotsummary
-	 */
-	public String plot;
-	/**
-	 * Rating of this episode
-	 */
-	public double rating = 0.0;
-	/**
-	 * Writer of this episode
-	 */
-	public String writer;
-	public String firstAired;
-	
-	/**
-	 * Number of watched, -1 if not set.
-	 */
-	public int numWatched = -1;
-	public String director;
-	public int season;
-	
-	/**
-	 * Number of this episode within the season
-	 */
-	public int episode;
-	
-	/**
-	 * Title of the TV Show
-	 */
-	public String showTitle;
-	
-	public String artUrl;
-		
-	public ArrayList<Actor> actors = null;
-	
-	public Episode(int id, String title, String plot, double rating, String writer, String firstAired,
-			int numWatched, String director, int season, int episode, String localPath, String fileName, String showTitle, String artUrl) {
-		this.id = id;
-		this.title = title;
-		this.plot = plot;
-		this.rating = rating;
-		this.writer = writer;
-		this.firstAired = firstAired;
-		this.numWatched = numWatched;
-		this.director = director;
-		this.season = season;
-		this.episode = episode;
-		this.localPath = localPath;
-		this.showTitle = showTitle;
-		this.fileName = fileName;
-		this.artUrl = artUrl;
-	}
-	
-	public String getThumbUrl(){
-		return artUrl;
-	}
+    public final static String TAG = "Episode";
+    private static final long serialVersionUID = 5317212562013683169L;
+    /**
+     * Database primary key
+     */
+    public int id;
+    /**
+     * Local path of this episode (without file name)
+     */
+    public String localPath;
+    /**
+     * File name of this episode
+     */
+    public String fileName;
+    /**
+     * Title of this episode
+     */
+    public String title;
+    /**
+     * Plotsummary
+     */
+    public String plot;
+    /**
+     * Rating of this episode
+     */
+    public double rating = 0.0;
+    /**
+     * Writer of this episode
+     */
+    public String writer;
+    public String firstAired;
+    /**
+     * Number of watched, -1 if not set.
+     */
+    public int numWatched = -1;
+    public String director;
+    public int season;
+    /**
+     * Number of this episode within the season
+     */
+    public int episode;
+    /**
+     * Title of the TV Show
+     */
+    public String showTitle;
+    public String artUrl;
+    public ArrayList<Actor> actors = null;
 
-	public long getCrc() {
-		return  Crc32.computeLowerCase(artUrl);			
-	}
+    public Episode(int id, String title, String plot, double rating, String writer, String firstAired,
+                   int numWatched, String director, int season, int episode, String localPath, String fileName, String showTitle, String artUrl) {
+        this.id = id;
+        this.title = title;
+        this.plot = plot;
+        this.rating = rating;
+        this.writer = writer;
+        this.firstAired = firstAired;
+        this.numWatched = numWatched;
+        this.director = director;
+        this.season = season;
+        this.episode = episode;
+        this.localPath = localPath;
+        this.showTitle = showTitle;
+        this.fileName = fileName;
+        this.artUrl = artUrl;
+    }
 
-	/**
-	 * Returns CRC for episode thumb. From FileItem.cpp(2597):
-	 * <pre>
-	 * 	CStdString strCRC;
-	 *	strCRC.Format("%sepisode%i",GetVideoInfoTag()->m_strFileNameAndPath.c_str(),GetVideoInfoTag()->m_iEpisode);
-	 *	return GetCachedThumb(strCRC,g_settings.GetVideoThumbFolder(),true);
-	 * </pre>
-	 */
-	public int getFallbackCrc() {
-		return Crc32.computeLowerCase(artUrl);
-	}
+    public String getThumbUrl() {
+        return artUrl;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public long getCrc() {
+        return Crc32.computeLowerCase(artUrl);
+    }
 
-	public int getMediaType() {
-		return MediaType.VIDEO_TVEPISODE;
-	}
+    /**
+     * Returns CRC for episode thumb. From FileItem.cpp(2597):
+     * <pre>
+     * 	CStdString strCRC;
+     * 	strCRC.Format("%sepisode%i",GetVideoInfoTag()->m_strFileNameAndPath.c_str(),GetVideoInfoTag()->m_iEpisode);
+     * 	return GetCachedThumb(strCRC,g_settings.GetVideoThumbFolder(),true);
+     * </pre>
+     */
+    public int getFallbackCrc() {
+        return Crc32.computeLowerCase(artUrl);
+    }
 
-	public String getName() {
-		if(season == 0)
-			return "Special " + episode + ": " + title;
-		else
-			return season + "x" + episode + ": " + title;
-	}
+    public int getId() {
+        return id;
+    }
 
-	/**
-	 * Returns the path XBMC needs to play the episode. This can either
-	 * localPath + filename or filename only (in case of stacks) 
-	 * @return
-	 */
-	public String getPath() {
-		   if (fileName.contains("://")) {
-			   return fileName;
-		   } 
-		   else {
-				return localPath + fileName;
-			}
-	}
-	private static final long serialVersionUID = 5317212562013683169L;	
+    public int getMediaType() {
+        return MediaType.VIDEO_TVEPISODE;
+    }
+
+    public String getName() {
+        if (season == 0)
+            return "Special " + episode + ": " + title;
+        else
+            return season + "x" + episode + ": " + title;
+    }
+
+    /**
+     * Returns the path XBMC needs to play the episode. This can either
+     * localPath + filename or filename only (in case of stacks)
+     *
+     * @return
+     */
+    public String getPath() {
+        if (fileName.contains("://")) {
+            return fileName;
+        } else {
+            return localPath + fileName;
+        }
+    }
 }

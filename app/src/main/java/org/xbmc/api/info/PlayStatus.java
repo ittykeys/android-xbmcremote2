@@ -28,22 +28,22 @@ package org.xbmc.api.info;
  * 	<li>Paused</li>
  * 	<li>Playing</li>
  * </ul>
- * 
+ *
  * @author Team XBMC
  */
 public abstract class PlayStatus {
-	public static final int UNKNOWN = -1;
-	public static final int STOPPED = 2;
-	public static final int PAUSED = 0;
-	public static final int PLAYING = 1;
-	
-	public static int parse(String response) {
-		if (response.contains("PlayStatus:Paused") || response.equals("Paused")) {
-			return PlayStatus.PAUSED;
-		} else if (response.contains("PlayStatus:Playing") || response.equals("Playing")) {
-			return PlayStatus.PLAYING;
-		} else {
-			return PlayStatus.STOPPED;
-		}
-	}
+    public static final int UNKNOWN = -1;
+    public static final int STOPPED = 2;
+    public static final int PAUSED = 0;
+    public static final int PLAYING = 1;
+
+    public static int parse(String response) {
+        if (response.contains("PlayStatus:Paused") || response.equals("Paused")) {
+            return PlayStatus.PAUSED;
+        } else if (response.contains("PlayStatus:Playing") || response.equals("Playing")) {
+            return PlayStatus.PLAYING;
+        } else {
+            return PlayStatus.STOPPED;
+        }
+    }
 }

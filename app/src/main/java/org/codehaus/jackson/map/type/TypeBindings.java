@@ -1,17 +1,21 @@
 package org.codehaus.jackson.map.type;
 
-import java.lang.reflect.*;
-import java.util.*;
-
 import org.codehaus.jackson.type.JavaType;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Helper class used for resolving type parameters for given class
- * 
+ *
  * @since 1.5
  */
-public class TypeBindings
-{
+public class TypeBindings {
     /**
      * Marker to use for (temporarily) unbound references.
      */
@@ -32,7 +36,7 @@ public class TypeBindings
     /**
      * Lazily-instantiated bindings of resolved type parameters
      */
-    protected Map<String,JavaType> _bindings;
+    protected Map<String, JavaType> _bindings;
 
     /**
      * Also: we may temporarily want to mark certain named types
@@ -40,14 +44,13 @@ public class TypeBindings
      * names here.
      */
     protected HashSet<String> _placeholders;
-    
+
     public TypeBindings(Class<?> cc) {
         _contextClass = cc;
         _contextType = null;
     }
 
-    public TypeBindings(JavaType type)
-    {
+    public TypeBindings(JavaType type) {
         _contextType = type;
         _contextClass = type.getRawClass();
     }
@@ -58,9 +61,8 @@ public class TypeBindings
         }
         return _bindings.size();
     }
-    
-    public JavaType findType(String name)
-    {
+
+    public JavaType findType(String name) {
         if (_bindings == null) {
             _resolve();
         }
@@ -70,8 +72,8 @@ public class TypeBindings
                 t = UNBOUND;
             } else {
                 // Should we throw an exception or just return null?
-                throw new IllegalArgumentException("Type variable '"+name
-                        +"' can not be resolved (with context of class "+_contextClass.getName()+")");
+                throw new IllegalArgumentException("Type variable '" + name
+                        + "' can not be resolved (with context of class " + _contextClass.getName() + ")");
                 //t = UNBOUND;                
             }
         }
@@ -83,9 +85,8 @@ public class TypeBindings
     /* Internal methods
     /*******************************************************************8
      */
-    
-    protected void _resolve()
-    {
+
+    protected void _resolve() {
         _resolveBindings(_contextClass);
 
         // finally: may have root level type info too
@@ -93,7 +94,7 @@ public class TypeBindings
             int count = _contextType.containedTypeCount();
             if (count > 0) {
                 if (_bindings == null) {
-                    _bindings = new HashMap<String,JavaType>();
+                    _bindings = new HashMap<String, JavaType>();
                 }
                 for (int i = 0; i < count; ++i) {
                     String name = _contextType.containedTypeName(i);
@@ -116,25 +117,24 @@ public class TypeBindings
         _placeholders.add(name);
     }
 
-    protected void _resolveBindings(Type t)
-    {
+    protected void _resolveBindings(Type t) {
         if (t == null) return;
-        
+
         Class<?> raw;
         if (t instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType) t;
             Type[] args = pt.getActualTypeArguments();
-            if (args  != null && args.length > 0) {
-                Class<?> rawType = (Class<?>) pt.getRawType();    
+            if (args != null && args.length > 0) {
+                Class<?> rawType = (Class<?>) pt.getRawType();
                 TypeVariable<?>[] vars = rawType.getTypeParameters();
                 if (vars.length != args.length) {
-                    throw new IllegalArgumentException("Strange parametrized type (in class "+rawType.getName()+"): number of type arguments != number of type parameters ("+args.length+" vs "+vars.length+")");
+                    throw new IllegalArgumentException("Strange parametrized type (in class " + rawType.getName() + "): number of type arguments != number of type parameters (" + args.length + " vs " + vars.length + ")");
                 }
                 for (int i = 0, len = args.length; i < len; ++i) {
                     TypeVariable<?> var = vars[i];
                     String name = var.getName();
                     if (_bindings == null) {
-                        _bindings = new HashMap<String,JavaType>();
+                        _bindings = new HashMap<String, JavaType>();
                     } else {
                         /* 24-Mar-2010, tatu: Better ensure that we do not overwrite something
                          *  collected earlier (since we descend towards super-classes):
@@ -147,7 +147,7 @@ public class TypeBindings
                     _bindings.put(name, TypeFactory.instance._fromType(args[i], this));
                 }
             }
-            raw = (Class<?>)pt.getRawType();
+            raw = (Class<?>) pt.getRawType();
         } else if (t instanceof Class<?>) {
             raw = (Class<?>) t;
             /* 24-Mar-2010, tatu: Can not have true generics definitions, but can
@@ -160,7 +160,7 @@ public class TypeBindings
                     Type varType = var.getBounds()[0];
                     if (varType != null) {
                         if (_bindings == null) {
-                            _bindings = new HashMap<String,JavaType>();
+                            _bindings = new HashMap<String, JavaType>();
                         } else { // and no overwriting...
                             if (_bindings.containsKey(name)) continue;
                         }
@@ -183,8 +183,7 @@ public class TypeBindings
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         if (_bindings == null) {
             _resolve();
         }

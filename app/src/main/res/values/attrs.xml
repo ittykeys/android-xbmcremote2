@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--  Copyright (C) 2005-2009 Team XBMC
+<?xml version="1.0" encoding="utf-8"?><!--  Copyright (C) 2005-2009 Team XBMC
       http://xbmc.org
 
       This Program is free software; you can redistribute it and/or modify
@@ -23,20 +22,20 @@
     <declare-styleable name="Theme">
         <!-- Default SlidingTabWidget style. -->
         <attr name="slidingTabWidgetStyle" format="reference" />
-        
+
         <!-- Default HorizontalScrollView style. -->
         <attr name="slidingTabScrollViewStyle" format="reference" />
     </declare-styleable>
-    
+
     <declare-styleable name="SlidingTabWidget">
-    	<!--  Defines how many pixels are between the icons in the background. The 
-    		  width is measured from the center of the icons. -->
-	    <attr name="separationWidth" format="integer" />
+        <!--  Defines how many pixels are between the icons in the background. The
+              width is measured from the center of the icons. -->
+        <attr name="separationWidth" format="integer" />
     </declare-styleable>
-    
+
     <declare-styleable name="SlidingTabScrollView">
         <!-- Defines whether the scrollview should stretch its content to fill the viewport. -->
         <attr name="fillViewport" format="boolean" />
     </declare-styleable>
-    
+
 </resources>

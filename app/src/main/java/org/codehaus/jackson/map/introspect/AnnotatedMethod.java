@@ -5,8 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 public final class AnnotatedMethod
-    extends AnnotatedWithParams
-{
+        extends AnnotatedWithParams {
     final Method _method;
 
     // // Simple lazy-caching:
@@ -20,8 +19,7 @@ public final class AnnotatedMethod
      */
 
     public AnnotatedMethod(Method method,
-                           AnnotationMap classAnn, AnnotationMap[] paramAnn)
-    {
+                           AnnotationMap classAnn, AnnotationMap[] paramAnn) {
         super(classAnn, paramAnn);
         _method = method;
     }
@@ -32,11 +30,17 @@ public final class AnnotatedMethod
     /*****************************************************
      */
 
-    public Method getAnnotated() { return _method; }
+    public Method getAnnotated() {
+        return _method;
+    }
 
-    public int getModifiers() { return _method.getModifiers(); }
+    public int getModifiers() {
+        return _method.getModifiers();
+    }
 
-    public String getName() { return _method.getName(); }
+    public String getName() {
+        return _method.getName();
+    }
 
 
     /**
@@ -58,9 +62,13 @@ public final class AnnotatedMethod
     /********************************************************
      */
 
-    public Class<?> getDeclaringClass() { return _method.getDeclaringClass(); }
+    public Class<?> getDeclaringClass() {
+        return _method.getDeclaringClass();
+    }
 
-    public Member getMember() { return _method; }
+    public Member getMember() {
+        return _method;
+    }
 
     
     /*
@@ -81,20 +89,17 @@ public final class AnnotatedMethod
         return _method.getGenericParameterTypes();
     }
 
-    public Class<?> getParameterClass(int index)
-    {
+    public Class<?> getParameterClass(int index) {
         Class<?>[] types = _method.getParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 
-    public Type getParameterType(int index)
-    {
+    public Type getParameterType(int index) {
         Type[] types = _method.getGenericParameterTypes();
         return (index >= types.length) ? null : types[index];
     }
 
-    public Class<?>[] getParameterClasses()
-    {
+    public Class<?>[] getParameterClasses() {
         if (_paramTypes == null) {
             _paramTypes = _method.getParameterTypes();
         }
@@ -107,7 +112,7 @@ public final class AnnotatedMethod
 
     public String getFullName() {
         return getDeclaringClass().getName() + "#" + getName() + "("
-            +getParameterCount()+" params)";
+                + getParameterCount() + " params)";
     }
 
     /*
@@ -116,9 +121,8 @@ public final class AnnotatedMethod
     /********************************************************
      */
 
-    public String toString()
-    {
-        return "[method "+getName()+", annotations: "+_annotations+"]";
+    public String toString() {
+        return "[method " + getName() + ", annotations: " + _annotations + "]";
     }
 }
 

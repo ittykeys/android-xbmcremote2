@@ -7,8 +7,7 @@ package org.codehaus.jackson.sym;
  *
  * @author Tatu Saloranta
  */
-public abstract class Name
-{
+public abstract class Name {
     protected final String mName;
 
     protected final int mHashCode;
@@ -18,7 +17,9 @@ public abstract class Name
         mHashCode = hashCode;
     }
 
-    public String getName() { return mName; }
+    public String getName() {
+        return mName;
+    }
 
     /*
     //////////////////////////////////////////////////////////
@@ -39,14 +40,17 @@ public abstract class Name
      */
 
     @Override
-        public String toString() { return mName; }
+    public String toString() {
+        return mName;
+    }
 
     @Override
-        public final int hashCode() { return mHashCode; }
+    public final int hashCode() {
+        return mHashCode;
+    }
 
     @Override
-        public boolean equals(Object o)
-    {
+    public boolean equals(Object o) {
         // Canonical instances, can usually just do identity comparison
         return (o == this);
     }

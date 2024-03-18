@@ -1,9 +1,10 @@
 package org.codehaus.jackson.impl;
 
-import java.io.*;
-
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.io.IOContext;
+
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * This is a simple low-level input reader base class, used by
@@ -15,8 +16,7 @@ import org.codehaus.jackson.io.IOContext;
  * @author Tatu Saloranta
  */
 public abstract class ReaderBasedParserBase
-    extends JsonNumericParserBase
-{
+        extends JsonNumericParserBase {
     /*
     ////////////////////////////////////////////////////
     // Configuration
@@ -48,8 +48,7 @@ public abstract class ReaderBasedParserBase
     ////////////////////////////////////////////////////
      */
 
-    protected ReaderBasedParserBase(IOContext ctxt, int features, Reader r)
-    {
+    protected ReaderBasedParserBase(IOContext ctxt, int features, Reader r) {
         super(ctxt, features);
         _reader = r;
         _inputBuffer = ctxt.allocTokenBuffer();
@@ -62,9 +61,8 @@ public abstract class ReaderBasedParserBase
      */
 
     @Override
-	protected final boolean loadMore()
-        throws IOException
-    {
+    protected final boolean loadMore()
+            throws IOException {
         _currInputProcessed += _inputEnd;
         _currInputRowStart -= _inputEnd;
 
@@ -79,15 +77,14 @@ public abstract class ReaderBasedParserBase
             _closeInput();
             // Should never return 0, so let's fail
             if (count == 0) {
-                throw new IOException("Reader returned 0 characters when trying to read "+_inputEnd);
+                throw new IOException("Reader returned 0 characters when trying to read " + _inputEnd);
             }
         }
         return false;
     }
 
     protected char getNextChar(String eofMsg)
-        throws IOException, JsonParseException
-    {
+            throws IOException, JsonParseException {
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
                 _reportInvalidEOF(eofMsg);
@@ -97,8 +94,7 @@ public abstract class ReaderBasedParserBase
     }
 
     @Override
-    protected void _closeInput() throws IOException
-    {
+    protected void _closeInput() throws IOException {
         /* 25-Nov-2008, tatus: As per [JACKSON-16] we are not to call close()
          *   on the underlying Reader, unless we "own" it, or auto-closing
          *   feature is enabled.
@@ -122,8 +118,7 @@ public abstract class ReaderBasedParserBase
      */
     @Override
     protected void _releaseBuffers()
-        throws IOException
-    {
+            throws IOException {
         super._releaseBuffers();
         char[] buf = _inputBuffer;
         if (buf != null) {

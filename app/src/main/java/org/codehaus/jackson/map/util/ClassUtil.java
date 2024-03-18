@@ -1,10 +1,20 @@
 package org.codehaus.jackson.map.util;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
-public final class ClassUtil
-{
+public final class ClassUtil {
     /*
     /***************************************************
     /* Methods that deal with inheritance
@@ -21,10 +31,9 @@ public final class ClassUtil
      * regardless of whether <code>endBefore</code> argument is defined
      *
      * @param endBefore Super-type to NOT include in results, if any; when
-     *    encountered, will be ignored (and no super types are checked).
+     *                  encountered, will be ignored (and no super types are checked).
      */
-    public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore)
-    {
+    public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore) {
         /* We don't expect to get huge collections, thus overhead of a
          * Set seems unnecessary.
          */
@@ -33,8 +42,7 @@ public final class ClassUtil
         return result;
     }
 
-    private static void _addSuperTypes(Class<?> cls, Class<?> endBefore, ArrayList<Class<?>> result, boolean addClassItself)
-    {
+    private static void _addSuperTypes(Class<?> cls, Class<?> endBefore, ArrayList<Class<?>> result, boolean addClassItself) {
         if (cls == endBefore || cls == null || cls == Object.class) {
             return;
         }
@@ -58,10 +66,9 @@ public final class ClassUtil
 
     /**
      * @return Null if class might be a bean; type String (that identifies
-     *   why it's not a bean) if not
+     * why it's not a bean) if not
      */
-    public static String canBeABeanType(Class<?> type)
-    {
+    public static String canBeABeanType(Class<?> type) {
         // First: language constructs that ain't beans:
         if (type.isAnnotation()) {
             return "annotation";
@@ -80,8 +87,7 @@ public final class ClassUtil
         return null;
     }
 
-    public static String isLocalType(Class<?> type)
-    {
+    public static String isLocalType(Class<?> type) {
         /* As per [JACKSON-187], GAE seems to throw SecurityExceptions
          * here and there... and GAE itself has a bug, too
          * (see []). Bah.
@@ -91,7 +97,7 @@ public final class ClassUtil
             if (type.getEnclosingMethod() != null) {
                 return "local/anonymous";
             }
-            
+
             /* But how about non-static inner classes? Can't construct
              * easily (theoretically, we could try to check if parent
              * happens to be enclosing... but that gets convoluted)
@@ -101,9 +107,9 @@ public final class ClassUtil
                     return "non-static member class";
                 }
             }
+        } catch (SecurityException e) {
+        } catch (NullPointerException e) {
         }
-        catch (SecurityException e) { }
-        catch (NullPointerException e) { }
         return null;
     }
 
@@ -112,8 +118,7 @@ public final class ClassUtil
      * not expose concrete method API that we could use to figure out
      * automatic Bean (property) based serialization.
      */
-    public static boolean isProxyType(Class<?> type)
-    {
+    public static boolean isProxyType(Class<?> type) {
         // Then: well-known proxy (etc) classes
         if (Proxy.isProxyClass(type)) {
             return true;
@@ -121,7 +126,7 @@ public final class ClassUtil
         String name = type.getName();
         // Hibernate uses proxies heavily as well:
         if (name.startsWith("net.sf.cglib.proxy.")
-            || name.startsWith("org.hibernate.proxy.")) {
+                || name.startsWith("org.hibernate.proxy.")) {
             return true;
         }
         // Not one of known proxies, nope:
@@ -132,14 +137,12 @@ public final class ClassUtil
      * Helper method that checks if given class is a concrete one;
      * that is, not an interface or abstract class.
      */
-    public static boolean isConcrete(Class<?> type)
-    {
+    public static boolean isConcrete(Class<?> type) {
         int mod = type.getModifiers();
         return (mod & (Modifier.INTERFACE | Modifier.ABSTRACT)) == 0;
     }
 
-    public static boolean isCollectionMapOrArray(Class<?> type)
-    {
+    public static boolean isCollectionMapOrArray(Class<?> type) {
         if (type.isArray()) return true;
         if (Collection.class.isAssignableFrom(type)) return true;
         if (Map.class.isAssignableFrom(type)) return true;
@@ -152,8 +155,7 @@ public final class ClassUtil
     /***************************************************
      */
 
-    public static boolean hasGetterSignature(Method m)
-    {
+    public static boolean hasGetterSignature(Method m) {
         // First: static methods can't be getters
         if (Modifier.isStatic(m.getModifiers())) {
             return false;
@@ -181,21 +183,18 @@ public final class ClassUtil
      * Method that can be used to find the "root cause", innermost
      * of chained (wrapped) exceptions.
      */
-    public static Throwable getRootCause(Throwable t)
-    {
+    public static Throwable getRootCause(Throwable t) {
         while (t.getCause() != null) {
             t = t.getCause();
         }
         return t;
     }
 
-    public static void throwAsIAE(Throwable t)
-    {
+    public static void throwAsIAE(Throwable t) {
         throwAsIAE(t, t.getMessage());
     }
 
-    public static void throwAsIAE(Throwable t, String msg)
-    {
+    public static void throwAsIAE(Throwable t, String msg) {
         if (t instanceof RuntimeException) {
             throw (RuntimeException) t;
         }
@@ -205,13 +204,11 @@ public final class ClassUtil
         throw new IllegalArgumentException(msg, t);
     }
 
-    public static void unwrapAndThrowAsIAE(Throwable t)
-    {
+    public static void unwrapAndThrowAsIAE(Throwable t) {
         throwAsIAE(getRootCause(t));
     }
 
-    public static void unwrapAndThrowAsIAE(Throwable t, String msg)
-    {
+    public static void unwrapAndThrowAsIAE(Throwable t, String msg) {
         throwAsIAE(getRootCause(t), msg);
     }
 
@@ -227,31 +224,28 @@ public final class ClassUtil
      * constructor.
      *
      * @param canFixAccess Whether it is possible to try to change access
-     *   rights of the default constructor (in case it is not publicly
-     *   accessible) or not.
-     *
+     *                     rights of the default constructor (in case it is not publicly
+     *                     accessible) or not.
      * @throws IllegalArgumentException If instantiation fails for any reason;
-     *    except for cases where constructor throws an unchecked exception
-     *    (which will be passed as is)
+     *                                  except for cases where constructor throws an unchecked exception
+     *                                  (which will be passed as is)
      */
     public static <T> T createInstance(Class<T> cls, boolean canFixAccess)
-        throws IllegalArgumentException
-    {
+            throws IllegalArgumentException {
         Constructor<T> ctor = findConstructor(cls, canFixAccess);
         if (ctor == null) {
-            throw new IllegalArgumentException("Class "+cls.getName()+" has no default (no arg) constructor");
+            throw new IllegalArgumentException("Class " + cls.getName() + " has no default (no arg) constructor");
         }
         try {
             return ctor.newInstance();
         } catch (Exception e) {
-            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to instantiate class "+cls.getName()+", problem: "+e.getMessage());
+            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to instantiate class " + cls.getName() + ", problem: " + e.getMessage());
             return null;
         }
     }
 
     public static <T> Constructor<T> findConstructor(Class<T> cls, boolean canFixAccess)
-        throws IllegalArgumentException
-    {
+            throws IllegalArgumentException {
         try {
             Constructor<T> ctor = cls.getDeclaredConstructor();
             if (canFixAccess) {
@@ -259,14 +253,14 @@ public final class ClassUtil
             } else {
                 // Has to be public...
                 if (!Modifier.isPublic(ctor.getModifiers())) {
-                    throw new IllegalArgumentException("Default constructor for "+cls.getName()+" is not accessible (non-public?): not allowed to try modify access via Reflection: can not instantiate type");
+                    throw new IllegalArgumentException("Default constructor for " + cls.getName() + " is not accessible (non-public?): not allowed to try modify access via Reflection: can not instantiate type");
                 }
             }
             return ctor;
         } catch (NoSuchMethodException e) {
             ;
         } catch (Exception e) {
-            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class "+cls.getName()+", problem: "+e.getMessage());
+            ClassUtil.unwrapAndThrowAsIAE(e, "Failed to find default constructor of class " + cls.getName() + ", problem: " + e.getMessage());
         }
         return null;
     }
@@ -283,8 +277,7 @@ public final class ClassUtil
      * usually not); and if not, if there is a work-around for
      * the problem.
      */
-    public static void checkAndFixAccess(Member member)
-    {
+    public static void checkAndFixAccess(Member member) {
         // We know all members are also accessible objects...
         AccessibleObject ao = (AccessibleObject) member;
 
@@ -302,7 +295,7 @@ public final class ClassUtil
              */
             if (!ao.isAccessible()) {
                 Class<?> declClass = member.getDeclaringClass();
-                throw new IllegalArgumentException("Can not access "+member+" (from class "+declClass.getName()+"; failed to set access: "+se.getMessage());
+                throw new IllegalArgumentException("Can not access " + member + " (from class " + declClass.getName() + "; failed to set access: " + se.getMessage());
             }
         }
         //}
@@ -319,17 +312,16 @@ public final class ClassUtil
      * enumeration type of given {@link EnumSet}, without having
      * access to its declaration.
      * Code is needed to work around design flaw in JDK.
-     * 
+     *
      * @since 1.5
      */
-    public static Class<? extends Enum<?>> findEnumType(EnumSet<?> s)
-	{
-    	// First things first: if not empty, easy to determine
-    	if (!s.isEmpty()) {
-    		return findEnumType(s.iterator().next());
-    	}
-    	// Otherwise need to locate using an internal field
-    	return EnumTypeLocator.instance.enumTypeFor(s);
+    public static Class<? extends Enum<?>> findEnumType(EnumSet<?> s) {
+        // First things first: if not empty, easy to determine
+        if (!s.isEmpty()) {
+            return findEnumType(s.iterator().next());
+        }
+        // Otherwise need to locate using an internal field
+        return EnumTypeLocator.instance.enumTypeFor(s);
     }
 
     /**
@@ -337,16 +329,15 @@ public final class ClassUtil
      * enumeration type of given {@link EnumSet}, without having
      * access to its declaration.
      * Code is needed to work around design flaw in JDK.
-     * 
+     *
      * @since 1.5
      */
-    public static Class<? extends Enum<?>> findEnumType(EnumMap<?,?> m)
-    {
-    	if (!m.isEmpty()) {
-    		return findEnumType(m.keySet().iterator().next());
-    	}
-    	// Otherwise need to locate using an internal field
-    	return EnumTypeLocator.instance.enumTypeFor(m);
+    public static Class<? extends Enum<?>> findEnumType(EnumMap<?, ?> m) {
+        if (!m.isEmpty()) {
+            return findEnumType(m.keySet().iterator().next());
+        }
+        // Otherwise need to locate using an internal field
+        return EnumTypeLocator.instance.enumTypeFor(m);
     }
 
     /**
@@ -356,14 +347,13 @@ public final class ClassUtil
      * superclass (for enums with instance fields or methods)
      */
     @SuppressWarnings("unchecked")
-	public static Class<? extends Enum<?>> findEnumType(Enum<?> en)
-    {
-		// enums with "body" are sub-classes of the formal type
-    	Class<?> ec = en.getClass();
-		if (ec.getSuperclass() != Enum.class) {
-			ec = ec.getSuperclass();
-		}
-		return (Class<? extends Enum<?>>) ec;
+    public static Class<? extends Enum<?>> findEnumType(Enum<?> en) {
+        // enums with "body" are sub-classes of the formal type
+        Class<?> ec = en.getClass();
+        if (ec.getSuperclass() != Enum.class) {
+            ec = ec.getSuperclass();
+        }
+        return (Class<? extends Enum<?>>) ec;
     }
 
     /**
@@ -373,13 +363,12 @@ public final class ClassUtil
      * or its superclass (for enums with instance fields or methods)
      */
     @SuppressWarnings("unchecked")
-	public static Class<? extends Enum<?>> findEnumType(Class<?> cls)
-    {
-		// enums with "body" are sub-classes of the formal type
-		if (cls.getSuperclass() != Enum.class) {
-			cls = cls.getSuperclass();
-		}
-		return (Class<? extends Enum<?>>) cls;
+    public static Class<? extends Enum<?>> findEnumType(Class<?> cls) {
+        // enums with "body" are sub-classes of the formal type
+        if (cls.getSuperclass() != Enum.class) {
+            cls = cls.getSuperclass();
+        }
+        return (Class<? extends Enum<?>>) cls;
     }
     
     /*
@@ -392,75 +381,71 @@ public final class ClassUtil
      * Inner class used to contain gory details of how we can determine
      * details of instances of common JDK types like {@link EnumMap}s.
      */
-    private static class EnumTypeLocator
-    {
-    	final static EnumTypeLocator instance = new EnumTypeLocator();
+    private static class EnumTypeLocator {
+        final static EnumTypeLocator instance = new EnumTypeLocator();
 
-    	private final Field enumSetTypeField;
-    	private final Field enumMapTypeField;
-    	
-    	private EnumTypeLocator() {
-			/* JDK uses following fields to store information about actual Enumeration
-			 * type for EnumSets, EnumMaps...
-			 */
-			enumSetTypeField = locateField(EnumSet.class, "elementType", Class.class);
-			enumMapTypeField = locateField(EnumMap.class, "elementType", Class.class);
-    	}
+        private final Field enumSetTypeField;
+        private final Field enumMapTypeField;
 
-    	@SuppressWarnings("unchecked")
-		public Class<? extends Enum<?>> enumTypeFor(EnumSet<?> set)
-		{
-    		if (enumSetTypeField != null) {
-    			return (Class<? extends Enum<?>>) get(set, enumSetTypeField);
-    		}
-    		throw new IllegalStateException("Can not figure out type for EnumSet (odd JDK platform?)");
-		}
+        private EnumTypeLocator() {
+            /* JDK uses following fields to store information about actual Enumeration
+             * type for EnumSets, EnumMaps...
+             */
+            enumSetTypeField = locateField(EnumSet.class, "elementType", Class.class);
+            enumMapTypeField = locateField(EnumMap.class, "elementType", Class.class);
+        }
 
-    	@SuppressWarnings("unchecked")
-		public Class<? extends Enum<?>> enumTypeFor(EnumMap<?,?> set)
-		{
-    		if (enumMapTypeField != null) {
-    			return (Class<? extends Enum<?>>) get(set, enumMapTypeField);
-    		}
-    		throw new IllegalStateException("Can not figure out type for EnumMap (odd JDK platform?)");
-		}
-    	
-    	private Object get(Object instance, Field field)
-    	{
-    		try {
-    			return field.get(instance);
-    		} catch (Exception e) {
-    			throw new IllegalArgumentException(e);
-    		}
-    	}
-    	
-    	private static Field locateField(Class<?> fromClass, String expectedName, Class<?> type)
-    	{
-    		Field found = null;
-    		// First: let's see if we can find exact match:
-    		Field[] fields = fromClass.getDeclaredFields();
-    		for (Field f : fields) {
-    			if (expectedName.equals(f.getName()) && f.getType() == type) {
-    				found = f;
-    				break;
-    			}
-    		}
-    		// And if not, if there is just one field with the type, that field
-    		if (found == null) {
-	    		for (Field f : fields) {
-	    			if (f.getType() == type) {
-	    				// If more than one, can't choose
-	    				if (found != null) return null;
-	    				found = f;
-	    			}
-	    		}
-    		}
-    		if (found != null) { // it's non-public, need to force accessible
-    			try {
-    				found.setAccessible(true);
-    			} catch (Throwable t) { }
-    		}
-    		return found;
-    	}
+        private static Field locateField(Class<?> fromClass, String expectedName, Class<?> type) {
+            Field found = null;
+            // First: let's see if we can find exact match:
+            Field[] fields = fromClass.getDeclaredFields();
+            for (Field f : fields) {
+                if (expectedName.equals(f.getName()) && f.getType() == type) {
+                    found = f;
+                    break;
+                }
+            }
+            // And if not, if there is just one field with the type, that field
+            if (found == null) {
+                for (Field f : fields) {
+                    if (f.getType() == type) {
+                        // If more than one, can't choose
+                        if (found != null) return null;
+                        found = f;
+                    }
+                }
+            }
+            if (found != null) { // it's non-public, need to force accessible
+                try {
+                    found.setAccessible(true);
+                } catch (Throwable t) {
+                }
+            }
+            return found;
+        }
+
+        @SuppressWarnings("unchecked")
+        public Class<? extends Enum<?>> enumTypeFor(EnumSet<?> set) {
+            if (enumSetTypeField != null) {
+                return (Class<? extends Enum<?>>) get(set, enumSetTypeField);
+            }
+            throw new IllegalStateException("Can not figure out type for EnumSet (odd JDK platform?)");
+        }
+
+        @SuppressWarnings("unchecked")
+        public Class<? extends Enum<?>> enumTypeFor(EnumMap<?, ?> set) {
+            if (enumMapTypeField != null) {
+                return (Class<? extends Enum<?>>) get(set, enumMapTypeField);
+            }
+            throw new IllegalStateException("Can not figure out type for EnumMap (odd JDK platform?)");
+        }
+
+        private Object get(Object instance, Field field) {
+            try {
+                return field.get(instance);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
     }
 }

@@ -7,8 +7,7 @@ package org.codehaus.jackson.map;
  * to other contained types; for example, bean deserializers use this
  * to eagerly find deserializers for contained field types.
  */
-public interface ResolvableDeserializer
-{
+public interface ResolvableDeserializer {
     /**
      * Method called after {@link DeserializerProvider} has registered
      * the deserializer, but before it has returned it to the caller.
@@ -16,8 +15,8 @@ public interface ResolvableDeserializer
      * including self-references (direct or indirect).
      *
      * @param provider Provider that has constructed deserializer this method
-     *   is called on.
+     *                 is called on.
      */
     public abstract void resolve(DeserializationConfig config, DeserializerProvider provider)
-        throws JsonMappingException;
+            throws JsonMappingException;
 }

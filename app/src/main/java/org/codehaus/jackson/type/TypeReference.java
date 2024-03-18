@@ -15,21 +15,19 @@ import java.lang.reflect.Type;
  * (any such generic interface would do, as long as it forces a method
  * with generic type to be implemented).
  * to ensure that a Type argument is indeed given.
- *<p>
+ * <p>
  * Usage is by sub-classing: here is one way to instantiate reference
  * to generic type <code>List&lt;Integer></code>:
- *<pre>
+ * <pre>
  *  TypeReference ref = new TypeReference&lt;List&lt;Integer>>() { };
- *</pre>
+ * </pre>
  * which can be passed to methods that accept TypeReference.
  */
 public abstract class TypeReference<T>
-    implements Comparable<TypeReference<T>>
-{
+        implements Comparable<TypeReference<T>> {
     final Type _type;
 
-    protected TypeReference()
-    {
+    protected TypeReference() {
         Type superClass = getClass().getGenericSuperclass();
         if (superClass instanceof Class<?>) { // sanity check, should never happen
             throw new IllegalArgumentException("Internal error: TypeReference constructed without actual type information");
@@ -44,7 +42,9 @@ public abstract class TypeReference<T>
         _type = ((ParameterizedType) superClass).getActualTypeArguments()[0];
     }
 
-    public Type getType() { return _type; }
+    public Type getType() {
+        return _type;
+    }
 
     /**
      * The only reason we define this method (and require implementation

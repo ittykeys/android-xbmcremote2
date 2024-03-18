@@ -1,6 +1,8 @@
 package org.codehaus.jackson.io;
 
-import java.io.*;
+import java.io.CharConversionException;
+import java.io.IOException;
+import java.io.InputStream;
 
 
 /**
@@ -8,8 +10,7 @@ import java.io.*;
  * decoder to use.
  */
 public final class UTF32Reader
-    extends BaseReader
-{
+        extends BaseReader {
     final boolean mBigEndian;
 
     /**
@@ -37,8 +38,7 @@ public final class UTF32Reader
 
     public UTF32Reader(IOContext ctxt,
                        InputStream in, byte[] buf, int ptr, int len,
-                       boolean isBigEndian)
-    {
+                       boolean isBigEndian) {
         super(ctxt, in, buf, ptr, len);
         mBigEndian = isBigEndian;
     }
@@ -50,9 +50,8 @@ public final class UTF32Reader
     */
 
     @Override
-	public int read(char[] cbuf, int start, int len)
-        throws IOException
-    {
+    public int read(char[] cbuf, int start, int len)
+            throws IOException {
         // Already EOF?
         if (mBuffer == null) {
             return -1;
@@ -61,7 +60,7 @@ public final class UTF32Reader
             return len;
         }
         // Let's then ensure there's enough room...
-        if (start < 0 || (start+len) > cbuf.length) {
+        if (start < 0 || (start + len) > cbuf.length) {
             reportBounds(cbuf, start, len);
         }
 
@@ -91,11 +90,11 @@ public final class UTF32Reader
             int ch;
 
             if (mBigEndian) {
-                ch = (mBuffer[ptr] << 24) | ((mBuffer[ptr+1] & 0xFF) << 16)
-                    | ((mBuffer[ptr+2] & 0xFF) << 8) | (mBuffer[ptr+3] & 0xFF);
+                ch = (mBuffer[ptr] << 24) | ((mBuffer[ptr + 1] & 0xFF) << 16)
+                        | ((mBuffer[ptr + 2] & 0xFF) << 8) | (mBuffer[ptr + 3] & 0xFF);
             } else {
-                ch = (mBuffer[ptr] & 0xFF) | ((mBuffer[ptr+1] & 0xFF) << 8)
-                    | ((mBuffer[ptr+2] & 0xFF) << 16) | (mBuffer[ptr+3] << 24);
+                ch = (mBuffer[ptr] & 0xFF) | ((mBuffer[ptr + 1] & 0xFF) << 8)
+                        | ((mBuffer[ptr + 2] & 0xFF) << 16) | (mBuffer[ptr + 3] << 24);
             }
             mPtr += 4;
 
@@ -103,8 +102,8 @@ public final class UTF32Reader
             // (also, we can and need to verify illegal chars)
             if (ch > 0xFFFF) { // need to split into surrogates?
                 if (ch > LAST_VALID_UNICODE_CHAR) {
-                    reportInvalid(ch, outPtr-start,
-                                  "(above "+Integer.toHexString(LAST_VALID_UNICODE_CHAR)+") ");
+                    reportInvalid(ch, outPtr - start,
+                            "(above " + Integer.toHexString(LAST_VALID_UNICODE_CHAR) + ") ");
                 }
                 ch -= 0x10000; // to normalize it starting with 0x0
                 cbuf[outPtr++] = (char) (0xD800 + (ch >> 10));
@@ -134,43 +133,39 @@ public final class UTF32Reader
     */
 
     private void reportUnexpectedEOF(int gotBytes, int needed)
-        throws IOException
-    {
+            throws IOException {
         int bytePos = mByteCount + gotBytes;
         int charPos = mCharCount;
 
         throw new CharConversionException("Unexpected EOF in the middle of a 4-byte UTF-32 char: got "
-                                          +gotBytes+", needed "+needed
-                                          +", at char #"+charPos+", byte #"+bytePos+")");
+                + gotBytes + ", needed " + needed
+                + ", at char #" + charPos + ", byte #" + bytePos + ")");
     }
 
     private void reportInvalid(int value, int offset, String msg)
-        throws IOException
-    {
+            throws IOException {
         int bytePos = mByteCount + mPtr - 1;
         int charPos = mCharCount + offset;
 
         throw new CharConversionException("Invalid UTF-32 character 0x"
-                                          +Integer.toHexString(value)
-                                          +msg+" at char #"+charPos+", byte #"+bytePos+")");
+                + Integer.toHexString(value)
+                + msg + " at char #" + charPos + ", byte #" + bytePos + ")");
     }
 
     /**
      * @param available Number of "unused" bytes in the input buffer
-     *
      * @return True, if enough bytes were read to allow decoding of at least
-     *   one full character; false if EOF was encountered instead.
+     * one full character; false if EOF was encountered instead.
      */
     private boolean loadMore(int available)
-        throws IOException
-    {
+            throws IOException {
         mByteCount += (mLength - available);
 
         // Bytes that need to be moved to the beginning of buffer?
         if (available > 0) {
             if (mPtr > 0) {
                 for (int i = 0; i < available; ++i) {
-                    mBuffer[i] = mBuffer[mPtr+i];
+                    mBuffer[i] = mBuffer[mPtr + i];
                 }
                 mPtr = 0;
             }

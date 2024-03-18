@@ -4,10 +4,9 @@ import java.lang.reflect.Array;
 
 /**
  * Helper class to use for constructing Object arrays by appending entries
- * to create arrays of various lengths (length that is not known a priori). 
+ * to create arrays of various lengths (length that is not known a priori).
  */
-public final class ObjectBuffer
-{
+public final class ObjectBuffer {
     // // // Config constants
 
     /**
@@ -55,7 +54,8 @@ public final class ObjectBuffer
     ////////////////////////////////////////////////////////////////////////
      */
 
-    public ObjectBuffer() { }
+    public ObjectBuffer() {
+    }
 
     /*
     ////////////////////////////////////////////////////////////////////////
@@ -67,8 +67,7 @@ public final class ObjectBuffer
      * Method called to start buffering process. Will ensure that the buffer
      * is empty, and then return an object array to start chunking content on
      */
-    public Object[] resetAndStart()
-    {
+    public Object[] resetAndStart() {
         _reset();
         if (_freeBuffer == null) {
             return new Object[INITIAL_CHUNK_SIZE];
@@ -83,15 +82,13 @@ public final class ObjectBuffer
      * buffering.
      *
      * @param fullChunk Completed chunk that the caller is requesting
-     *   to append to this buffer. It is generally chunk that was
-     *   returned by an earlier call to {@link #resetAndStart} or
-     *   {@link #appendCompletedChunk} (although this is not required or
-     *   enforced)
-     *
+     *                  to append to this buffer. It is generally chunk that was
+     *                  returned by an earlier call to {@link #resetAndStart} or
+     *                  {@link #appendCompletedChunk} (although this is not required or
+     *                  enforced)
      * @return New chunk buffer for caller to fill
      */
-    public Object[] appendCompletedChunk(Object[] fullChunk)
-    {
+    public Object[] appendCompletedChunk(Object[] fullChunk) {
         Node next = new Node(fullChunk);
         if (_bufferHead == null) { // first chunk
             _bufferHead = _bufferTail = next;
@@ -115,13 +112,12 @@ public final class ObjectBuffer
      * complete; and to construct a combined exactly-sized result
      * array. Additionally the buffer itself will be reset to
      * reduce memory retention.
-     *<p>
+     * <p>
      * Resulting array will be of generic <code>Object[]</code> type:
      * if a typed array is needed, use the method with additional
      * type argument.
      */
-    public Object[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries)
-    {
+    public Object[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries) {
         int totalSize = lastChunkEntries + _bufferedEntryCount;
         Object[] result = new Object[totalSize];
         _copyTo(result, totalSize, lastChunk, lastChunkEntries);
@@ -134,12 +130,11 @@ public final class ObjectBuffer
      * for constructing explicitly typed result array.
      *
      * @param componentType Type of elements included in the buffer. Will be
-     *   used for constructing the result array.
+     *                      used for constructing the result array.
      */
-    public <T> T[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries, Class<T> componentType)
-    {
-       int totalSize = lastChunkEntries + _bufferedEntryCount;
- 	   @SuppressWarnings("unchecked")
+    public <T> T[] completeAndClearBuffer(Object[] lastChunk, int lastChunkEntries, Class<T> componentType) {
+        int totalSize = lastChunkEntries + _bufferedEntryCount;
+        @SuppressWarnings("unchecked")
         T[] result = (T[]) Array.newInstance(componentType, totalSize);
         _copyTo(result, totalSize, lastChunk, lastChunkEntries);
         _reset();
@@ -152,8 +147,7 @@ public final class ObjectBuffer
      * instance to reuse, based on size of reusable object chunk
      * buffer holds reference to.
      */
-    public int initialCapacity()
-    {
+    public int initialCapacity() {
         return (_freeBuffer == null) ? 0 : _freeBuffer.length;
     }
 
@@ -161,7 +155,9 @@ public final class ObjectBuffer
      * Method that can be used to check how many Objects have been buffered
      * within this buffer.
      */
-    public int bufferedSize() { return _bufferedEntryCount; }
+    public int bufferedSize() {
+        return _bufferedEntryCount;
+    }
 
     /*
     ////////////////////////////////////////////////////////////////////////
@@ -169,8 +165,7 @@ public final class ObjectBuffer
     ////////////////////////////////////////////////////////////////////////
      */
 
-    protected void _reset()
-    {
+    protected void _reset() {
         // can we reuse the last (and thereby biggest) array for next time?
         if (_bufferTail != null) {
             _freeBuffer = _bufferTail.getData();
@@ -181,8 +176,7 @@ public final class ObjectBuffer
     }
 
     protected final void _copyTo(Object resultArray, int totalSize,
-                                 Object[] lastChunk, int lastChunkEntries)
-    {
+                                 Object[] lastChunk, int lastChunkEntries) {
         int ptr = 0;
 
         for (Node n = _bufferHead; n != null; n = n.next()) {
@@ -196,7 +190,7 @@ public final class ObjectBuffer
 
         // sanity check (could have failed earlier due to out-of-bounds, too)
         if (ptr != totalSize) {
-            throw new IllegalStateException("Should have gotten "+totalSize+" entries, got "+ptr);
+            throw new IllegalStateException("Should have gotten " + totalSize + " entries, got " + ptr);
         }
     }
 
@@ -209,8 +203,7 @@ public final class ObjectBuffer
     /**
      * Helper class used to store actual data, in a linked list.
      */
-    final static class Node
-    {
+    final static class Node {
         /**
          * Data stored in this node. Array is considered to be full.
          */
@@ -222,12 +215,15 @@ public final class ObjectBuffer
             _data = data;
         }
 
-        public Object[] getData() { return _data; }
+        public Object[] getData() {
+            return _data;
+        }
 
-        public Node next() { return _next; }
+        public Node next() {
+            return _next;
+        }
 
-        public void linkNext(Node next)
-        {
+        public void linkNext(Node next) {
             if (_next != null) { // sanity check
                 throw new IllegalStateException();
             }

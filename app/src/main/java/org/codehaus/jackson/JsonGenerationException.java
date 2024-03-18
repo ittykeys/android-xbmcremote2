@@ -6,22 +6,18 @@ package org.codehaus.jackson;
  * for example).
  */
 public class JsonGenerationException
-    extends JsonProcessingException
-{
+        extends JsonProcessingException {
     final static long serialVersionUID = 123; // Stupid eclipse...
-    
-    public JsonGenerationException(Throwable rootCause)
-    {
+
+    public JsonGenerationException(Throwable rootCause) {
         super(rootCause);
     }
 
-    public JsonGenerationException(String msg)
-    {
-        super(msg, (JsonLocation)null);
+    public JsonGenerationException(String msg) {
+        super(msg, (JsonLocation) null);
     }
 
-    public JsonGenerationException(String msg, Throwable rootCause)
-    {
-        super(msg, (JsonLocation)null, rootCause);
+    public JsonGenerationException(String msg, Throwable rootCause) {
+        super(msg, (JsonLocation) null, rootCause);
     }
 }

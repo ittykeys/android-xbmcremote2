@@ -1,18 +1,20 @@
 package org.codehaus.jackson.map.deser;
 
-import java.io.IOException;
-
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.type.JavaType;
+
+import java.io.IOException;
 
 /**
  * Deserializer that builds on basic {@link BeanDeserializer} but
  * override some aspects like instance construction.
  */
 public class ThrowableDeserializer
-    extends BeanDeserializer
-{
+        extends BeanDeserializer {
     final static String PROP_NAME_MESSAGE = "message";
 
     /*
@@ -21,8 +23,7 @@ public class ThrowableDeserializer
     ///////////////////////////////////////////////////////
      */
 
-    public ThrowableDeserializer(JavaType type)
-    {
+    public ThrowableDeserializer(JavaType type) {
         super(type);
     }
 
@@ -34,8 +35,7 @@ public class ThrowableDeserializer
 
     @Override
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException
-    {
+            throws IOException, JsonProcessingException {
         Object throwable = null;
         Object[] pending = null;
         int pendingIx = 0;
@@ -66,8 +66,8 @@ public class ThrowableDeserializer
                 // any pending values?
                 if (pending != null) {
                     for (int i = 0, len = pendingIx; i < len; i += 2) {
-                        prop = (SettableBeanProperty)pending[i];
-                        prop.set(throwable, pending[i+1]);
+                        prop = (SettableBeanProperty) pending[i];
+                        prop.set(throwable, pending[i + 1]);
                     }
                     pending = null;
                 }
@@ -78,7 +78,7 @@ public class ThrowableDeserializer
         }
         // Sanity check: did we find "message"?
         if (throwable == null) {
-            throw new JsonMappingException("No 'message' property found: could not deserialize "+_beanType);
+            throw new JsonMappingException("No 'message' property found: could not deserialize " + _beanType);
         }
         return throwable;
     }
