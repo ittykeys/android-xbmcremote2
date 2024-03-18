@@ -18,6 +18,10 @@ For example; fill entire screen, fix the warnings about "Might not work with you
 - Menu
 - "Now playing", listing movies, music etc; anything that fetches data From host
 
+## Quirks
+
+It will warn about an I/O Exception: Cleartext HTTP traffic to host/ip not permitted
+
 ## License
 
 This project is licensed under the GNU General Public License - see the [License file](LICENSE) file for details.

@@ -1,4 +1,4 @@
-/gen
-/bin
+.gradle
+.idea
 *.apk
 local.properties
