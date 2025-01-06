@@ -120,6 +120,13 @@ public class HomeActivity extends Activity {
             }
         });
 
+        ((Button) findViewById(R.id.home_menu_button)).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openOptionsMenu();
+            }
+        });
+
         // Listen for screen on and off broadcasts
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_OFF);

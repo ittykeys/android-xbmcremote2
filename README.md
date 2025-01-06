@@ -4,23 +4,15 @@
 
 XMBC Remote 2 is an attempt to make the
 old [XBMC Remote](https://github.com/freezy/android-xbmcremote) work with newer Android.
-For example; fill entire screen, fix the warnings about "Might not work with your device" etc.
+For example; fill entire screen, fix the warnings about "Might not work with your device", some way to trigger overflow menu etc.
 
 ## What works
 
-- App installs and launches on modern Android
-- Fills entire screen on tall devices
-- Add host
-- Remote control
+- Everything that worked in original app except https (turned off in Manifest)
 
-## What doesn't work
+## New "features"
 
-- Menu
-- "Now playing", listing movies, music etc; anything that fetches data From host
-
-## Quirks
-
-It will warn about an I/O Exception: Cleartext HTTP traffic to host/ip not permitted
+- New Menu button on bottom bar (for opening the old Android overflow menu)
 
 ## License
 
