@@ -1,5 +1,7 @@
 # XBMC Remote 2
 
+![xbmc remote 2 logo](https://cdn.ittykeys.com/xbmcremote2.png)
+
 ## Description
 
 XMBC Remote 2 is an attempt to make the
